@@ -1,0 +1,1 @@
+#define MAX_IDENT_LENGTH 32

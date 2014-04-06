@@ -202,7 +202,7 @@ int symtab_insert(symtab *symbol_table, char *symbol_name_in, int type){
 		tmp->next = new_entry;
 	}
 
-	return ST_VALID;
+	return STI_VALID;
 }
 
 struct symtab_entry *symtab_search_scope(struct symtab_scope *scope, char *symbol_name){

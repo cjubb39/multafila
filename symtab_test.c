@@ -11,10 +11,14 @@ int main(void){
 	printf("created\n");
 
 	scope *s1 = symtab_open_scope(blah, SCOPE_FUNCTION);
+	symtab_insert(blah, "jubb", INTEGER);
+	
 	symtab_open_scope(blah, SCOPE_PFOR);
 
 	symtab_insert(blah, "chae", INTEGER);
-	symtab_insert(blah, "jubb", INTEGER);
+
+	printf("chae curTB?: %d\n", symtab_declared_curr_thread_block(blah, "chae"));
+	printf("jubb curTB?: %d\n", symtab_declared_curr_thread_block(blah, "jubb"));
 
 	symtab_open_scope(blah, SCOPE_SPAWN);
 	symtab_open_scope(blah, SCOPE_WHILE);

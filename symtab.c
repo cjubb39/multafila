@@ -258,5 +258,21 @@ int symtab_lookup(symtab *symbol_table, char *symbol_name_in, scope *search_scop
  *	Returns 1 on true; 0 on false
  */
 int symtab_declared_curr_thread_block(symtab *symbol_table, char *symbol_name){
-	return 0;
+	struct symtab_scope *cur = symbol_table->cur_scope;
+	int found = 0;
+
+	while(cur != NULL){
+		if (symtab_search_scope(cur, symbol_name) != NULL){
+			found = 1;
+			break;
+		}
+
+		if (cur->type == SCOPE_PFOR || cur->type == SCOPE_SPAWN){
+			break;
+		}
+
+		cur = cur->parent;
+	}
+
+	return found;
 }

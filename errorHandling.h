@@ -17,14 +17,3 @@ inline void die(const char *message){
  	name = (typeof(name)) malloc(sizeof(*name)); \
  	if (name == NULL) die("Malloc Error. Exiting."); \
  	name;})
-
-
-
-/*inline void *malloc_checked(size_t size){
-	void *tmp = malloc(size);
-	if (tmp == NULL){
-		die("Malloc Error. Exiting.");
-	}
-
-	return tmp;
-}*/

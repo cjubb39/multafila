@@ -7,10 +7,16 @@
  */
 #define SYMTAB_SCOPE_ARRAY_SIZE 1009
 
+#include "global_config.h"
 #include "symtab.h"
 
 /*declarations for internal structs, enums, etc */
 struct symtab_entry {
+	char name[MAX_IDENT_LENGTH + 1];
+	int type;
+	/* gives us bit flags */
+	unsigned initialized	:1;
+	unsigned							:7;
 
 	struct symtab_entry *next;
 };

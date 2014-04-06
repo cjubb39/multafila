@@ -19,7 +19,7 @@ lex.yy.c: practice.l
 
 .PHONY: clean
 clean:
-	rm -f *.o *~ a.out core small-parser
+	rm -f *.o *~ a.out core small-parser lex.yy.c y.tab.c y.tab.h
 
 .PHONY: all
 all: clean default

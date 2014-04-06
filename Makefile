@@ -24,3 +24,5 @@ clean:
 .PHONY: all
 all: clean default
 
+
+symtab_test: symtab_test.c symtab.c

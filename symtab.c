@@ -4,7 +4,7 @@
 #include <assert.h>
 
 #include "global_config.h"
-#include "errorHandling.h"
+#include "error_handling.h"
 #include "symtab.h"
 #include "symtab_structs.h"
 #include "y.tab.h"

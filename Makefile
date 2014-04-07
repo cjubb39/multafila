@@ -26,3 +26,5 @@ all: clean default
 
 
 symtab_test: symtab_test.c symtab.c
+
+threadtab_test: threadtab_test.c threadtab.c

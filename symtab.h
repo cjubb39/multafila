@@ -1,12 +1,12 @@
-#ifndef SYMTAB_H
-#define SYMTAB_H value
-
-#include "global_config.h"
-
 /*
  *	Store symbol name, data type, whether initialized, scope
  *
  */
+
+#ifndef SYMTAB_H
+#define SYMTAB_H value
+
+#include "global_config.h"
 
 /* declarations for external structs, enums, etc */
 #define STI_VALID					0

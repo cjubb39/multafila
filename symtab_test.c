@@ -23,7 +23,7 @@ int main(void){
 	symtab_open_scope(blah, SCOPE_SPAWN);
 	symtab_open_scope(blah, SCOPE_WHILE);
 
-	printf("chae search result 1: %d\n", symtab_lookup(blah, "chae", NULL));
+	printf("chae search result 1: %d\n", symtab_lookup(blah, "chae", NULL) == NULL ? 0 : 1);
 
 	symtab_close_scope(blah);
 
@@ -38,15 +38,15 @@ int main(void){
 	symtab_open_scope(blah, SCOPE_IF);
 
 	symtab_close_scope(blah);
-	printf("chae search result 2: %d\n", symtab_lookup(blah, "chae", s1));
+	printf("chae search result 2: %d\n", symtab_lookup(blah, "chae", s1) == NULL ? 0 : 1);
 
 	scope *s2 = symtab_open_scope(blah, SCOPE_NORMAL);
 
 	symtab_insert(blah, "alpastor", INTEGER);
 	symtab_close_scope(blah);
 
-	printf("alpastor search result 1: %d\n", symtab_lookup(blah, "alpastor", NULL));
-	printf("alpastor search result 2: %d\n", symtab_lookup(blah, "alpastor", s2));
+	printf("alpastor search result 1: %d\n", symtab_lookup(blah, "alpastor", NULL) == NULL ? 0 : 1);
+	printf("alpastor search result 2: %d\n", symtab_lookup(blah, "alpastor", s2) == NULL ? 0 : 1);
 	
 	symtab_open_scope(blah, SCOPE_NORMAL);
 	printf("Five scopes opened\n");

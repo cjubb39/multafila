@@ -4,10 +4,7 @@
 /*
  *	Exit with error message
  */
-inline void die(const char *message){
-	perror(message);
-	exit(1);
-}
+inline void die(const char *message);
 
 /*
  *	Check malloc return value
@@ -17,3 +14,8 @@ inline void die(const char *message){
  	name = (typeof(name)) malloc(sizeof(*name)); \
  	if (name == NULL) die("Malloc Error. Exiting."); \
  	name;})
+
+/*
+ *	Check malloc return value of a string allocation
+ */
+char *malloc_checked_string(size_t size);

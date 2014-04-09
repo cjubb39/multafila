@@ -14,6 +14,7 @@
 
 typedef struct symtab_s symtab;
 typedef struct symtab_scope scope;
+typedef struct symtab_entry_s symtab_entry;
 
 typedef enum symtab_scope_type_e {
 	SCOPE_NORMAL,
@@ -54,18 +55,20 @@ scope *symtab_close_scope(symtab *symbol_table);
  *	Takes symbol name and types, as integer defined in yacc
  *	Returns STI_VALID on success, non-STI_VALID otherwise.
  */
-int symtab_insert(symtab *symbol_table, char *symbol_name, int type);
+int symtab_insert(symtab *symbol_table, char *symbol_name, ast_type type);
 
 /*
  *	Takes symbol name and returns a type, as integer defined in yacc
- *	Returns 0 on error (including not found)
+ *	Returns pointer to symtab entry; NULL on error.
  */
-int symtab_lookup(symtab *symbol_table, char *symbol_name, scope *current_scope);
+symtab_entry *symtab_lookup(symtab *symbol_table, char *symbol_name, scope *current_scope);
 
 /*
  *	Checks if symbol was declared inside the current thread block (pfor or spawn)
  *	Returns 1 on true; 0 on false
  */
 int symtab_declared_curr_thread_block(symtab *symbol_table, char *symbol_name);
+
+ast_type symtab_entry_get_type(symtab_entry *entry);
 
 #endif

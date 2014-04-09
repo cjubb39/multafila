@@ -56,7 +56,7 @@ int main(void){
 	snext2.next = NULL;
 
 	ast *stmt2 = ast_add_internal_node(NULL, &stmtcur2, AST_NODE_STATEMENT, st, cur_scope);
-	printf("EXPECTED: %p %p\n", stmt2, NULL);
+	printf("EXPECTED: %p %p\n", po, NULL);
 
 
 

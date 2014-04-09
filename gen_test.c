@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h> 
 #include <assert.h>
 
 #include "global_config.h"
@@ -9,23 +12,21 @@
 #include "ast_structs.h"
 #include "symtab_structs.h"
 
-static FILE *fp = NULL;
-
 void print_ast(ast *a);
 
 void print_header(){
-	fprintf(fp, "#include <stdio.h>\nvoid printOut(char *m){printf(\"%%s\\n\", m);}\n\n");
+	printf( "#include <stdio.h>\nvoid printOut(char *m){printf(\"%%s\\n\", m);}\n\n");
 }
 
 
 void print_ast_type(ast_type at){
 	switch(at){
 		case AST_STRING:
-			fprintf(fp, "char *");
+			printf( "char *");
 			break;
 
 		case AST_INT:
-			fprintf(fp, "int");
+			printf( "int");
 			break;
 
 		default:
@@ -36,7 +37,7 @@ void print_ast_type(ast_type at){
 
 void print_func_def(ast *a){
 	print_ast_type(symtab_entry_get_type(a->data.func_def.func_symtab));
-	fprintf(fp, " %s ( ", a->data.func_def.func_symtab->name);
+	printf( " %s ( ", a->data.func_def.func_symtab->name);
 
 	struct ast_list_s *tmp = a->data.func_def.arguments;
 	while (tmp != NULL){
@@ -44,18 +45,18 @@ void print_func_def(ast *a){
 		tmp = tmp->next;
 
 		if (tmp != NULL)
-			fprintf(fp, ", ");
+			printf( ", ");
 	}
 
-	fprintf(fp, " )\n{\n");
+	printf( " )\n{\n");
 	print_ast(a->data.func_def.body);
-	fprintf(fp, "\n}\n");
+	printf( "\n}\n");
 
 	print_ast(a->data.func_def.next_function);
 }
 
 void print_func_call(ast *a){
-	fprintf(fp, "%s( ", a->data.func_call.func_symtab->name);
+	printf( "%s( ", a->data.func_call.func_symtab->name);
 
 	struct ast_list_s *tmp = a->data.func_call.arguments;
 	while (tmp != NULL){
@@ -63,37 +64,37 @@ void print_func_call(ast *a){
 		tmp = tmp->next;
 		
 		if (tmp != NULL)
-			fprintf(fp, ", ");
+			printf( ", ");
 	}
-	fprintf(fp, " )");
+	printf( " )");
 }
 
 void print_dec(ast *a){
 	print_ast_type(a->type);
-	fprintf(fp, "  ");
+	printf( "  ");
 	print_ast(a->data.dec.var);
 }
 
 void print_bin(ast *a){
 	print_ast(a->data.bin.left);
-	fprintf(fp, " %s ", a->data.bin.op);
+	printf( " %s ", a->data.bin.op);
 	print_ast(a->data.bin.right);
 }
 
 void print_stmt(ast *a){
 	print_ast(a->data.stmt.body);
-	fprintf(fp, " ;\n");
+	printf( " ;\n");
 	print_ast(a->data.stmt.next);
 }
 
 void print_leaf(ast *a){
 	switch(a->type){
 		case AST_STRINGLITERAL:
-			fprintf(fp, "\"%s\"", a->data.string);
+			printf( "\"%s\"", a->data.string);
 			break;
 
 		default:
-			fprintf(fp, "%s", a->data.symtab_ptr->name);
+			printf( "%s", a->data.symtab_ptr->name);
 			break;
 	}
 }
@@ -135,10 +136,43 @@ void print_ast(ast *a){
 }
 
 void gen_test(ast *a){
-	fp = fopen("out.c", "w");
-	print_header();
+	
+	pid_t pid = fork();
 
-	print_ast(a);
+	if (pid == 0) {
 
-	fclose(fp);
+		int pipeFileDescriptors[2];
+
+		pipe(pipeFileDescriptors);
+
+		if (fork() == 0){
+
+			close(pipeFileDescriptors[1]);
+
+			if (dup2(pipeFileDescriptors[0], STDIN_FILENO) != STDIN_FILENO)
+	        die("dup2 error: ls to pipe stdout");
+
+			execlp("gcc", "gcc", "-o", "MFtest", "-xc", "-", NULL);
+		} else {
+
+
+			/* close read end of pipe */
+	    close(pipeFileDescriptors[0]);
+
+	    /* redirect to-be ls output (stdout and stderr) to pipe */
+	    if (dup2(pipeFileDescriptors[1], STDOUT_FILENO) != STDOUT_FILENO)
+	        die("dup2 error: ls to pipe stdout");
+	    if (dup2(pipeFileDescriptors[1], STDERR_FILENO) != STDERR_FILENO)
+	        die("dup2 error: ls to pipe stderr");
+	    close(pipeFileDescriptors[1]);
+
+
+			print_header();
+
+			print_ast(a);
+		}
+
+	} else {
+		waitpid(pid, NULL, 0);
+	}
 }

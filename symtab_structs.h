@@ -1,5 +1,5 @@
 #ifndef SYMTAB_STRUCTS_H
-#define SYMTAB_STRUCTS_H value
+#define SYMTAB_STRUCTS_H
 
 /*
  *	NOTE changing this value may also require changing 
@@ -9,16 +9,17 @@
 
 #include "global_config.h"
 #include "symtab.h"
+#include "ast.h"
 
 /*declarations for internal structs, enums, etc */
-struct symtab_entry {
+struct symtab_entry_s {
 	char name[MAX_IDENT_LENGTH + 1];
-	int type;
+	ast_type type;
 	/* gives us bit flags */
 	unsigned initialized	:1;
 	unsigned							:7;
 
-	struct symtab_entry *next;
+	struct symtab_entry_s *next;
 };
 
 struct symtab_scope {
@@ -26,7 +27,7 @@ struct symtab_scope {
 	struct symtab_scope *parent;
 	struct symtab_scope *sibling;
 	struct symtab_scope *child;
-	struct symtab_entry *data[SYMTAB_SCOPE_ARRAY_SIZE];
+	struct symtab_entry_s *data[SYMTAB_SCOPE_ARRAY_SIZE];
 };
 
 struct symtab_s {

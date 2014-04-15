@@ -3,7 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "global_config.h"
+#include "error_handling.h"
 #include "ast.h"
+#include "symtab.h"
 
 #define DEBUG 0
 #define MAX_MSG_LEN 50
@@ -44,26 +47,26 @@ function_list
   ;
 
 function_def
-  : type IDENTIFIER LPAREN arg_list RPAREN statement_list {
-      struct ast_list *child_list;
-      child_list->data = $4;
-      child_list->data->next = $5;
-      ast_add_internal_node ( child_list, $2 );
+  : type IDENTIFIER LPAREN arg_list RPAREN statement_list 
+    {
+      // ????
     }
-  | type IDENTIFIER LPAREN RPAREN statement_list {
-      struct ast_list *child_list;
-      child_list->data = $5;
-      ast_add_internal_node ( child_list, $2 );
+  | type IDENTIFIER LPAREN RPAREN statement_list 
+    {
+      struct ast_list children = $5;
+      ast_type t = $1;
+      symtab_insert(st, $2, t);
+      $$ = ast_add_internal_node( $2, children, AST_NODE_FUNCTION_DEF, st, cur_scope );
     }
   ;
 
 func_call
   : IDENTIFIER LPAREN param_list RPAREN
   | IDENTIFIER LPAREN RPAREN
-  | PRINT LPAREN param_list RPAREN { 
-      struct ast_list *child_list;
-      child_list->data = $3;
-      ast_add_internal_node ( child_list, $1 );
+  | PRINT LPAREN param_list RPAREN 
+    { 
+      struct ast_list children = $3;
+      $$ = ast_add_internal_node( "printOut", children, AST_NODE_FUNCTION_CALL, st, cur_scope )
     }
   | READ LPAREN RPAREN
   ;
@@ -75,7 +78,17 @@ arg_list
 
 param_list
   : IDENTIFIER
+    {
+      symtab_entry *s = symtab_lookup( st, $1, cur_scope );
+      ast_type t = s.ast_type;
+      $$ = ast_create_leaf ( $1, t, st, cur_scope );
+    }
   | param_list COMMA param_list
+    {
+      struct ast_list firstparam;
+      firstparam.data = $1;
+      firstparam.next = $3;
+    }
   | array
   | literal
   ;
@@ -87,6 +100,11 @@ statement_list
 
 statement_list_internal
   : statement statement_list_internal
+    {
+      struct ast_list firststmt;
+      firststmt.data = $1;
+      firststmt.next = $3;
+    }
   | statement
   ;
 
@@ -103,10 +121,9 @@ statement
 
 return_statement
  : RETURN IDENTIFIER
- | RETURN literal { 
-      struct ast_list* child_list;
-      child_list->data = $2;
-      $$ = ast_add_internal_node( child_list, $1 ) 
+ | RETURN literal 
+    { 
+      
     }
  ;
 
@@ -153,20 +170,31 @@ barrier_statement
 
 declaration
   : type IDENTIFIER 
+    { 
+      symtab_insert(st, $2, $1);
+      $$ = ast_create_leaf( $2, $1, st, cur_scope );
+    }
   | type array
   ;
 
 assignment
-  : lvalue assignop rvalue { 
-      struct ast_list *child_list;
-      child_list->data = $1;
-      child_list->next->data = $3;
-      $$ = ast_add_internal_node( child_list, $2 ) ;
+  : lvalue assignop rvalue 
+    { 
+      struct ast_list lh, rh;
+      lh.data = $1;
+      lh.next = &rh;
+      rh.data = $3;
+      rh.next = NULL;
+      $$ = ast_add_internal_node( '=', &lh, AST_NODE_BINARY, st, cur_scope ) ;
     }
   ;
 
 lvalue
-  : type IDENTIFIER  { $$ = ast_create_leaf( $2, $1 ); }
+  : type IDENTIFIER  
+    { 
+      symtab_insert( st, $2, $1 );
+      $$ = ast_create_leaf( $2, $1, st, cur_scope );
+    }
   | IDENTIFIER
   | type array
   ;
@@ -247,11 +275,17 @@ literal
   | number
   | TRUE
   | FALSE
-  | STRINGLITERAL { $$ = ast_create_leaf( $1, "STRINGLITERAL" ); }
+  | STRINGLITERAL 
+    { 
+      $$ = ast_create_leaf( $1, AST_STRINGLITERAL, st, cur_scope ); 
+    }
   ;
 
 number
-  : INTEGER ( $$ = ast_create_leaf ( $1, "INTEGERLITERAL" ); )
+  : INTEGER
+    {
+      $$ = ast_create_leaf ( $1, AST_INTEGERLITERAL, st, cur_scope ); )
+    }
   | FLOAT
   ;
 
@@ -278,39 +312,17 @@ type
 
 int main( int argc,char *argv[] )
 {
-   strcpy(errmsg,"type error\n");
-   int i;
-   if(argc < 2) {
-      printf("Usage: ./cfc <source filename>\n");
-      exit(0);
-   }
-   FILE *fp = fopen(argv[1],"r");
-   if(!fp) {
-     printf("Unable to open file for reading\n");
-     exit(0);
-   }
-   yyin = fp;
+  symtab *st = symtab_init();
 
-   fp = fopen("dump.symtab","w");
-   if(!fp) {
-     printf("Unable to open file for writing\n");
-     exit(0);
-   }
+  /* pre-install printOut */
+  symtab_insert( st, "printOut", AST_STRING);
 
-   int flag = yyparse();
+  scope *cur_scope = symtab_open_scope(st, SCOPE_FUNCTION);
 
-   /* 
-   symtab_dump(fp);  
-   lineno--; 
-   printf("\nsemantic error cnt: %d \tlines of code: %d\n",errcnt,lineno);
-   */
 
-   /* cleanup */
-   fclose(fp);
-   fclose(yyin);
-
-   return flag;
 }
+
+
 
 
 yywrap()

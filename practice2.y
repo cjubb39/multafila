@@ -21,6 +21,8 @@ extern int yyparse();
 extern int lineno;
 int yydebug = 1;
 int t;
+symtab *st = symtab_init();
+
 
 %}
 
@@ -49,11 +51,12 @@ function_list
 function_def
   : type IDENTIFIER LPAREN arg_list RPAREN statement_list 
     {
-      // ????
+
     }
   | type IDENTIFIER LPAREN RPAREN statement_list 
     {
-      struct ast_list children = $5;
+      struct ast_list children;
+      children.data = $5;
       ast_type t = $1;
       symtab_insert(st, $2, t);
       $$ = ast_add_internal_node( $2, children, AST_NODE_FUNCTION_DEF, st, cur_scope );
@@ -103,7 +106,7 @@ statement_list_internal
     {
       struct ast_list firststmt;
       firststmt.data = $1;
-      firststmt.next = $3;
+      firststmt.next = $2;
     }
   | statement
   ;
@@ -310,7 +313,7 @@ type
 %%
 
 
-int main( int argc,char *argv[] )
+int main( int argc, char *argv[] )
 {
   symtab *st = symtab_init();
 

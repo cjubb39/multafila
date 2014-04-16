@@ -1,0 +1,8 @@
+/* assignment 1 */
+
+int main (string[] args){
+	int i = 4;
+	int j = i * 4;
+	
+	return j;
+}

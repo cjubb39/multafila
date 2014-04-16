@@ -57,7 +57,7 @@ void symtab_destroy_helper(struct symtab_scope *scope){
 	for (i = 0; i < SYMTAB_SCOPE_ARRAY_SIZE; ++i){
 
 		/* free linked list at each hash bucket */
-		struct symtab_entry *old = scope->data[i], *new;
+		struct symtab_entry_s *old = scope->data[i], *new;
 		while (old != NULL){
 			new = old->next;
 			free(old);
@@ -147,8 +147,8 @@ uint16_t symtab_entry_hash(char *symbol_name){
 	return (hash % SYMTAB_SCOPE_ARRAY_SIZE);
 }
 
-struct symtab_entry *symtab_create_entry(char *symbol_name, int type){
-	struct symtab_entry *new_entry;
+struct symtab_entry_s *symtab_create_entry(char *symbol_name, ast_type type){
+	struct symtab_entry_s *new_entry;
 	malloc_checked(new_entry);
 
 	/* set up defaults */
@@ -163,7 +163,7 @@ struct symtab_entry *symtab_create_entry(char *symbol_name, int type){
  *	Takes symbol name and types, as integer defined in yacc
  *	Returns negative on error
  */
-int symtab_insert(symtab *symbol_table, char *symbol_name_in, int type){
+int symtab_insert(symtab *symbol_table, char *symbol_name_in, ast_type type){
 	assert(symbol_name_in != NULL);
 	assert(*symbol_name_in != '\0');
 	assert(symbol_table != NULL);
@@ -175,15 +175,15 @@ int symtab_insert(symtab *symbol_table, char *symbol_name_in, int type){
 	symbol_name[MAX_IDENT_LENGTH] = '\0';
 
 	struct symtab_scope *cur_scope = symbol_table->cur_scope;
-	struct symtab_entry **add_point = &cur_scope->data[symtab_entry_hash(symbol_name)];
-	struct symtab_entry *new_entry = symtab_create_entry(symbol_name, type);
+	struct symtab_entry_s **add_point = &cur_scope->data[symtab_entry_hash(symbol_name)];
+	struct symtab_entry_s *new_entry = symtab_create_entry(symbol_name, type);
 
 	if (*add_point == NULL){
 		*add_point = new_entry;
 	
 	/* collision scenario */
 	} else {
-		struct symtab_entry *tmp = *add_point;
+		struct symtab_entry_s *tmp = *add_point;
 		while(1){
 
 			/* make sure clash isn't with symbol of same name */
@@ -205,8 +205,8 @@ int symtab_insert(symtab *symbol_table, char *symbol_name_in, int type){
 	return STI_VALID;
 }
 
-struct symtab_entry *symtab_search_scope(struct symtab_scope *scope, char *symbol_name){
-	struct symtab_entry *cur = scope->data[symtab_entry_hash(symbol_name)];
+struct symtab_entry_s *symtab_search_scope(struct symtab_scope *scope, char *symbol_name){
+	struct symtab_entry_s *cur = scope->data[symtab_entry_hash(symbol_name)];
 
 	while(cur != NULL && strncmp(cur->name, symbol_name, MAX_IDENT_LENGTH) != 0){
 		cur = cur->next;
@@ -223,7 +223,7 @@ struct symtab_entry *symtab_search_scope(struct symtab_scope *scope, char *symbo
  *	Takes symbol name and returns a type, as integer defined in yacc
  *	Returns 0 on error (including not found)
  */
-int symtab_lookup(symtab *symbol_table, char *symbol_name_in, scope *search_scope){
+symtab_entry *symtab_lookup(symtab *symbol_table, char *symbol_name_in, scope *search_scope){
 	assert(symbol_name_in != NULL);
 	assert(symbol_table != NULL);
 	assert(symbol_table != NULL);
@@ -236,7 +236,7 @@ int symtab_lookup(symtab *symbol_table, char *symbol_name_in, scope *search_scop
 	if(search_scope == NULL)
 		search_scope = symbol_table->cur_scope;
 	
-	struct symtab_entry *result;
+	struct symtab_entry_s *result;
 
 	while(search_scope != NULL){
 		result = symtab_search_scope(search_scope, symbol_name);
@@ -247,10 +247,10 @@ int symtab_lookup(symtab *symbol_table, char *symbol_name_in, scope *search_scop
 	}
 
 	if (search_scope == NULL){
-		return 0;
+		return NULL;
 	}
 
-	return result->type;
+	return result;
 }
 
 /*
@@ -275,4 +275,9 @@ int symtab_declared_curr_thread_block(symtab *symbol_table, char *symbol_name){
 	}
 
 	return found;
+}
+
+
+ast_type symtab_entry_get_type(symtab_entry *entry){
+	return entry->type;
 }

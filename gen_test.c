@@ -12,6 +12,9 @@
 #include "ast_structs.h"
 #include "symtab_structs.h"
 
+/* comment to send straight to gcc (./MFtest); uncomment to stdout */
+#define PRINT_TO_STDOUT
+
 void print_ast(ast *a);
 
 void print_header(){
@@ -159,7 +162,16 @@ void gen_test(ast *a){
 			if (dup2(pipeFileDescriptors[0], STDIN_FILENO) != STDIN_FILENO)
 	        die("dup2 error: ls to pipe stdout");
 
+#ifdef PRINT_TO_STDOUT
+			char buffer[1024]; int n;
+      while ((n = read(pipeFileDescriptors[0], buffer, sizeof buffer - 1)) != 0){
+          buffer[n] = '\0';
+        printf("%s", buffer);
+      }
+#else
 			execlp("gcc", "gcc", "-o", "MFtest", "-xc", "-", NULL);
+#endif
+
 		} else {
 
 

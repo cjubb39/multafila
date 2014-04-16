@@ -35,6 +35,11 @@ void print_ast_type(ast_type at){
 }
 
 
+void print_func_list(ast *a){
+	print_ast(a->data.func_list.cur_func);
+	print_ast(a->data.func_list.next_func);
+}
+
 void print_func_def(ast *a){
 	print_ast_type(symtab_entry_get_type(a->data.func_def.func_symtab));
 	printf( " %s ( ", a->data.func_def.func_symtab->name);
@@ -51,8 +56,6 @@ void print_func_def(ast *a){
 	printf( " )\n{\n");
 	print_ast(a->data.func_def.body);
 	printf( "\n}\n");
-
-	print_ast(a->data.func_def.next_function);
 }
 
 void print_func_call(ast *a){
@@ -105,6 +108,10 @@ void print_ast(ast *a){
 	}
 
 	switch(ast_get_node_type(a)){
+		case AST_NODE_FUNCTION_LIST:
+			print_func_list(a);
+			break;
+
 		case AST_NODE_FUNCTION_DEF:
 			print_func_def(a);
 			break;

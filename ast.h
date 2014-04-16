@@ -10,6 +10,7 @@
 #include "symtab.h"
 
 typedef enum {
+	AST_NODE_FUNCTION_LIST,
 	AST_NODE_FUNCTION_DEF,
 	AST_NODE_FUNCTION_CALL,
 	AST_NODE_DECLARATION,
@@ -34,6 +35,7 @@ typedef struct ast_s {
 
 
 		/* internal nodes */
+		struct ast_function_list_node func_list;
 		struct ast_function_def_node func_def;
 		struct ast_function_call_node func_call;
 		struct ast_declaration_node dec;

@@ -79,12 +79,16 @@ ast **ast_create_node_dec(ast **a, ast_list *children){
 	return a;
 }
 
+ast **ast_create_node_func_list(ast **a, ast_list *children){
+	(*a)->data.func_list.cur_func = children->data;
+	(*a)->data.func_list.next_func = children->next->data;
+
+	return a;
+}
+
 ast **ast_create_node_func_def(ast **a, ast_list *children, char *name,
 		symtab *symbol_table, scope *cur_scope){
 	/* set next function, body, and arguments accoring to convention */
-	(*a)->data.func_def.next_function = children->data;
-	children = children->next;
-
 	(*a)->data.func_def.body = children->data;
 	children = children->next;
 
@@ -131,16 +135,16 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
  *	AST_NODE_FUNCTION_DEF:	name of function being called
  *	AST_NODE_STATEMENT:			IGNORED
  *	AST_NODE_FUNCTION_CALL:	name of function being called
- *	
+ *	AST_NODE_FUNCTION_LIST:	IGNORED
  *	
  *	
  *	CHILDREN:
  *	AST_NODE_DECLARATION: 	variable being declared
  *	AST_NODE_BINARY:				left, right
- *	AST_NODE_FUNCTION_DEF:	next_function, body, arguments
+ *	AST_NODE_FUNCTION_DEF:	body, arguments
  *	AST_NODE_STATEMENT			body, next
  *	AST_NODE_FUNCTION_CALL:	arguments
- *	
+ *	AST_NODE_FUNCTION_LIST:	current func, next func
  *	
  *	Returns NULL on error
  */
@@ -178,6 +182,10 @@ ast *ast_add_internal_node (void *value, ast_list *children, ast_node_type type,
 			ast_create_node_stmt(&new_node, children);
 			break;
 
+		case AST_NODE_FUNCTION_LIST:
+			ast_create_node_func_list(&new_node, children);
+			break;
+
 		default:
 			break;
 	}
@@ -197,7 +205,6 @@ void ast_destroy_helper_ast_list(ast_list *list){
 	}
 }
 void ast_destroy_helper_func_def(struct ast_s *tree){
-	ast_destroy_helper(tree->data.func_def.next_function);
 	ast_destroy_helper(tree->data.func_def.body);
 
 	ast_destroy_helper_ast_list(tree->data.func_def.arguments);
@@ -234,6 +241,11 @@ void ast_destroy_helper(struct ast_s *tree){
 		case AST_NODE_STATEMENT:
 			ast_destroy_helper(tree->data.stmt.body);
 			ast_destroy_helper(tree->data.stmt.next);
+			break;
+
+		case AST_NODE_FUNCTION_LIST:
+			ast_destroy_helper(tree->data.func_list.cur_func);
+			ast_destroy_helper(tree->data.func_list.next_func);
 			break;
 
 		default:

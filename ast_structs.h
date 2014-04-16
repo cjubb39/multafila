@@ -4,9 +4,13 @@
 #include "global_config.h"
 #include "symtab.h"
 
+struct ast_function_list_node{
+	struct ast_s *cur_func;
+	struct ast_s *next_func;
+};
+
 struct ast_function_def_node {
 	symtab_entry *func_symtab;
-	struct ast_s *next_function;
 	struct ast_s *body;
 	struct ast_list_s *arguments;
 };

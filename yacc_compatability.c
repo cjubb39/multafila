@@ -28,7 +28,7 @@ ast_type type_yacc2enum(int type){
 			break;
 
 		case STRING:
-			ret = STRING;
+			ret = AST_STRING;
 			break;
 
 		default:

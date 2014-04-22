@@ -1,7 +1,7 @@
 int checkPrime(int i) {
 	int hello = 1;
 }
-int main (*string argv, int argc) {
+int main (string argv, int argc) {
 	int count = 0;
 
 	int threads[5];

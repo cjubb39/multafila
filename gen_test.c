@@ -12,6 +12,9 @@
 #include "ast_structs.h"
 #include "symtab_structs.h"
 
+/* comment to send straight to gcc (./MFtest); uncomment to stdout */
+#define PRINT_TO_STDOUT
+
 void print_ast(ast *a);
 
 void print_header(){
@@ -35,6 +38,11 @@ void print_ast_type(ast_type at){
 }
 
 
+void print_func_list(ast *a){
+	print_ast(a->data.func_list.cur_func);
+	print_ast(a->data.func_list.next_func);
+}
+
 void print_func_def(ast *a){
 	print_ast_type(symtab_entry_get_type(a->data.func_def.func_symtab));
 	printf( " %s ( ", a->data.func_def.func_symtab->name);
@@ -51,8 +59,6 @@ void print_func_def(ast *a){
 	printf( " )\n{\n");
 	print_ast(a->data.func_def.body);
 	printf( "\n}\n");
-
-	print_ast(a->data.func_def.next_function);
 }
 
 void print_func_call(ast *a){
@@ -105,6 +111,10 @@ void print_ast(ast *a){
 	}
 
 	switch(ast_get_node_type(a)){
+		case AST_NODE_FUNCTION_LIST:
+			print_func_list(a);
+			break;
+
 		case AST_NODE_FUNCTION_DEF:
 			print_func_def(a);
 			break;
@@ -152,7 +162,16 @@ void gen_test(ast *a){
 			if (dup2(pipeFileDescriptors[0], STDIN_FILENO) != STDIN_FILENO)
 	        die("dup2 error: ls to pipe stdout");
 
+#ifdef PRINT_TO_STDOUT
+			char buffer[1024]; int n;
+      while ((n = read(pipeFileDescriptors[0], buffer, sizeof buffer - 1)) != 0){
+          buffer[n] = '\0';
+        printf("%s", buffer);
+      }
+#else
 			execlp("gcc", "gcc", "-o", "MFtest", "-xc", "-", NULL);
+#endif
+
 		} else {
 
 

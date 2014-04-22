@@ -58,10 +58,13 @@ function_def
   | type IDENTIFIER LPAREN RPAREN statement_list 
     {
       ast_list children;
-      children.data = $5;
+      children.data = (ast *) $5;
       ast_type t = (int) $1;
       symtab_insert(st, $2, t);
       $$ = ast_add_internal_node( $2, &children, AST_NODE_FUNCTION_DEF, st, cur_scope );
+
+      ast *root = $$;
+      printTree( root );
 
     }
   ;
@@ -72,7 +75,7 @@ func_call
   | PRINT LPAREN param_list RPAREN 
     { 
       ast_list children;
-      children.data = $3;
+      children.data = (ast *) $3;
       $$ = ast_add_internal_node( "printOut", &children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
   | READ LPAREN RPAREN
@@ -130,7 +133,9 @@ return_statement
  : RETURN IDENTIFIER
  | RETURN literal 
     { 
-      
+      ast_list children;
+      children.data = (ast *) $2;
+      $$ = ast_add_internal_node( "return", &children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
  ;
 
@@ -182,7 +187,7 @@ declaration
       $$ = ast_create_leaf( $2, (int) $1, st, cur_scope );
     }
   | type array
-  ;
+  ; 
 
 assignment
   : lvalue assignop rvalue 
@@ -197,7 +202,7 @@ assignment
     }
   ;
 
-lvalue
+lvalue 
   : type IDENTIFIER  
     { 
       symtab_insert( st, $2, (int) $1 );
@@ -247,7 +252,7 @@ unary_math
   ;
 
 assignop
-  : ASSIGN { $$ = '='; }
+  : ASSIGN { $$ = "="; }
   | PLUSASSIGN
   | MINUSASSIGN
   ;
@@ -327,7 +332,6 @@ int main( int argc, char *argv[] )
   cur_scope = symtab_open_scope(st, SCOPE_FUNCTION);
 
   strcpy(errmsg,"type error\n");
-  int i;
 
   if (argc < 2) {
     printf("Usage: ./small-parser <source filename>\n");
@@ -350,6 +354,8 @@ int main( int argc, char *argv[] )
 
   int flag = yyparse();
 
+  printf(" END OF PARSER\n");
+
   fclose(fp);
   fclose(yyin);
 
@@ -357,8 +363,11 @@ int main( int argc, char *argv[] )
 
 }
 
+void printTree( ast *root )
+{
+   
 
-
+}
 
 yywrap()
 {

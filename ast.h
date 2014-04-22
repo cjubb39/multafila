@@ -61,7 +61,7 @@ ast *ast_create_leaf (char *value, ast_type type, symtab*, scope* cur_scope);
  *	Action will be specified by value of type argument
  *	Returns NULL on error
  */
-ast *ast_add_internal_node (void *value, ast_list *children, ast_node_type type, symtab *, scope* cur_scope);
+ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type, symtab *, scope* cur_scope);
 
 /*
  *	Return ast_type of node

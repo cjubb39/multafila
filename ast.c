@@ -66,7 +66,7 @@ ast **ast_create_node_binary(ast **a, char *value, ast_list *children){
 	(*a)->data.bin.left = children->data;
 	(*a)->data.bin.right = children->next->data;
 
-	printf("internal binary node with %p %s %p operator\n", 
+	printf("\n\ninternal binary node with %p %s %p operator\n\n", 
 		(*a)->data.bin.left, value, (*a)->data.bin.right);
 
 	return a;
@@ -95,6 +95,7 @@ ast **ast_create_node_func_def(ast **a, ast_list *children, char *name,
 	/* and the type */
 	(*a)->type = symtab_entry_get_type(tmp);
 	(*a)->data.func_def.func_symtab = tmp;
+	printf("\n\ncreated func def node with child \n\n");
 
 	return a;
 }
@@ -105,7 +106,8 @@ ast **ast_create_node_func_call(ast **a, ast_list *children, char *name,
 	(*a)->data.func_call.func_symtab = symtab_lookup(symbol_table, name, cur_scope);
 
 	(*a)->type = symtab_entry_get_type((*a)->data.func_call.func_symtab);
-
+	printf("\n\ncreated func call node with child %p\n\n",
+		(*a)->data.func_call.arguments);
 	return a;
 }
 
@@ -144,7 +146,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
  *	
  *	Returns NULL on error
  */
-ast *ast_add_internal_node (void *value, ast_list *children, ast_node_type type,
+ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 		symtab *symbol_table, scope *cur_scope){
 	assert(children != NULL);
 
@@ -158,7 +160,7 @@ ast *ast_add_internal_node (void *value, ast_list *children, ast_node_type type,
 
 	switch(type){
 		case AST_NODE_BINARY:
-			assert(strlen((char *) value) < 3);
+			assert(strlen(value) < 3);
 			ast_create_node_binary(&new_node, value, children);
 			break;
 		

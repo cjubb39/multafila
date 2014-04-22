@@ -18,7 +18,6 @@ typedef enum {
 	AST_NODE_LEAF
 } ast_node_type;
 
-
 typedef struct ast_s {
 	ast_type type; /* type of the value of the node */
 	ast_node_type node_type; /* kind of node */

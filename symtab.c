@@ -165,7 +165,7 @@ struct symtab_entry_s *symtab_create_entry(char *symbol_name, ast_type type){
  */
 int symtab_insert(symtab *symbol_table, char *symbol_name_in, ast_type type){
 	assert(symbol_name_in != NULL);
-	assert(*symbol_name_in != '\0');
+	//assert(*symbol_name_in != '\0');
 	assert(symbol_table != NULL);
 	assert(symbol_table->cur_scope != NULL);
 

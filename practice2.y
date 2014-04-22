@@ -1,5 +1,7 @@
 %{
 
+#define YYSTYPE char *
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,8 +23,8 @@ extern int yyparse();
 extern int lineno;
 int yydebug = 1;
 int t;
-symtab *st = symtab_init();
-
+symtab *st;
+scope *cur_scope;
 
 %}
 
@@ -55,11 +57,12 @@ function_def
     }
   | type IDENTIFIER LPAREN RPAREN statement_list 
     {
-      struct ast_list children;
+      ast_list children;
       children.data = $5;
-      ast_type t = $1;
+      ast_type t = (int) $1;
       symtab_insert(st, $2, t);
-      $$ = ast_add_internal_node( $2, children, AST_NODE_FUNCTION_DEF, st, cur_scope );
+      $$ = ast_add_internal_node( $2, &children, AST_NODE_FUNCTION_DEF, st, cur_scope );
+
     }
   ;
 
@@ -68,8 +71,9 @@ func_call
   | IDENTIFIER LPAREN RPAREN
   | PRINT LPAREN param_list RPAREN 
     { 
-      struct ast_list children = $3;
-      $$ = ast_add_internal_node( "printOut", children, AST_NODE_FUNCTION_CALL, st, cur_scope )
+      ast_list children;
+      children.data = $3;
+      $$ = ast_add_internal_node( "printOut", &children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
   | READ LPAREN RPAREN
   ;
@@ -83,12 +87,12 @@ param_list
   : IDENTIFIER
     {
       symtab_entry *s = symtab_lookup( st, $1, cur_scope );
-      ast_type t = s.ast_type;
+      ast_type t = symtab_entry_get_type(s);
       $$ = ast_create_leaf ( $1, t, st, cur_scope );
     }
   | param_list COMMA param_list
     {
-      struct ast_list firstparam;
+      ast_list firstparam;
       firstparam.data = $1;
       firstparam.next = $3;
     }
@@ -104,7 +108,7 @@ statement_list
 statement_list_internal
   : statement statement_list_internal
     {
-      struct ast_list firststmt;
+      ast_list firststmt;
       firststmt.data = $1;
       firststmt.next = $2;
     }
@@ -174,8 +178,8 @@ barrier_statement
 declaration
   : type IDENTIFIER 
     { 
-      symtab_insert(st, $2, $1);
-      $$ = ast_create_leaf( $2, $1, st, cur_scope );
+      symtab_insert(st, $2, (int) $1);
+      $$ = ast_create_leaf( $2, (int) $1, st, cur_scope );
     }
   | type array
   ;
@@ -183,20 +187,22 @@ declaration
 assignment
   : lvalue assignop rvalue 
     { 
-      struct ast_list lh, rh;
+      ast_list lh;
+      ast_list rh;
       lh.data = $1;
       lh.next = &rh;
       rh.data = $3;
       rh.next = NULL;
-      $$ = ast_add_internal_node( '=', &lh, AST_NODE_BINARY, st, cur_scope ) ;
+      $$ = ast_add_internal_node( $2, &lh, AST_NODE_BINARY, st, cur_scope ) ;
     }
   ;
 
 lvalue
   : type IDENTIFIER  
     { 
-      symtab_insert( st, $2, $1 );
-      $$ = ast_create_leaf( $2, $1, st, cur_scope );
+      symtab_insert( st, $2, (int) $1 );
+      $$ = ast_create_leaf( $2, (int) $1, st, cur_scope );
+      free($2);
     }
   | IDENTIFIER
   | type array
@@ -241,7 +247,7 @@ unary_math
   ;
 
 assignop
-  : ASSIGN
+  : ASSIGN { $$ = '='; }
   | PLUSASSIGN
   | MINUSASSIGN
   ;
@@ -281,14 +287,12 @@ literal
   | STRINGLITERAL 
     { 
       $$ = ast_create_leaf( $1, AST_STRINGLITERAL, st, cur_scope ); 
+      free($1);
     }
   ;
 
 number
   : INTEGER
-    {
-      $$ = ast_create_leaf ( $1, AST_INTEGERLITERAL, st, cur_scope ); )
-    }
   | FLOAT
   ;
 
@@ -300,11 +304,11 @@ array
   ;
 
 type
-  : INT
+  : INT { $$ = AST_INT; }
   | DOUBLE 
   | CHAR
   | BOOLEAN
-  | STRING
+  | STRING { $$ = AST_STRING; }
   | THREAD
   ;
 
@@ -315,13 +319,41 @@ type
 
 int main( int argc, char *argv[] )
 {
-  symtab *st = symtab_init();
+  st = symtab_init();
 
   /* pre-install printOut */
   symtab_insert( st, "printOut", AST_STRING);
 
-  scope *cur_scope = symtab_open_scope(st, SCOPE_FUNCTION);
+  cur_scope = symtab_open_scope(st, SCOPE_FUNCTION);
 
+  strcpy(errmsg,"type error\n");
+  int i;
+
+  if (argc < 2) {
+    printf("Usage: ./small-parser <source filename>\n");
+    exit(0);
+  }
+
+  FILE *fp = fopen(argv[1],"r");
+  if (!fp) {
+    printf("Unable to open file for reading\n");
+    exit(0);
+  }
+
+  yyin = fp;
+
+  fp = fopen("dump.symtab","w");
+  if (!fp) {
+    printf("Unable to open file for writing\n");
+    exit(0);
+  }
+
+  int flag = yyparse();
+
+  fclose(fp);
+  fclose(yyin);
+
+  return flag;
 
 }
 
@@ -334,6 +366,7 @@ yywrap()
 }
 
 int yyerror(char * msg)
-{ fprintf(stderr,"%s \n",msg);
+{ 
+  fprintf(stderr,"%s \n",msg);
   return 0;
 }

@@ -11,7 +11,7 @@ default: small-parser
 
 # header dependency
 small-parser: y.tab.c lex.yy.c
-	$(CC) $(CFLAGS) y.tab.c lex.yy.c -ll -o small-parser
+	$(CC) $(CFLAGS) ast.c symtab.c error_handling.c y.tab.c lex.yy.c -ll -o small-parser
 y.tab.c: practice2.y
 	yacc -d practice2.y
 lex.yy.c: practice2.l

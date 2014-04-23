@@ -9,10 +9,12 @@
 #include "error_handling.h"
 #include "ast.h"
 #include "symtab.h"
+#include "gen_test.h"
+#include "yacc_compatability.h"
 
 #define DEBUG 0
 #define MAX_MSG_LEN 50
-#define YYDEBUG 1
+#define YYDEBUG 0
 
 int errcnt = 0;
 char errmsg[40];
@@ -31,7 +33,7 @@ scope *cur_scope;
 %token INT DOUBLE THREAD VOID CHAR BOOLEAN STRING
 %token INTEGER FLOAT CHARLITERAL STRINGLITERAL
 %token IDENTIFIER 
-%token BARRIER SPAWN WHILE FOR PFOR IF ELSE LOCK TRUE FALSE RETURN PRINT READ
+%token BARRIER SPAWN WHILE FOR PFOR IF ELSE LOCK TRUE FALSE RETURN
 %token LBRACE RBRACE LBRACK RBRACK LPAREN RPAREN SEMI COMMA 
 %right ASSIGN PLUSASSIGN MINUSASSIGN
 %left AND OR
@@ -41,13 +43,32 @@ scope *cur_scope;
 %left TIMES OVER MOD
 %right INC DEC
 
-%start function_list
+%start start_point
 
 %%
 
+start_point
+  : function_list
+    {
+      ast *root = (ast *) $1;
+      gen_test( root );
+    }
+  ;
+
 function_list
   : function_def function_list 
+    {
+      ast_list current_function, next_function;
+      current_function.data = (ast *) $1;
+      current_function.next = &next_function;
+      next_function.data = (ast *) $2;
+      next_function.next = NULL;
+      $$ = ast_add_internal_node( NULL, &current_function, AST_NODE_FUNCTION_LIST, st, cur_scope );
+    }
   | function_def
+    {
+      $$ = $1;
+    }
   ;
 
 function_def
@@ -59,26 +80,21 @@ function_def
     {
       ast_list children;
       children.data = (ast *) $5;
-      ast_type t = (int) $1;
+      ast_type t = type_yacc2enum( $1 );
       symtab_insert(st, $2, t);
       $$ = ast_add_internal_node( $2, &children, AST_NODE_FUNCTION_DEF, st, cur_scope );
-
-      ast *root = $$;
-      printTree( root );
 
     }
   ;
 
 func_call
   : IDENTIFIER LPAREN param_list RPAREN
-  | IDENTIFIER LPAREN RPAREN
-  | PRINT LPAREN param_list RPAREN 
     { 
       ast_list children;
       children.data = (ast *) $3;
-      $$ = ast_add_internal_node( "printOut", &children, AST_NODE_FUNCTION_CALL, st, cur_scope );
+      $$ = ast_add_internal_node( $1, &children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
-  | READ LPAREN RPAREN
+  | IDENTIFIER LPAREN RPAREN
   ;
 
 arg_list
@@ -96,8 +112,9 @@ param_list
   | param_list COMMA param_list
     {
       ast_list firstparam;
-      firstparam.data = $1;
-      firstparam.next = $3;
+      firstparam.data = (ast *) $1;
+      firstparam.next = (ast *) $3;
+      $$ = &firstparam;
     }
   | array
   | literal
@@ -112,8 +129,9 @@ statement_list_internal
   : statement statement_list_internal
     {
       ast_list firststmt;
-      firststmt.data = $1;
-      firststmt.next = $2;
+      firststmt.data = (ast *) $1;
+      firststmt.next = (ast *) $2;
+      $$ = &firststmt;
     }
   | statement
   ;
@@ -182,10 +200,6 @@ barrier_statement
 
 declaration
   : type IDENTIFIER 
-    { 
-      symtab_insert(st, $2, (int) $1);
-      $$ = ast_create_leaf( $2, (int) $1, st, cur_scope );
-    }
   | type array
   ; 
 
@@ -194,9 +208,9 @@ assignment
     { 
       ast_list lh;
       ast_list rh;
-      lh.data = $1;
+      lh.data = (ast *) $1;
       lh.next = &rh;
-      rh.data = $3;
+      rh.data = (ast *) $3;
       rh.next = NULL;
       $$ = ast_add_internal_node( $2, &lh, AST_NODE_BINARY, st, cur_scope ) ;
     }
@@ -205,8 +219,9 @@ assignment
 lvalue 
   : type IDENTIFIER  
     { 
-      symtab_insert( st, $2, (int) $1 );
-      $$ = ast_create_leaf( $2, (int) $1, st, cur_scope );
+      ast_type t = type_yacc2enum( (int) $1 );
+      symtab_insert( st, $2, t );
+      $$ = ast_create_leaf( $2, t, st, cur_scope );
       free($2);
     }
   | IDENTIFIER
@@ -314,7 +329,7 @@ type
   | CHAR
   | BOOLEAN
   | STRING { $$ = AST_STRING; }
-  | THREAD
+  | THREAD 
   ;
 
 

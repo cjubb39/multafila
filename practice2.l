@@ -39,8 +39,6 @@ float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 "false"			{ return FALSE; }
 "return"		{ return RETURN; }
 "lock"			{ return LOCK; }
-"printOut"		{ return PRINT; }
-"getLineIn"		{ return READ; }
 
 "int"			{ return INT; }
 "double"		{ return DOUBLE; }

@@ -147,7 +147,7 @@ void print_ast(ast *a){
 
 void gen_test(ast *a){
 	
-	pid_t pid = fork();
+	/*pid_t pid = fork();
 
 	if (pid == 0) {
 
@@ -168,18 +168,19 @@ void gen_test(ast *a){
           buffer[n] = '\0';
         printf("%s", buffer);
       }
+			die("child exiting");
 #else
 			execlp("gcc", "gcc", "-o", "MFtest", "-xc", "-", NULL);
 #endif
 
 		} else {
 
-
+*/
 			/* close read end of pipe */
-	    close(pipeFileDescriptors[0]);
+	//    close(pipeFileDescriptors[0]);
 
 	    /* redirect to-be ls output (stdout and stderr) to pipe */
-	    if (dup2(pipeFileDescriptors[1], STDOUT_FILENO) != STDOUT_FILENO)
+	  /*  if (dup2(pipeFileDescriptors[1], STDOUT_FILENO) != STDOUT_FILENO)
 	        die("dup2 error: ls to pipe stdout");
 	    if (dup2(pipeFileDescriptors[1], STDERR_FILENO) != STDERR_FILENO)
 	        die("dup2 error: ls to pipe stderr");
@@ -189,9 +190,13 @@ void gen_test(ast *a){
 			print_header();
 
 			print_ast(a);
+			die("child exiting");
 		}
 
 	} else {
 		waitpid(pid, NULL, 0);
-	}
+	}*/
+
+	print_header();
+	print_ast(a);
 }

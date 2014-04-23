@@ -94,6 +94,8 @@ ast **ast_create_node_func_def(ast **a, ast_list *children, char *name,
 
 	(*a)->data.func_def.arguments = children;
 
+printf("\n\nFUNC DEF ARGUMENTS: base: %p data: %p\n\n", children, children->data);
+
 	symtab_entry *tmp = symtab_lookup(symbol_table, name, cur_scope);
 
 	/* and the type */

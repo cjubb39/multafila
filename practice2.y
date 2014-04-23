@@ -51,7 +51,9 @@ start_point
   : function_list
     {
       ast *root = (ast *) $1;
-      gen_test( root );
+      fprintf(stderr, "START\n");
+			gen_test( root );
+			fprintf(stderr, "BACK\n");
     }
   ;
 
@@ -78,11 +80,14 @@ function_def
     }
   | type IDENTIFIER LPAREN RPAREN statement_list 
     {
-      ast_list children;
-      children.data = (ast *) $5;
-      ast_type t = type_yacc2enum( $1 );
+      ast_list body, arguments;
+      body.data = (ast *) $5;
+			body.next = &arguments;
+			arguments.data = NULL;
+			arguments.next = NULL;
+      ast_type t = (ast_type) $1;
       symtab_insert(st, $2, t);
-      $$ = ast_add_internal_node( $2, &children, AST_NODE_FUNCTION_DEF, st, cur_scope );
+			$$ = ast_add_internal_node( $2, &body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
   ;
@@ -219,9 +224,9 @@ assignment
 lvalue 
   : type IDENTIFIER  
     { 
-      ast_type t = type_yacc2enum( (int) $1 );
+      ast_type t = (ast_type) $1;
       symtab_insert( st, $2, t );
-      $$ = ast_create_leaf( $2, t, st, cur_scope );
+			$$ = ast_create_leaf( $2, t, st, cur_scope );
       free($2);
     }
   | IDENTIFIER

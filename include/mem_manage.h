@@ -11,7 +11,7 @@ typedef struct heap_list_head_s {
 	struct heap_list_node_s *tail;
 } heap_list_head;
 
-heap_list_head* heap_list_create(heap_list_head*);
+heap_list_head* heap_list_init(heap_list_head*);
 heap_list_head* heap_list_add(heap_list_head*, void*);
 heap_list_head* heap_list_purge(heap_list_head*);
 
@@ -23,6 +23,11 @@ heap_list_head* heap_list_purge(heap_list_head*);
  	name = (typeof(name)) malloc(sizeof(*name)); \
  	if (name == NULL) die("Malloc Error. Exiting."); \
  	name;})
+
+#define heap_list_malloc(hl_head, data) ({\
+	malloc_checked(data); \
+	heap_list_add(hl_head, data); \
+	data;})
 
 /*
  *	Check malloc return value of a string allocation

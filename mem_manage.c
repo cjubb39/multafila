@@ -38,10 +38,10 @@ heap_list_head* heap_list_add(heap_list_head *head, void *data){
 }
 
 heap_list_head* heap_list_purge(heap_list_head *head){
+	
 	struct heap_list_node_s *cur = head->head, *next;
-
 	while(cur != NULL){
-		next = cur;
+		next = cur->next;
 		free(cur->data);
 		free(cur);
 		cur = next;

@@ -8,6 +8,7 @@
 #include "include/ast.h"
 #include "include/symtab.h"
 
+//#define AST_DEBUG
 
 /* CREATING LEAVES HERE */
 
@@ -53,7 +54,10 @@ ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *c
 			break;
 	}
 
-  printf("leaf value: %s\n", value);
+	#ifdef AST_DEBUG
+  fprintf(stderr, "leaf value: %s; addr: %p\n", value, new_leaf);
+	#endif
+
   return new_leaf;
 }
 
@@ -67,8 +71,10 @@ ast **ast_create_node_binary(ast **a, char *value, ast_list *children){
 	(*a)->data.bin.left = children->data;
 	(*a)->data.bin.right = children->next->data;
 
-	printf("\n\ninternal binary node with %p %s %p operator\n\n", 
+	#ifdef AST_DEBUG
+	fprintf(stderr, "internal binary node with %p %s %p operator\n", 
 		(*a)->data.bin.left, value, (*a)->data.bin.right);
+	#endif
 
 	return a;
 }
@@ -95,14 +101,15 @@ ast **ast_create_node_func_def(ast **a, ast_list *children, char *name,
 
 	(*a)->data.func_def.arguments = children;
 
-printf("\n\nFUNC DEF ARGUMENTS: base: %p data: %p\n\n", children, children->data);
+	#ifdef AST_DEBUG
+	fprintf(stderr, "FUNC DEF ARGUMENTS: base: %p data: %p", children, children->data);
+	#endif
 
 	symtab_entry *tmp = symtab_lookup(symbol_table, name, cur_scope);
 
 	/* and the type */
 	(*a)->type = symtab_entry_get_type(tmp);
 	(*a)->data.func_def.func_symtab = tmp;
-	printf("\n\ncreated func def node with child \n\n");
 
 	return a;
 }
@@ -113,8 +120,12 @@ ast **ast_create_node_func_call(ast **a, ast_list *children, char *name,
 	(*a)->data.func_call.func_symtab = symtab_lookup(symbol_table, name, cur_scope);
 
 	(*a)->type = symtab_entry_get_type((*a)->data.func_call.func_symtab);
-	printf("\n\ncreated func call node with child %p\n\n",
+	
+	#ifdef AST_DEBUG
+	fprintf(stderr, "created func call node with child %p address\n",
 		(*a)->data.func_call.arguments);
+	#endif
+
 	return a;
 }
 
@@ -125,8 +136,11 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
 
 	(*a)->type = (*a)->data.stmt.body->type;
 
+	#ifdef AST_DEBUG
+	fprintf(stderr, "statement node created:: cur: %p; next: %p\n", (*a)->data.stmt.body, (*a)->data.stmt.next);
+	fprintf(stderr, "AST NODE TYPE: %d\n", ast_get_node_type(*a));
+	#endif
 
-	printf("statement cur: %p; next: %p\n", (*a)->data.stmt.body, (*a)->data.stmt.next);
 	return a;
 }
 
@@ -156,9 +170,12 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
 ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 		symtab *symbol_table, scope *cur_scope){
 	assert(children != NULL);
-
 	ast *new_node;
 	malloc_checked(new_node);
+
+	#ifdef AST_DEBUG
+	fprintf(stderr, "NODE VALUE FIELD: %s; ADDR: %p\n", value, new_node);
+	#endif
 
 	/* fill out node */
 	new_node->type = AST_NULL;

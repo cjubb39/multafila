@@ -13,9 +13,10 @@
 #include "include/gen_test.h"
 #include "include/yacc_compatability.h"
 
-#define DEBUG 0
 #define MAX_MSG_LEN 50
 #define YYDEBUG 0
+
+//#define PARSER_DEBUG
 
 int errcnt = 0;
 char errmsg[40];
@@ -27,7 +28,7 @@ extern int lineno;
 int t;
 symtab *st;
 scope *cur_scope;
-
+heap_list_head *hList;
 
 
 %}
@@ -53,43 +54,59 @@ start_point
   : function_list
     {
       ast *root = (ast *) $1;
-      fprintf(stderr, "START\n");
 			gen_test( root );
-			fprintf(stderr, "BACK\n");
     }
   ;
 
 function_list
   : function_def function_list 
     {
-      ast_list current_function, next_function;
-      current_function.data = (ast *) $1;
-      current_function.next = &next_function;
-      next_function.data = (ast *) $2;
-      next_function.next = NULL;
-      $$ = ast_add_internal_node( NULL, &current_function, AST_NODE_FUNCTION_LIST, st, cur_scope );
+      ast_list *current_function, *next_function;
+      heap_list_malloc(hList, current_function);
+      heap_list_malloc(hList, next_function);
+
+      current_function->data = (ast *) $1;
+      current_function->next = next_function;
+      next_function->data = (ast *) $2;
+      next_function->next = NULL;
+      $$ = ast_add_internal_node( NULL, current_function, AST_NODE_FUNCTION_LIST, st, cur_scope );
     }
   | function_def
     {
-      $$ = $1;
+      ast_list *current_function, *next_function;
+      heap_list_malloc(hList, current_function);
+      heap_list_malloc(hList, next_function);
+
+      current_function->data = (ast *) $1;
+      current_function->next = next_function;
+      next_function->data = NULL;
+      next_function->next = NULL;
+      $$ = ast_add_internal_node( NULL, current_function, AST_NODE_FUNCTION_LIST, st, cur_scope );
     }
   ;
 
 function_def
   : type IDENTIFIER LPAREN arg_list RPAREN statement_list 
     {
-
+      fprintf(stderr, "FUNC_DEF 1: NOT YET IMPLEMENTED\n");
     }
   | type IDENTIFIER LPAREN RPAREN statement_list 
     {
-      ast_list body, arguments;
-      body.data = (ast *) $5;
-			body.next = &arguments;
-			arguments.data = NULL;
-			arguments.next = NULL;
+      #ifdef PARSER_DEBUG
+      fprintf(stderr, "FUNCTION DEF IDENT: %s\n", (char *)$2);
+      #endif
+      
+      ast_list *body, *arguments;
+      heap_list_malloc(hList, body);
+      heap_list_malloc(hList, arguments);
+
+      body->data = (ast *) $5;
+      body->next = arguments;
+      arguments->data = NULL;
+      arguments->next = NULL;
       ast_type t = (ast_type) $1;
       symtab_insert(st, $2, t);
-			$$ = ast_add_internal_node( $2, &body, AST_NODE_FUNCTION_DEF, st, cur_scope );
+      $$ = ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
   ;
@@ -97,11 +114,21 @@ function_def
 func_call
   : IDENTIFIER LPAREN param_list RPAREN
     { 
-      ast_list children;
-      children.data = (ast *) $3;
-      $$ = ast_add_internal_node( $1, &children, AST_NODE_FUNCTION_CALL, st, cur_scope );
+      #ifdef PARSER_DEBUG
+      fprintf(stderr, "FUNCTION CALL IDENT: %s\n", (char *)$1);
+      #endif
+
+      ast_list *children;
+      heap_list_malloc(hList, children);
+
+      children->data = (ast *) $3;
+      children->next = NULL;
+      $$ = ast_add_internal_node( $1, children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
   | IDENTIFIER LPAREN RPAREN
+    {
+      fprintf(stderr, "FUNC_CALL 2: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 arg_list
@@ -118,29 +145,78 @@ param_list
     }
   | param_list COMMA param_list
     {
-      ast_list firstparam;
-      firstparam.data = (ast *) $1;
-      firstparam.next = (ast *) $3;
-      $$ = &firstparam;
+      fprintf(stderr, "PARAM_LIST 2: NOT YET IMPLEMENTED\n");
+      /*ast_list *firstparam;
+      heap_list_malloc(hList, firstparam);
+
+      firstparam->data = (ast *) $1;
+      firstparam->next = (ast *) $3;
+      $$ = firstparam;*/
     }
   | array
+    {
+      fprintf(stderr, "PARAM_LIST 3: NOT YET IMPLEMENTED\n");
+    }
   | literal
+    {
+      fprintf(stderr, "PARAM_LIST 4: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 statement_list
   : LBRACE statement_list_internal RBRACE 
+    {
+      $$ = $2;
+    }
   | statement
+    {
+      fprintf(stderr, "SL 2: NOT YET IMPLEMENTED\n");
+      /*ast_list *stmt;
+      heap_list_malloc(hList, stmt);
+
+      stmt->data = (ast *) $1;
+      stmt->next = NULL;
+      //$$ = stmt;
+      $$ = ast_add_internal_node("statementSL", stmt, AST_NODE_STATEMENT, st, cur_scope);*/
+    }
   ;
 
 statement_list_internal
   : statement statement_list_internal
     {
-      ast_list firststmt;
-      firststmt.data = (ast *) $1;
-      firststmt.next = (ast *) $2;
-      $$ = &firststmt;
+      ast_list *firststmt, *nextstmt;
+      heap_list_malloc(hList, firststmt);
+      heap_list_malloc(hList, nextstmt);
+
+      firststmt->data = (ast *) $1;
+      firststmt->next = nextstmt;
+      nextstmt->data = (ast *) $2;
+      nextstmt->next = NULL;
+
+      $$ = ast_add_internal_node("statementS-SLI", firststmt, AST_NODE_STATEMENT, st, cur_scope);
+
+      #ifdef PARSER_DEBUG
+      fprintf(stderr, "STMT-SLI DATA: %p %p %p\n", $1, $2, $$);
+      #endif
     }
   | statement
+    {
+      //$$ = $1;
+      ast_list *stmt, *nextstmt;
+      heap_list_malloc(hList, stmt);
+      heap_list_malloc(hList, nextstmt);
+
+      stmt->data = (ast *) $1;
+      stmt->next = nextstmt;
+      nextstmt->data = NULL;
+      nextstmt->next = NULL;
+
+      $$ = ast_add_internal_node("statementS", stmt, AST_NODE_STATEMENT, st, cur_scope);
+      
+      #ifdef PARSER_DEBUG
+      fprintf(stderr, "STMT-S DATA: %p %p %p\n", $1, NULL, $$);
+      #endif
+    }
   ;
 
 statement
@@ -148,8 +224,17 @@ statement
   | thread_statement
   | conditional_statement
   | declaration SEMI
+    {
+      $$ = $1;
+    }
   | assignment SEMI
+    {
+      $$ = $1;
+    }
   | expr SEMI
+    {
+      $$ = $1;
+    }
   | return_statement SEMI
   | SEMI
   ;
@@ -158,9 +243,13 @@ return_statement
  : RETURN IDENTIFIER
  | RETURN literal 
     { 
-      ast_list children;
-      children.data = (ast *) $2;
-      $$ = ast_add_internal_node( "return", &children, AST_NODE_FUNCTION_CALL, st, cur_scope );
+      fprintf(stderr, "RETURN 2: NOT YET IMPLEMENTED\n");
+      /*ast_list *children;
+      heap_list_malloc(hList, children);
+
+      children->data = (ast *) $2;
+      $$ = ast_add_internal_node( "return", children, AST_NODE_FUNCTION_CALL, st, cur_scope );
+      */
     }
  ;
 
@@ -206,20 +295,40 @@ barrier_statement
   ;
 
 declaration
-  : type IDENTIFIER 
+  : type IDENTIFIER
+    {
+      /* add to symtab and then create node */
+      ast_type t = (ast_type) $1;
+      symtab_insert(st, $2, t);
+      ast* leaf = ast_create_leaf($2, t, st, cur_scope);
+
+      ast_list *ident;
+      heap_list_malloc(hList, ident);
+      ident->data = leaf;
+      ident->next = NULL;
+
+      $$ = ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
+    }
   | type array
   ; 
 
 assignment
   : lvalue assignop rvalue 
     { 
-      ast_list lh;
-      ast_list rh;
-      lh.data = (ast *) $1;
-      lh.next = &rh;
-      rh.data = (ast *) $3;
-      rh.next = NULL;
-      $$ = ast_add_internal_node( $2, &lh, AST_NODE_BINARY, st, cur_scope ) ;
+      ast_list *lh;
+      ast_list *rh;
+      heap_list_malloc(hList, lh);
+      heap_list_malloc(hList, rh);
+
+      lh->data = (ast *) $1;
+      lh->next = rh;
+      rh->data = (ast *) $3;
+      rh->next = NULL;
+      $$ = ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
+      
+      #ifdef PARSER_DEBUG
+      fprintf(stderr, "BIN NODE DATA: %p %s %p %p\n", $1, (char *)$2, $3, $$);
+      #endif
     }
   ;
 
@@ -228,15 +337,22 @@ lvalue
     { 
       ast_type t = (ast_type) $1;
       symtab_insert( st, $2, t );
-			$$ = ast_create_leaf( $2, t, st, cur_scope );
+      $$ = ast_create_leaf( $2, t, st, cur_scope );
       free($2);
     }
   | IDENTIFIER
+    {
+      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
+      $$ = ast_create_leaf( $1, t, st, cur_scope );
+    }
   | type array
   ;
 
 rvalue
   : expr
+    {
+      $$ = $1;
+    }
   ;
 
 expr
@@ -244,9 +360,15 @@ expr
   | math_expr
   | unary_math
   | func_call
+    {
+      $$ = $1;
+    }
   | braced_expr
   | literal
-  | IDENTIFIER
+    {
+      $$ = $1;
+    }
+  /*| IDENTIFIER*/
   | array
   | LPAREN expr RPAREN 
   ;
@@ -346,6 +468,8 @@ type
 
 int main( int argc, char *argv[] )
 {
+  malloc_checked(hList);
+  heap_list_init(hList);
   st = symtab_init();
 
   /* pre-install printOut */
@@ -376,10 +500,14 @@ int main( int argc, char *argv[] )
 
   int flag = yyparse();
 
-  printf(" END OF PARSER\n");
+  #ifdef PARSER_DEBUG
+  fprintf(stderr,"END OF PARSER\n");
+  #endif
 
-  fclose(fp);
   fclose(yyin);
+
+  symtab_destroy(st);
+  heap_list_purge(hList);
 
   return flag;
 

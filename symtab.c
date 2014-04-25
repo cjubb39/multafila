@@ -3,10 +3,11 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include "global_config.h"
-#include "error_handling.h"
-#include "symtab.h"
-#include "symtab_structs.h"
+#include "include/global_config.h"
+#include "include/error_handling.h"
+#include "include/mem_manage.h"
+#include "include/symtab.h"
+#include "include/symtab_structs.h"
 #include "y.tab.h"
 
 /* FUNCTIONS FOR BUILDING SYMBOL TABLE */

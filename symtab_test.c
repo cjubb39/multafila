@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "symtab.h"
+#include "include/symtab.h"
 //#include "symtab_structs.h"
 
 #include "y.tab.h"

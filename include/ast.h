@@ -10,6 +10,7 @@
 #include "symtab.h"
 
 typedef enum {
+	AST_NODE_FUNCTION_LIST,
 	AST_NODE_FUNCTION_DEF,
 	AST_NODE_FUNCTION_CALL,
 	AST_NODE_DECLARATION,
@@ -17,7 +18,6 @@ typedef enum {
 	AST_NODE_STATEMENT,
 	AST_NODE_LEAF
 } ast_node_type;
-
 
 typedef struct ast_s {
 	ast_type type; /* type of the value of the node */
@@ -34,6 +34,7 @@ typedef struct ast_s {
 
 
 		/* internal nodes */
+		struct ast_function_list_node func_list;
 		struct ast_function_def_node func_def;
 		struct ast_function_call_node func_call;
 		struct ast_declaration_node dec;
@@ -62,7 +63,7 @@ ast *ast_create_leaf (char *value, ast_type type, symtab*, scope* cur_scope);
  *	Action will be specified by value of type argument
  *	Returns NULL on error
  */
-ast *ast_add_internal_node (void *value, ast_list *children, ast_node_type type, symtab *, scope* cur_scope);
+ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type, symtab *, scope* cur_scope);
 
 /*
  *	Return ast_type of node

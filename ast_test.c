@@ -1,9 +1,9 @@
-#include "global_config.h"
-#include "error_handling.h"
-#include "ast.h"
-#include "symtab.h"
+#include "include/global_config.h"
+#include "include/error_handling.h"
+#include "include/ast.h"
+#include "include/symtab.h"
 
-#include "gen_test.h"
+#include "include/gen_test.h"
 
 int main(void){
 	symtab *st = symtab_init();
@@ -77,21 +77,31 @@ int main(void){
 	*/
 
 
-	ast_list body, next, arg;
-	next.data = NULL;
-	next.next = &body;
+	ast_list body, arg;
 	body.data = stmt;
 	body.next = &arg;
 	arg.data  = NULL;
 	arg.next  = NULL;
 
 	symtab_insert(st, "main", AST_INT);
-	ast *func_def_out = ast_add_internal_node("main", &next, AST_NODE_FUNCTION_DEF, st, cur_scope);
+	ast *func_def_out = ast_add_internal_node("main", &body, AST_NODE_FUNCTION_DEF, st, cur_scope);
 
 
-	gen_test(func_def_out);
+	ast_list flist_cur, flist_next;
+	flist_cur.data = func_def_out;
+	flist_cur.next = &flist_next;
+	flist_next.data = NULL;
+	flist_next.next = NULL;
 
-	ast_destroy(func_def_out);
+	ast *program = ast_add_internal_node(NULL, &flist_cur, AST_NODE_FUNCTION_LIST, st, cur_scope);
+
+
+	printf("\n\n==========" \
+		"GENERATING PROGRAM OUTPUT==========\n\n");
+
+	gen_test(program);
+
+	ast_destroy(program);
 
 	symtab_close_scope(st);
 	symtab_destroy(st);

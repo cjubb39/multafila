@@ -55,6 +55,7 @@ start_point
     {
       ast *root = (ast *) $1;
 			gen_test( root );
+      ast_destroy(root);
     }
   ;
 
@@ -508,6 +509,7 @@ int main( int argc, char *argv[] )
 
   symtab_destroy(st);
   heap_list_purge(hList);
+  free(hList);
 
   return flag;
 

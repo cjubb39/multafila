@@ -15,6 +15,7 @@
 /* comment to send straight to gcc (./MFtest); uncomment to stdout */
 #define PRINT_TO_STDOUT
 //#define GEN_TEST_DEBUG
+#define SIMPLE_OUTPUT
 
 void print_ast(ast *a);
 
@@ -179,7 +180,12 @@ void print_ast(ast *a){
 }
 
 void gen_test(ast *a){
-	
+
+#ifdef SIMPLE_OUTPUT
+	fprintf(stderr, "\n==========OUTPUT CODE BELOW==========\n");
+	print_header();
+	print_ast(a);
+#else
 	pid_t pid = fork();
 
 	if (pid == 0) {
@@ -195,16 +201,16 @@ void gen_test(ast *a){
 			if (dup2(pipeFileDescriptors[0], STDIN_FILENO) != STDIN_FILENO)
 	        die("dup2 error: ls to pipe stdout");
 
-#ifdef PRINT_TO_STDOUT
+	#ifdef PRINT_TO_STDOUT
 			char buffer[1024]; int n;
       while ((n = read(pipeFileDescriptors[0], buffer, sizeof buffer - 1)) != 0){
           buffer[n] = '\0';
         printf("%s", buffer);
       }
       exit(0);
-#else
+	#else
 			execlp("gcc", "gcc", "-o", "MFtest", "-xc", "-", NULL);
-#endif
+	#endif
 
 		} else {
 
@@ -229,4 +235,5 @@ void gen_test(ast *a){
 	} else {
 		waitpid(pid, NULL, 0);
 	}
+#endif
 }

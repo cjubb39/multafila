@@ -1,25 +1,34 @@
 CC  = gcc
-CXX = g++
 
-
-CFLAGS   = -g -Wall $(INCLUDES)
-CXXFLAGS = -g -Wall $(INCLUDES)
-
+CFLAGS	= -g -Wall $(INCLUDES)
+LDFLAGS	= -lm
 
 .PHONY: default
 default: small-parser
 
+SRC	= ast.c							\
+			error_handling.c	\
+			gen_test.c				\
+			mem_manage.c			\
+			symtab.c					\
+			lex.yy.c					\
+			y.tab.c						
+
+HEADERS = $(wildcard include/*.h)
+
 # header dependency
-small-parser: y.tab.c lex.yy.c ast.c symtab.c error_handling.c gen_test.c yacc_compatability.c mem_manage.c
-	$(CC) $(CFLAGS) ast.c symtab.c error_handling.c mem_manage.c gen_test.c yacc_compatability.c y.tab.c lex.yy.c -ll -o small-parser
-y.tab.c: practice2.y
-	yacc -d practice2.y
-lex.yy.c: practice2.l
-	lex practice2.l
+small-parser: $(SRC) $(HEADERS)
+	$(CC) $(CFLAGS) $(SRC) $(LDFLAGS) -o small-parser
+
+y.tab.c: parser.y
+	yacc -d $<
+
+lex.yy.c: lexer.l
+	lex $<
 
 .PHONY: clean
 clean:
-	rm -f *.o *~ a.out core small-parser
+	rm -f *.o *~ a.out core small-parser lex.yy.c y.tab.c y.tab.h
 
 .PHONY: all
 all: clean default

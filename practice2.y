@@ -7,6 +7,7 @@
 #include <string.h>
 #include "include/global_config.h"
 #include "include/error_handling.h"
+#include "include/mem_manage.h"
 #include "include/ast.h"
 #include "include/symtab.h"
 #include "include/gen_test.h"
@@ -26,6 +27,8 @@ extern int lineno;
 int t;
 symtab *st;
 scope *cur_scope;
+
+
 
 %}
 

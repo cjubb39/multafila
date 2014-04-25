@@ -4,6 +4,7 @@
 
 #include "include/global_config.h"
 #include "include/error_handling.h"
+#include "include/mem_manage.h"
 #include "include/ast.h"
 #include "include/symtab.h"
 

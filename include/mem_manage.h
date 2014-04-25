@@ -6,12 +6,14 @@ typedef struct heap_list_node_s {
 	void *data;
 } heap_list;
 
-typdef struct heap_list_head_s {
+typedef struct heap_list_head_s {
 	struct heap_list_node_s *head;
 	struct heap_list_node_s *tail;
 } heap_list_head;
 
-heap_list* heap_list_create(heap_list_head*);
+heap_list_head* heap_list_create(heap_list_head*);
+heap_list_head* heap_list_add(heap_list_head*, void*);
+heap_list_head* heap_list_purge(heap_list_head*);
 
 /*
  *	Check malloc return value

@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "include/ast.h"
 #include "y.tab.h"
 
 int type_enum2yacc(ast_type type){

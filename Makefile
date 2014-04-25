@@ -10,7 +10,7 @@ CXXFLAGS = -g -Wall $(INCLUDES)
 default: small-parser
 
 # header dependency
-small-parser: y.tab.c lex.yy.c
+small-parser: y.tab.c lex.yy.c ast.c symtab.c error_handling.c gen_test.c yacc_compatability.c
 	$(CC) $(CFLAGS) ast.c symtab.c error_handling.c gen_test.c yacc_compatability.c y.tab.c lex.yy.c -ll -o small-parser
 y.tab.c: practice2.y
 	yacc -d practice2.y

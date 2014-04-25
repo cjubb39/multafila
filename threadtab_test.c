@@ -3,11 +3,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "global_config.h"
-#include "threadtab.h"
+#include "include/global_config.h"
+#include "include/threadtab.h"
 
 /* for testing */
-#include "threadtab_structs.h"
+#include "include/threadtab_structs.h"
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 

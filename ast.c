@@ -2,10 +2,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "global_config.h"
-#include "error_handling.h"
-#include "ast.h"
-#include "symtab.h"
+#include "include/global_config.h"
+#include "include/error_handling.h"
+#include "include/ast.h"
+#include "include/symtab.h"
 
 
 /* CREATING LEAVES HERE */

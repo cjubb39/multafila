@@ -4,13 +4,13 @@
 #include <sys/wait.h> 
 #include <assert.h>
 
-#include "global_config.h"
-#include "error_handling.h"
-#include "ast.h"
-#include "symtab.h"
+#include "include/global_config.h"
+#include "include/error_handling.h"
+#include "include/ast.h"
+#include "include/symtab.h"
 
-#include "ast_structs.h"
-#include "symtab_structs.h"
+#include "include/ast_structs.h"
+#include "include/symtab_structs.h"
 
 /* comment to send straight to gcc (./MFtest); uncomment to stdout */
 #define PRINT_TO_STDOUT

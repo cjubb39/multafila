@@ -1,10 +1,17 @@
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef MEM_MANAGE_H
+#define MEM_MANAGE_H
 
-/*
- *	Exit with error message
- */
-inline void die(const char *message);
+typedef struct heap_list_node_s {
+	struct heap_list_node_s *next;
+	void *data;
+} heap_list;
+
+typdef struct heap_list_head_s {
+	struct heap_list_node_s *head;
+	struct heap_list_node_s *tail;
+} heap_list_head;
+
+heap_list* heap_list_create(heap_list_head*);
 
 /*
  *	Check malloc return value
@@ -19,3 +26,4 @@ inline void die(const char *message);
  *	Check malloc return value of a string allocation
  */
 char *malloc_checked_string(size_t size);
+#endif

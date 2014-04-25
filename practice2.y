@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "global_config.h"
-#include "error_handling.h"
-#include "ast.h"
-#include "symtab.h"
-#include "gen_test.h"
-#include "yacc_compatability.h"
+#include "include/global_config.h"
+#include "include/error_handling.h"
+#include "include/ast.h"
+#include "include/symtab.h"
+#include "include/gen_test.h"
+#include "include/yacc_compatability.h"
 
 #define DEBUG 0
 #define MAX_MSG_LEN 50
@@ -23,7 +23,6 @@ extern FILE *yyin;
 extern FILE *yyout;
 extern int yyparse();
 extern int lineno;
-int yydebug = 1;
 int t;
 symtab *st;
 scope *cur_scope;
@@ -366,11 +365,11 @@ int main( int argc, char *argv[] )
 
   yyin = fp;
 
-  fp = fopen("dump.symtab","w");
+  /*fp = fopen("dump.symtab","w");
   if (!fp) {
     printf("Unable to open file for writing\n");
     exit(0);
-  }
+  }*/
 
   int flag = yyparse();
 
@@ -389,7 +388,7 @@ void printTree( ast *root )
 
 }
 
-yywrap()
+int yywrap()
 {
    return(1);
 }

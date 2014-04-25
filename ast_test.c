@@ -1,9 +1,9 @@
-#include "global_config.h"
-#include "error_handling.h"
-#include "ast.h"
-#include "symtab.h"
+#include "include/global_config.h"
+#include "include/error_handling.h"
+#include "include/ast.h"
+#include "include/symtab.h"
 
-#include "gen_test.h"
+#include "include/gen_test.h"
 
 int main(void){
 	symtab *st = symtab_init();

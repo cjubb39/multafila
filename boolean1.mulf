@@ -1,0 +1,18 @@
+/* booleans and boolean operator AND in conditional statements, should print hello! */
+
+int main(string[] args){
+
+	if (true && true){
+		printOut " hello!";
+	}
+	else {
+		printOut "failed";
+	}
+
+	if (true && false){
+		printOut "cool";
+	}
+	else {
+		printOut "failed";
+	}
+}

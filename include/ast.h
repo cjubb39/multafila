@@ -20,7 +20,6 @@ typedef enum {
 	AST_NODE_CONDITIONAL,
 	AST_NODE_WHILE,
 	AST_NODE_SPAWN,
-	AST_NODE_BARRIER,
 	AST_NODE_UNARY
 } ast_node_type;
 
@@ -33,6 +32,7 @@ typedef struct ast_s {
 		/* for literal values */
 		int integer;
 		char *string;
+		char *character;
 		double doub;
 		/* for variable names */
 		symtab_entry *symtab_ptr;
@@ -48,7 +48,6 @@ typedef struct ast_s {
 		struct ast_conditional_node conditional_statement;
 		struct ast_while_node while_statement;
 		struct ast_spawn_node spawn;
-		struct ast_barrier_node barrier;
 		struct ast_unary_math unary;
 
 	} data;

@@ -414,7 +414,7 @@ expr
     {
       $$ = $1;
     }
-  /*| IDENTIFIER*/
+  | IDENTIFIER
   | array
   | LPAREN expr RPAREN 
   ;
@@ -439,6 +439,15 @@ math_expr
 
 unary_math
   : IDENTIFIER unary_math_op
+    {
+      ast_list *operand;
+      heap_list_malloc(hList, operand);
+
+      operand->data = (ast *) $1;
+      operand->next = NULL;
+
+      $$ = ast_add_internal_node( $1, operand, AST_NODE_UNARY, st, cur_scope );
+    }
   ;
 
 assignop
@@ -465,8 +474,8 @@ mathop
   ;
 
 unary_math_op
-  : INC
-  | DEC
+  : INC { $$ = "++"; }
+  | DEC { $$ = "--"; }
   ;
 
 literal_list
@@ -488,6 +497,10 @@ literal
 
 number
   : INTEGER
+    {
+      $$ = ast_create_leaf( $1, AST_INTLITERAL, st, cur_scope );
+      free($1);
+    }
   | FLOAT
   ;
 
@@ -501,10 +514,10 @@ array
 type
   : INT { $$ = AST_INT; }
   | DOUBLE 
-  | CHAR
+  | CHAR { $$ = AST_CHAR; }
   | BOOLEAN
   | STRING { $$ = AST_STRING; }
-  | THREAD 
+  | THREAD { $$ = AST_THREAD; }
   ;
 
 

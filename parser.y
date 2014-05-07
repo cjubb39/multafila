@@ -310,10 +310,36 @@ thread_statement
 conditional_statement
   : IF LPAREN bool_expr RPAREN statement_list
     {
+      ast_list *condstmt, *ifbody, *elsebody;
+      heap_list_malloc(hList, condstmt);
+      heap_list_malloc(hList, ifbody);
+      heap_list_malloc(hList, elsebody);
 
+      condstmt->data = (ast *) $3;
+      condstmt->next = ifbody;
+      ifbody->data = (ast *) $5,
+      ifbody->next = NULL;
+      elsebody->data = NULL;
+      elsebody->next = NULL;
 
+      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
     }
   | IF LPAREN bool_expr RPAREN statement_list ELSE statement_list
+    {
+      ast_list *condstmt, *ifbody, *elsebody;
+      heap_list_malloc(hList, condstmt);
+      heap_list_malloc(hList, ifbody);
+      heap_list_malloc(hList, elsebody);
+
+      condstmt->data = (ast *) $3;
+      condstmt->next = ifbody;
+      ifbody->data = (ast *) $5,
+      ifbody->next = elsebody;
+      elsebody->data = (ast *) $7;
+      elsebody->next = NULL;
+
+      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
+    }
   ;
 
 while_statement
@@ -406,15 +432,13 @@ expr
   | math_expr
   | unary_math
   | func_call
-    {
-      $$ = $1;
-    }
   | braced_expr
   | literal
-    {
-      $$ = $1;
-    }
   | IDENTIFIER
+    {
+      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
+      $$ = ast_create_leaf( $1, t, st, cur_scope );
+    }
   | array
   | LPAREN expr RPAREN 
   ;
@@ -431,10 +455,34 @@ bool_expr
 
 rel_expr
   : expr relop expr
+    { 
+      ast_list *lh;
+      ast_list *rh;
+      heap_list_malloc(hList, lh);
+      heap_list_malloc(hList, rh);
+
+      lh->data = (ast *) $1;
+      lh->next = rh;
+      rh->data = (ast *) $3;
+      rh->next = NULL;
+      $$ = ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
+    }
   ;
 
 math_expr
   : expr mathop expr
+    { 
+      ast_list *lh;
+      ast_list *rh;
+      heap_list_malloc(hList, lh);
+      heap_list_malloc(hList, rh);
+
+      lh->data = (ast *) $1;
+      lh->next = rh;
+      rh->data = (ast *) $3;
+      rh->next = NULL;
+      $$ = ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
+    }
   ;
 
 unary_math
@@ -452,25 +500,25 @@ unary_math
 
 assignop
   : ASSIGN { $$ = "="; }
-  | PLUSASSIGN
-  | MINUSASSIGN
+  | PLUSASSIGN { $$ = "+="; }
+  | MINUSASSIGN { $$ = "-="; }
   ;
 
 relop
-  : EQ
-  | NE
-  | LT
-  | LE
-  | GT
-  | GE
+  : EQ { $$ = "=="; }
+  | NE { $$ = "!="; }
+  | LT { $$ = "<"; }
+  | LE { $$ = "<="; }
+  | GT { $$ = ">"; }
+  | GE { $$ = ">="; }
   ;
 
 mathop
-  : PLUS
-  | MINUS
-  | TIMES
-  | OVER
-  | MOD
+  : PLUS { $$ = "+"; }
+  | MINUS { $$ = "-"; }
+  | TIMES { $$ = "*"; }
+  | OVER { $$ = "/"; }
+  | MOD { $$ = "%"; }
   ;
 
 unary_math_op

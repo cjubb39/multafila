@@ -1,0 +1,16 @@
+/* basic conditional statement, should return 22 */
+
+int main(string[] args){
+	int x = 5;
+	int y = 4;
+	int z = 3;
+	
+	if (x < 10){
+		z = x+y+z;
+	}
+	else {
+		z = y+z;
+	}
+
+	return x+y+z; /* should return 21 */
+}

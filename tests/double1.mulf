@@ -1,0 +1,8 @@
+/* double 1, should return 12.2 */
+
+int main(string[] args){
+	double x = 5.7;
+	double y = 6.5;
+	
+	return x+y;
+}

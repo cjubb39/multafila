@@ -1,0 +1,9 @@
+/* math operation 1 */
+
+int main (string[] args){
+	int i = 4;
+	int j = 5;
+	
+	j = (i + j) * i;
+	return j; /* should return 36 */
+}

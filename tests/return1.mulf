@@ -1,0 +1,9 @@
+/* return statement, should return 11 */
+
+int main(string[] args){
+	int x = 5;
+	int y = 6;
+	
+	return x+y;
+
+}

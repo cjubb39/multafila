@@ -1,0 +1,26 @@
+/* booleans and boolean operator OR in conditional statements, should print hello! cool */
+
+int main(string[] args){
+
+	if (true || true){
+		printOut("hello!");
+	}
+	else {
+		printOut("failed");
+	}
+
+	if (true || false){
+		printOut("cool");
+	}
+	else {
+		printOut("failed");
+	}
+	
+	if (false || false){
+		printOut("cat");
+	}
+	else {
+		printOut("failed");
+	}
+	
+}

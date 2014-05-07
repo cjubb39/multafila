@@ -33,8 +33,8 @@ ast **ast_create_leaf_int (ast **a, char *value, symtab *symbol_table, scope *cu
 }
 
 ast **ast_create_leaf_il (ast **a, char *value){
-	(*a)->data.integer = malloc_checked_string(strlen(value) + 1);
-	strcpy((*a)->data.integer, value);
+	(*a)->data.integer = malloc_checked_int(strlen(value) + 1);
+	(*a)->data.integer = value;
 	return a;
 }
 

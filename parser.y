@@ -283,6 +283,13 @@ statement
 
 return_statement
  : RETURN IDENTIFIER
+    {
+      ast_list *children;
+      heap_list_malloc(hList, children);
+
+      children->data = (ast *) $2;
+      $$ = ast_add_internal_node( "return", children, AST_NODE_FUNCTION_CALL, st, cur_scope );
+    }
  | RETURN literal 
     { 
       fprintf(stderr, "RETURN 2: NOT YET IMPLEMENTED\n");
@@ -378,7 +385,7 @@ spawn_statement
       arg->data = (ast *) $3,
       arg->next = NULL;
 
-      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_SPAWN, st, cur_scope );
+      $$ = ast_add_internal_node( $1, body, AST_NODE_SPAWN, st, cur_scope );
     }  
   ;
 
@@ -388,6 +395,9 @@ lock_statement
 
 barrier_statement
   : BARRIER SEMI
+    {
+
+    }
   ;
 
 declaration

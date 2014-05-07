@@ -16,7 +16,12 @@ typedef enum {
 	AST_NODE_DECLARATION,
 	AST_NODE_BINARY,
 	AST_NODE_STATEMENT,
-	AST_NODE_LEAF
+	AST_NODE_LEAF,
+	AST_NODE_CONDITIONAL,
+	AST_NODE_WHILE,
+	AST_NODE_SPAWN,
+	AST_NODE_BARRIER,
+	AST_NODE_UNARY
 } ast_node_type;
 
 typedef struct ast_s {
@@ -40,6 +45,11 @@ typedef struct ast_s {
 		struct ast_declaration_node dec;
 		struct ast_binary_node bin;
 		struct ast_statement_node stmt;
+		struct ast_conditional_node conditional_statement;
+		struct ast_while_node while_statement;
+		struct ast_spawn_node spawn;
+		struct ast_barrier_node barrier;
+		struct ast_unary_math unary;
 
 	} data;
 } ast;

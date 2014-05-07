@@ -127,6 +127,9 @@ void print_stmt(ast *a){
 }
 
 void print_unary(ast *a){
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing UNARY>");
+	#endif
 	print_ast(a->data.unary.operand);
 	printf( " %s ", a->data.unary.op);
 	printf( " ;\n");
@@ -142,7 +145,7 @@ void print_spawn(ast *a){
 
 void print_while(ast *a){
 	#ifdef GEN_TEST_DEBUG
-	printf("<printing while statement>");
+	printf("<printing WHILE>");
 	#endif
 	printf( "while(");
 	print_ast(a->data.while_statement.conditional_statement);
@@ -152,6 +155,9 @@ void print_while(ast *a){
 }
 
 void print_con(ast *a){
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing IF>");
+	#endif
 	printf( "if(");
 	print_ast(a->data.conditional_statement.conditional_statement);
 	printf( " )\n{\n");

@@ -354,7 +354,7 @@ while_statement
       whilebody->data = (ast *) $5,
       whilebody->next = NULL;
 
-      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
+      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_WHILE, st, cur_scope );
     }
   ;
 
@@ -368,6 +368,18 @@ pfor_statement
 
 spawn_statement
   : SPAWN LPAREN IDENTIFIER RPAREN statement_list
+    {
+      ast_list *body, *arg;
+      heap_list_malloc(hList, body);
+      heap_list_malloc(hList, arg);
+
+      body->data = (ast *) $5;
+      body->next = arg;
+      arg->data = (ast *) $3,
+      arg->next = NULL;
+
+      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_SPAWN, st, cur_scope );
+    }  
   ;
 
 lock_statement

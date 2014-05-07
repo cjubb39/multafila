@@ -136,11 +136,39 @@ void print_unary(ast *a){
 }
 
 void print_barrier(ast *a){
-	
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing BARRIER>");
+	#endif	
+
+
 }
 
 void print_spawn(ast *a){
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing SPAWN>");
+	#endif	
 
+	// SPAWN LPAREN IDENTIFIER RPAREN statement_list
+	printf( "pthread_t* thread_%d;", threadcount);
+
+	// int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
+	printf( "pthread_create(");
+	printf( "thread_%d,", threadcount);
+	printf( "NULL");
+	printf( "(void *) &thread_fuction_%d",threadcount);
+	printf( "(void *) &");
+	print_ast(a->data.spawn.arguments);
+	printf( " );");
+
+	// function def need to go to the top.
+	printf( "void thread_fuction_%d (void* args)", threadcount);
+	
+	// thread fuction 
+	printf( "void thread_fuction_%d (void* args)", threadcount);
+	printf( "\n{\n");
+	print_ast(a->data.spawn.body);
+	printf( "pthread_exit(0);");
+	printf( "\n}\n");
 }
 
 void print_while(ast *a){
@@ -187,7 +215,7 @@ void print_leaf(ast *a){
 			break;
 
 		case AST_INTLITERAL:
-			printf( "%d", a->data.integer);
+			printf( "%d", *(a->data.integer));
 			break;
 
 		case AST_INT:
@@ -206,12 +234,14 @@ void print_leaf(ast *a){
 			print_barrier(a);
 			break;
 
+		case AST_SPAWN:
+			print_spawn(a);
+			break;
 		default:
 			printf( "%s", a->data.symtab_ptr->name);
 			break;
 
 		// AST_THREAD,
-		// AST_BARRIER
 	}
 }
 

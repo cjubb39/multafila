@@ -27,6 +27,38 @@ ast **ast_create_leaf_sl (ast **a, char *value){
 	return a;
 }
 
+ast **ast_create_leaf_int (ast **a, char *value, symtab *symbol_table, scope *cur_scope){
+	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
+	return a;
+}
+
+ast **ast_create_leaf_il (ast **a, char *value){
+	(*a)->data.integer = malloc_checked_string(strlen(value) + 1);
+	strcpy((*a)->data.integer, value);
+	return a;
+}
+
+ast **ast_create_leaf_char (ast **a, char *value, symtab *symbol_table, scope *cur_scope){
+	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
+	return a;
+}
+
+ast **ast_create_leaf_cl (ast **a, char *value){
+	(*a)->data.character = malloc_checked_string(strlen(value) + 1);
+	strcpy((*a)->data.character, value);
+	return a;
+}
+
+ast **ast_create_leaf_thread ( ast **a, char *value, symtab *symbol_table, scope *cur_scope ){
+	(*a)->data.symtab_ptr = symtab_lookup( symbol_table, value, cur_scope );
+	return a;
+}
+
+ast **ast_create_leaf_barrier ( ast **a, char *value ) {
+	/* not yet implemented */
+	return a;
+}
+
 ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *cur_scope) {
 	assert(value != NULL);
 	assert(type != AST_NULL);
@@ -50,6 +82,30 @@ ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *c
 			ast_create_leaf_string(&new_leaf, value, symbol_table, cur_scope);
 			break;
 
+		case AST_INT:
+			ast_create_leaf_int(&new_leaf, value, symbol_table, cur_scope );
+			break;
+
+		case AST_INTLITERAL:
+			ast_create_leaf_il(&new_leaf, value);
+			break;
+
+		case AST_CHAR:
+			ast_create_leaf_char(&new_leaf, value, symbol_table, cur_scope );
+			break;
+
+		case AST_CHARLITERAL:
+			ast_create_leaf_cl(&new_leaf, value);
+			break;
+
+		case AST_THREAD:
+			ast_create_leaf_thread(&new_leaf, value, symbol_table, cur_scope );
+			break;
+
+		case AST_BARRIER:
+			ast_create_leaf_barrier(&new_leaf, value );
+			break;
+
 		default:
 			break;
 	}
@@ -64,9 +120,39 @@ ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *c
 
 /* CREATING INTERNAL NODES HERE */
 
+ast **ast_create_node_conditional( ast **a, ast_list *children ){
+	(*a)->data.conditional_statement.conditional_statement = children->data;
+	(*a)->data.conditional_statement.if_statement = children->next->data;
+	(*a)->data.conditional_statement.else_statement = children->next->next->data;
+
+	return a;
+}
+
+ast **ast_create_node_while( ast **a, ast_list *children ) {
+	(*a)->data.while_statement.conditional_statement = children->data;
+	(*a)->data.while_statement.body = children->next->data;
+
+	return a;
+}
+
+ast **ast_create_node_spawn( ast **a, ast_list *children ) {
+	(*a)->data.spawn.body = children->data;
+	(*a)->data.spawn.arguments = children->next->data;
+
+	return a;
+}
+
+ast **ast_create_node_unary(ast **a, char *value, ast_list *children) {
+	strncpy( (*a)->data.unary.op, value, 3);
+
+	(*a)->data.unary.operand = children->data;
+
+	return a;
+}
+
 ast **ast_create_node_binary(ast **a, char *value, ast_list *children){
 	/* copy binary operator over */
-	strncpy((*a)->data.bin.op, value, 2);
+	strncpy((*a)->data.bin.op, value, 3);
 
 	(*a)->data.bin.left = children->data;
 	(*a)->data.bin.right = children->next->data;
@@ -150,20 +236,28 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
  *
  *	VALUE:
  *	AST_NODE_DECLARATION:		IGNORED
- *	AST_NODE_BINARY:				1-2 character binary op
- *	AST_NODE_FUNCTION_DEF:	name of function being called
+ *	AST_NODE_BINARY:			1-2 character binary op
+ *	AST_NODE_FUNCTION_DEF:		name of function being called
  *	AST_NODE_STATEMENT:			IGNORED
- *	AST_NODE_FUNCTION_CALL:	name of function being called
- *	AST_NODE_FUNCTION_LIST:	IGNORED
+ *	AST_NODE_FUNCTION_CALL:		name of function being called
+ *	AST_NODE_FUNCTION_LIST:		IGNORED
+ *	AST_NODE_CONDITIONAL:		IGNORED
+ *  AST_NODE_WHILE:				IGNORED
+ *	AST_NODE_SPAWN:				IGNORED
+ *	AST_NODE_UNARY:				1-2 character unary op
  *	
  *	
  *	CHILDREN:
  *	AST_NODE_DECLARATION: 	variable being declared
- *	AST_NODE_BINARY:				left, right
+ *	AST_NODE_BINARY:		left, right
  *	AST_NODE_FUNCTION_DEF:	body, arguments
- *	AST_NODE_STATEMENT			body, next
+ *	AST_NODE_STATEMENT		body, next
  *	AST_NODE_FUNCTION_CALL:	arguments
  *	AST_NODE_FUNCTION_LIST:	current func, next func
+ *	AST_NODE_CONDITIONAL:	conditional statement, if body, else body (NULL if no else)
+ *  AST_NODE_WHILE:			conditional statement, body
+ *	AST_NODE_SPAWN:			body, arguments
+ *	AST_NODE_UNARY:			operand
  *	
  *	Returns NULL on error
  */
@@ -206,6 +300,23 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 
 		case AST_NODE_FUNCTION_LIST:
 			ast_create_node_func_list(&new_node, children);
+			break;
+
+		case AST_NODE_CONDITIONAL:
+			ast_create_node_conditional(&new_node, children);
+			break;
+
+		case AST_NODE_WHILE:
+			ast_create_node_while(&new_node, children );
+			break;
+
+		case AST_NODE_SPAWN:
+			ast_create_node_spawn(&new_node, children );
+			break;
+
+		case AST_NODE_UNARY:
+			assert(strlen(value) < 3);
+			ast_create_node_unary(&new_node, value, children );
 			break;
 
 		default:

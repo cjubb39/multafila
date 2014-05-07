@@ -36,22 +36,18 @@ struct ast_statement_node {
 };
 
 struct ast_conditional_node {
-	struct ast_s *conditional_statement;
+	struct ast_list_s *conditional_statement;
 	struct ast_s *if_statement;
 	struct ast_s *else_statement;
 };
 
 struct ast_while_node {
-	struct ast_s *conditional_statement;
+	struct ast_list_s *conditional_statement;
 	struct ast_s *body;
 };
 
 struct ast_spawn_node {
 	struct ast_s *arguments;
-	struct ast_s *body;
-};
-
-struct ast_barrier_node {
 	struct ast_s *body;
 };
 

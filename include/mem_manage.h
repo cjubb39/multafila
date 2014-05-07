@@ -30,7 +30,8 @@ heap_list_head* heap_list_purge(heap_list_head*);
 	data;})
 
 /*
- *	Check malloc return value of a string allocation
+ *	Check malloc return value of a string/int allocation
  */
 char *malloc_checked_string(size_t size);
+int *malloc_checked_int(size_t size);
 #endif

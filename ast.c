@@ -33,8 +33,8 @@ ast **ast_create_leaf_int (ast **a, char *value, symtab *symbol_table, scope *cu
 }
 
 ast **ast_create_leaf_il (ast **a, char *value){
-	(*a)->data.integer = malloc_checked_string(strlen(value) + 1);
-	strcpy((*a)->data.integer, value);
+	(*a)->data.integer = malloc_checked_int(strlen(value) + 1);
+	(*a)->data.integer = value;
 	return a;
 }
 
@@ -351,6 +351,12 @@ void ast_destroy_helper(struct ast_s *tree){
 			if (tree->type == AST_STRINGLITERAL){
 				free(tree->data.string);
 			}
+			if (tree->type == AST_INTLITERAL){
+				free(tree->data.integer);
+			}
+			if (tree->type == AST_CHARLITERAL){
+				free(tree->data.character);
+			}
 			break;
 		
 
@@ -379,6 +385,26 @@ void ast_destroy_helper(struct ast_s *tree){
 		case AST_NODE_FUNCTION_LIST:
 			ast_destroy_helper(tree->data.func_list.cur_func);
 			ast_destroy_helper(tree->data.func_list.next_func);
+			break;
+
+		case AST_NODE_CONDITIONAL:
+			ast_destroy_helper(tree->data.conditional_statement.conditional_statement);
+			ast_destroy_helper(tree->data.conditional_statement.if_statement);
+			ast_destroy_helper(tree->data.conditional_statement.else_statement);
+			break;
+
+		case AST_NODE_WHILE:
+			ast_destroy_helper(tree->data.while_statement.conditional_statement);
+			ast_destroy_helper(tree->data.while_statement.body);
+			break;
+
+		case AST_NODE_SPAWN:
+			ast_destroy_helper(tree->data.spawn.arguments);
+			ast_destroy_helper(tree->data.spawn.body);
+			break;
+
+		case AST_NODE_UNARY:
+			ast_destroy_helper(tree->data.unary.operand);
 			break;
 
 		default:

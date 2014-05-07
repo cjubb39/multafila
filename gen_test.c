@@ -17,19 +17,26 @@
 //#define GEN_TEST_DEBUG
 #define SIMPLE_OUTPUT
 
+
 void print_ast(ast *a);
 
-void print_header(){
+void print_header(){     
 	printf( "#include <stdio.h>\nvoid printOut(char *m){printf(\"%%s\\n\", m);}\n\n");
 }
 
 
 void print_ast_type(ast_type at){
+	assert(at!=AST_NULL);
+
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing AST_TYPE>");
 	#endif
 	switch(at){
 		case AST_STRING:
+			printf( "char *");
+			break;
+
+		case AST_STRINGLITERAL:
 			printf( "char *");
 			break;
 
@@ -119,6 +126,46 @@ void print_stmt(ast *a){
 	print_ast(a->data.stmt.next);
 }
 
+void print_unary(ast *a){
+	print_ast(a->data.unary.operand);
+	printf( " %s ", a->data.unary.op);
+	printf( " ;\n");
+}
+
+void print_barrier(ast *a){
+	
+}
+
+void print_spawn(ast *a){
+
+}
+
+void print_while(ast *a){
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing while statement>");
+	#endif
+	printf( "while(");
+	print_ast(a->data.while_statement.conditional_statement);
+	printf( " )\n{\n");
+	print_ast(a->data.while_statement.body);
+	printf( "\n}\n");
+}
+
+void print_con(ast *a){
+	printf( "if(");
+	print_ast(a->data.conditional_statement.conditional_statement);
+	printf( " )\n{\n");
+	print_ast(a->data.conditional_statement.if_statement);
+	printf( "\n}\n");
+
+	//print else statment if there is one
+	if(a->data.conditional_statement.else_statement != NULL){
+		printf( "\n{\n");
+		print_ast(a->data.conditional_statement.else_statement);
+		printf( "\n}\n");
+	}
+}
+
 void print_leaf(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing LEAF>");
@@ -129,9 +176,36 @@ void print_leaf(ast *a){
 			printf( "%s", a->data.string);
 			break;
 
+		case AST_STRING:
+			printf( "%s", a->data.string);
+			break;
+
+		case AST_INTLITERAL:
+			printf( "%d", a->data.integer);
+			break;
+
+		case AST_INT:
+			printf( "%s", a->data.string);
+			break;
+
+		case AST_CHARLITERAL:
+			printf( "%s", a->data.string);
+			break;
+
+		case AST_CHAR:
+			printf( "%s", a->data.character);
+			break;
+			
+		case AST_BARRIER:
+			print_barrier(a);
+			break;
+
 		default:
 			printf( "%s", a->data.symtab_ptr->name);
 			break;
+
+		// AST_THREAD,
+		// AST_BARRIER
 	}
 }
 
@@ -171,6 +245,22 @@ void print_ast(ast *a){
 
 		case AST_NODE_LEAF:
 			print_leaf(a);
+			break;
+
+		case AST_NODE_CONDITIONAL:
+			print_con(a);
+			break;
+
+		case AST_NODE_WHILE:
+			print_while(a);
+			break;
+
+		case AST_NODE_SPAWN:
+			print_spawn(a);
+			break;	
+
+		case AST_NODE_UNARY:
+			print_unary(a);
 			break;
 
 		default:

@@ -344,6 +344,18 @@ conditional_statement
 
 while_statement
   : WHILE LPAREN bool_expr RPAREN statement_list
+    {
+      ast_list *condstmt, *whilebody;
+      heap_list_malloc(hList, condstmt);
+      heap_list_malloc(hList, whilebody);
+
+      condstmt->data = (ast *) $3;
+      condstmt->next = whilebody;
+      whilebody->data = (ast *) $5,
+      whilebody->next = NULL;
+
+      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
+    }
   ;
 
 for_statement

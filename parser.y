@@ -89,7 +89,22 @@ function_list
 function_def
   : type IDENTIFIER LPAREN arg_list RPAREN statement_list 
     {
-      fprintf(stderr, "FUNC_DEF 1: NOT YET IMPLEMENTED\n");
+      #ifdef PARSER_DEBUG
+      fprintf(stderr, "FUNCTION DEF IDENT: %s\n", (char *)$2);
+      #endif
+
+      ast_list *body, *arguments;
+      heap_list_malloc(hList, body);
+      heap_list_malloc(hList, arguments);
+
+      body->data = (ast *) $6;
+      body->next = arguments;
+      arguments->data = (ast *) $4;
+      arguments->next = NULL;
+      ast_type t = (ast_type) $1;
+      symtab_insert(st, $2, t);
+      $$ = ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
+
     }
   | type IDENTIFIER LPAREN RPAREN statement_list 
     {
@@ -134,7 +149,34 @@ func_call
 
 arg_list
   : type IDENTIFIER
+    {
+      ast_type t = (ast_type) $1;
+      symtab_insert(st, $2, t);
+      ast *leaf = ast_create_leaf($2, t, st, cur_scope);
+
+      ast_list *arg;
+      heap_list_malloc(hList, arg);
+      arg->data = leaf;
+      arg->next = NULL;
+
+      $$ = arg;
+    }
   | type IDENTIFIER COMMA arg_list
+    {
+      ast_type t = (ast_type) $1;
+      symtab_insert(st, $2, t);
+      ast *leaf = ast_create_leaf($2, t, st, cur_scope);
+
+      ast_list *arg, *nextarg;
+      heap_list_malloc(hList, arg);
+      heap_list_malloc(hList, nextarg);
+      arg->data = leaf;
+      arg->next = nextarg;
+      nextarg->data = $4;
+      nextarg->next = NULL;
+
+      $$ = arg;
+    }
   ;
 
 param_list
@@ -146,13 +188,12 @@ param_list
     }
   | param_list COMMA param_list
     {
-      fprintf(stderr, "PARAM_LIST 2: NOT YET IMPLEMENTED\n");
-      /*ast_list *firstparam;
+      ast_list *firstparam;
       heap_list_malloc(hList, firstparam);
 
       firstparam->data = (ast *) $1;
       firstparam->next = (ast *) $3;
-      $$ = firstparam;*/
+      $$ = firstparam;
     }
   | array
     {
@@ -212,7 +253,7 @@ statement_list_internal
       nextstmt->data = NULL;
       nextstmt->next = NULL;
 
-      $$ = ast_add_internal_node("statementS", stmt, AST_NODE_STATEMENT, st, cur_scope);
+      $$ = ast_add_internal_node("statements", stmt, AST_NODE_STATEMENT, st, cur_scope);
       
       #ifdef PARSER_DEBUG
       fprintf(stderr, "STMT-S DATA: %p %p %p\n", $1, NULL, $$);
@@ -268,6 +309,10 @@ thread_statement
 
 conditional_statement
   : IF LPAREN bool_expr RPAREN statement_list
+    {
+
+
+    }
   | IF LPAREN bool_expr RPAREN statement_list ELSE statement_list
   ;
 
@@ -379,9 +424,9 @@ braced_expr
   ;
 
 bool_expr
-  : rel_expr;
-  | IDENTIFIER;
-  | BOOLEANOP IDENTIFIER;
+  : rel_expr
+  | IDENTIFIER
+  | BOOLEANOP IDENTIFIER
   ;
 
 rel_expr
@@ -389,7 +434,7 @@ rel_expr
   ;
 
 math_expr
-  : expr mathop expr;
+  : expr mathop expr
   ;
 
 unary_math

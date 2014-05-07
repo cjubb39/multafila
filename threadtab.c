@@ -1,10 +1,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "global_config.h"
-#include "error_handling.h"
-#include "threadtab.h"
-#include "threadtab_structs.h"
+#include "include/global_config.h"
+#include "include/error_handling.h"
+#include "include/threadtab.h"
+#include "include/threadtab_structs.h"
 
 /*
  *	Create thread_data object to be used in other functions

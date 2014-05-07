@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "include/ast.h"
 #include "y.tab.h"
 
 int type_enum2yacc(ast_type type){
@@ -28,7 +28,7 @@ ast_type type_yacc2enum(int type){
 			break;
 
 		case STRING:
-			ret = STRING;
+			ret = AST_STRING;
 			break;
 
 		default:

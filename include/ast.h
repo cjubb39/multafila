@@ -70,6 +70,8 @@ typedef struct ast_list_s ast_list;
  */
 ast *ast_create_leaf (char *value, ast_type type, symtab*, scope* cur_scope);
 
+ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope* cur_scope);
+
 /*
  *	Add internal (non-leaf) node to ast
  *	Action will be specified by value of type argument

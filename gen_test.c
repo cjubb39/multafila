@@ -139,8 +139,12 @@ void print_barrier(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing BARRIER>");
 	#endif	
-
-
+    
+    // int pthread_join(pthread_t thread, void **value_ptr);
+	printf( "pthread_join(");
+	printf( "thread_%d,", threadcount);
+	printf( "NULL");
+	printf( " );");
 }
 
 void print_spawn(ast *a){
@@ -149,6 +153,7 @@ void print_spawn(ast *a){
 	#endif	
 
 	// SPAWN LPAREN IDENTIFIER RPAREN statement_list
+	// I think we need to access the threadtable to get related information for thread, I dont know where I can get threadcount.
 	printf( "pthread_t* thread_%d;", threadcount);
 
 	// int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
@@ -160,7 +165,7 @@ void print_spawn(ast *a){
 	print_ast(a->data.spawn.arguments);
 	printf( " );");
 
-	// function def need to go to the top.
+	// function def need to go to the top. How do we achieve this?
 	printf( "void thread_fuction_%d (void* args)", threadcount);
 	
 	// thread fuction 
@@ -229,10 +234,6 @@ void print_leaf(ast *a){
 		case AST_CHAR:
 			printf( "%s", a->data.character);
 			break;
-			
-		case AST_BARRIER:
-			print_barrier(a);
-			break;
 
 		default:
 			printf( "%s", a->data.symtab_ptr->name);
@@ -286,12 +287,16 @@ void print_ast(ast *a){
 			print_while(a);
 			break;
 
+		case AST_NODE_UNARY:
+			print_unary(a);
+			break;
+
 		case AST_NODE_SPAWN:
 			print_spawn(a);
 			break;	
 
-		case AST_NODE_UNARY:
-			print_unary(a);
+		case AST_BARRIER:
+			print_barrier(a);
 			break;
 
 		case AST_NODE_LEAF:

@@ -234,14 +234,13 @@ void print_leaf(ast *a){
 			print_barrier(a);
 			break;
 
-		case AST_SPAWN:
-			print_spawn(a);
-			break;
 		default:
 			printf( "%s", a->data.symtab_ptr->name);
 			break;
 
 		// AST_THREAD,
+		// AST_CHARARRAY,
+		// AST_CHARARRAYLITERAL,
 	}
 }
 
@@ -279,10 +278,6 @@ void print_ast(ast *a){
 			print_stmt(a);
 			break;
 
-		case AST_NODE_LEAF:
-			print_leaf(a);
-			break;
-
 		case AST_NODE_CONDITIONAL:
 			print_con(a);
 			break;
@@ -297,6 +292,10 @@ void print_ast(ast *a){
 
 		case AST_NODE_UNARY:
 			print_unary(a);
+			break;
+
+		case AST_NODE_LEAF:
+			print_leaf(a);
 			break;
 
 		default:

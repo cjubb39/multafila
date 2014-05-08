@@ -415,7 +415,30 @@ declaration
 
       $$ = ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
     }
-  | type array
+  | type IDENTIFIER LBRACK INTEGER RBRACK
+    {
+      ast_type t;
+      int size;
+      if ( $1 = AST_CHAR ) {
+        t = AST_CHARARRAY;
+        size = sizeof(char) * (int) $4;
+       } else if { $1 = AST_INT } {
+        t = AST_INTARRAY;
+        size = sizeof(int) * (int) $4;
+      }
+
+      symtab_insert(st, $2, t);
+      ast* leaf = ast_create_array_leaf($2, size, t, st, cur_scope);
+
+      ast_list *ident;
+      heap_list_malloc(hList, ident);
+      ident->data = leaf;
+      ident->next = NULL;
+
+      $$ = ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
+
+    }
+  | type IDENTIFIER LBRACK IDENTIFIER LBRACK
   ; 
 
 assignment
@@ -588,6 +611,9 @@ number
 
 array
   : IDENTIFIER LBRACK INTEGER RBRACK
+    {
+
+    }
   | IDENTIFIER LBRACK IDENTIFIER RBRACK
   | IDENTIFIER LBRACK INTEGER RBRACK LBRACK INTEGER RBRACK
   | IDENTIFIER LBRACK IDENTIFIER RBRACK LBRACK IDENTIFIER RBRACK

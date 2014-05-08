@@ -282,3 +282,7 @@ int symtab_declared_curr_thread_block(symtab *symbol_table, char *symbol_name){
 ast_type symtab_entry_get_type(symtab_entry *entry){
 	return entry->type;
 }
+
+ast_node_type symtab_entry_get_node_type( symtab_entry *entry ){
+	return entry->node_type;
+}

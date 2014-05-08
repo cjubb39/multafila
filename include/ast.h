@@ -34,6 +34,9 @@ typedef struct ast_s {
 		char *string;
 		char *character;
 		double doub;
+		int *intarray;
+		char *chararray;
+		char **stringarray;
 		/* for variable names */
 		symtab_entry *symtab_ptr;
 

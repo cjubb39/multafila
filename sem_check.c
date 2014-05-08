@@ -16,9 +16,14 @@
 void check_ast(ast *a);
 
 /* helper func that checks if two node are of the same type */
-int are_equivalent(){
-
+int are_equivalent(ast_type i, ast_type j){
+	if (i == j){
+		return 1;
+	}else{
+		return 0;
+	}
 }
+
 
 void check_fucn_list(ast *a){
 		are_equivalent();
@@ -33,23 +38,47 @@ void check_expr(ast *a){
 
 }
 
-void check_while(ast *a){
-	a->data.while_statement.conditional_statement
-	if(ast_get_node_type(a->data.while_statement.conditional_statement) != BOOLTYPE){
-		printf("while loop condition is not a boolean expression");
+/* binary node checker */
+void check_bin(ast *a){
+	symtab_entry *s1 = a->data.bin.left.symtab_ptr;
+	ast_type t1 = symtab_entry_get_type(s1);
+	
+	symtab_entry *s2 = a->data.bin.right.symtab_ptr;
+	ast_type t2 = symtab_entry_get_type(s2);
+	
+	if (are_equivalent(t1, t2) == 0){
+		printf("binary node error, not an integer");
 	}
-
-/* have to create these scope stacks somehow */
-	push(breakstack, 1);
-	push(continuestack, 1);
-	
-	check_expr(ast *a);
-	
-	pop(breakstack);
-	pop(continuestack);
-
 }
 
+/* unary node checker */
+void check_unary(ast *a){
+	symtab_entry *s = a->data.unary.operand.symtab_ptr;
+	ast_type t = symbtab_entry_get_type(s);
+	
+	if( t != AST_INT){
+		printf("unary operator error, not an integer");
+	}
+}
+
+/* while loop checker */
+void check_while(ast *a){
+	
+	char *c = a->data.while_statement.conditional_statement.bin.op;
+	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
+		printf("condition in while loop is not a boolean expression");
+		}
+}
+
+/* if statement checker */
+void check_conditional(ast *a){
+	char *c = a->data.conditional_statement.conditional_statement.bin.op;
+	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
+		printf("condition in if statement is not a boolean expression");
+		}
+}
+
+/*check return statement types */
 void check_return(ast *a){
 	if ( != NULL){
 		rettype = ;
@@ -60,7 +89,6 @@ void check_return(ast *a){
 	}
 
 }
-
 
 /* check the main ast */
 void check_ast(ast *){

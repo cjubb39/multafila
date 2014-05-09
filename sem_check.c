@@ -25,23 +25,32 @@ int are_equivalent(ast_type i, ast_type j){
 }
 
 
-void check_fucn_list(ast *a){
-		are_equivalent();
+void check_func_list(ast *a){
+	// 
 }
 
+
 void check_func_def(ast *a){
+
 
 }
 
 void check_expr(ast *a){
 
+
+
 }
 
 void check_func_call(ast *a){
+	// check that function exists in the symbol table 
+	if ()
+
+
+	// check that the arguments in the function call match the declared function
 
 	ast *args = a->data.func_call.arguments;
+
 	
-	ast_type t = 
 }
 
 /* binary node checker */
@@ -58,10 +67,10 @@ void check_bin(ast *a){
 	if( t2 == AST_NULL){
 		ast_node_type t2n = symtab_entry_get_node_type(s2);
 		if (t2n == AST_NODE_BIN){
-		check_bin(right);
+			check_bin(right);
 		} else if (t2n == AST_NODE_FUNTION_CALL){
-				check_func_call(right);
-			}
+			check_func_call(right);
+		}
 	}
 	
 	if (are_equivalent(t1, t2) == 0){
@@ -89,15 +98,17 @@ void check_while(ast *a){
 	char *c = a->data.while_statement.conditional_statement.bin.op;
 	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
 		printf("condition in while loop is not a boolean expression");
-		}
+	}
 }
+
 
 /* if statement checker */
 void check_conditional(ast *a){
 	char *c = a->data.conditional_statement.conditional_statement.bin.op;
 	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
 		printf("condition in if statement is not a boolean expression");
-		}
+	}
+
 }
 
 /*check return statement types */

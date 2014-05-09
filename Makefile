@@ -1,6 +1,6 @@
 CC  = gcc
 
-CFLAGS	= -g -Wall $(INCLUDES)
+CFLAGS	= -g -std=gnu89 -Wall $(INCLUDES)
 LDFLAGS	= -lm
 
 .PHONY: default
@@ -8,9 +8,10 @@ default: small-parser
 
 SRC	= ast.c							\
 			error_handling.c	\
-			gen_test.c				\
+			gen_code.c				\
 			mem_manage.c			\
 			symtab.c					\
+			threadtab.c				\
 			lex.yy.c					\
 			y.tab.c						
 

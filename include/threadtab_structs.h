@@ -5,7 +5,6 @@
 
 #include "global_config.h"
 #include "threadtab.h"
-#include "symtab_structs.h"
 
 struct thread_data {
 	char name[MAX_IDENT_LENGTH + 1];

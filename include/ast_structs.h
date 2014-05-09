@@ -3,6 +3,7 @@
 
 #include "global_config.h"
 #include "symtab.h"
+#include "threadtab.h"
 
 struct ast_function_list_node{
 	struct ast_s *cur_func;
@@ -13,6 +14,7 @@ struct ast_function_def_node {
 	symtab_entry *func_symtab;
 	struct ast_s *body;
 	struct ast_list_s *arguments;
+	unsigned int thread_generated;
 };
 
 struct ast_function_call_node {
@@ -49,6 +51,7 @@ struct ast_while_node {
 struct ast_spawn_node {
 	struct ast_s *arguments;
 	struct ast_s *body;
+	struct thread_data thread;
 };
 
 struct ast_unary_math {

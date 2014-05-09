@@ -70,5 +70,6 @@ symtab_entry *symtab_lookup(symtab *symbol_table, char *symbol_name, scope *curr
 int symtab_declared_curr_thread_block(symtab *symbol_table, char *symbol_name);
 
 ast_type symtab_entry_get_type(symtab_entry *entry);
+char *symtab_entry_get_name(symtab_entry *entry);
 
 #endif

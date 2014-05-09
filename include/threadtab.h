@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include "global_config.h"
+#include "threadtab_structs.h"
 
 typedef struct threadtab_s threadtab;
 

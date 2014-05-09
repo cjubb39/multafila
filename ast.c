@@ -135,9 +135,12 @@ ast **ast_create_node_while( ast **a, ast_list *children ) {
 	return a;
 }
 
-ast **ast_create_node_spawn( ast **a, ast_list *children ) {
+ast **ast_create_node_spawn( ast **a, ast_list *children, struct thread_data *thread ) {
 	(*a)->data.spawn.body = children->data;
 	(*a)->data.spawn.arguments = children->next->data;
+
+	/* get pointer to thread being used */
+
 
 	return a;
 }
@@ -186,6 +189,7 @@ ast **ast_create_node_func_def(ast **a, ast_list *children, char *name,
 	children = children->next;
 
 	(*a)->data.func_def.arguments = children;
+	(*a)->data.func_def.thread_generated = 0;
 
 	#ifdef AST_DEBUG
 	fprintf(stderr, "FUNC DEF ARGUMENTS: base: %p data: %p", children, children->data);
@@ -243,7 +247,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
  *	AST_NODE_FUNCTION_LIST:		IGNORED
  *	AST_NODE_CONDITIONAL:		IGNORED
  *  AST_NODE_WHILE:				IGNORED
- *	AST_NODE_SPAWN:				IGNORED
+ *	AST_NODE_SPAWN:				ptr to struct thread_Data created by create_thread_data
  *	AST_NODE_UNARY:				1-2 character unary op
  *	
  *	
@@ -311,7 +315,7 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 			break;
 
 		case AST_NODE_SPAWN:
-			ast_create_node_spawn(&new_node, children );
+			ast_create_node_spawn(&new_node, children, (struct thread_data*) value);
 			break;
 
 		case AST_NODE_UNARY:

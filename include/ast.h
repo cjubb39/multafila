@@ -20,6 +20,7 @@ typedef enum {
 	AST_NODE_CONDITIONAL,
 	AST_NODE_WHILE,
 	AST_NODE_SPAWN,
+	AST_NODE_BARRIER,
 	AST_NODE_UNARY
 } ast_node_type;
 

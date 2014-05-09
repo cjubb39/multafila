@@ -17,7 +17,8 @@ struct symtab_entry_s {
 	ast_type type;
 	/* gives us bit flags */
 	unsigned initialized	:1;
-	unsigned							:7;
+	unsigned thread				:1;
+	unsigned							:6;
 
 	struct symtab_entry_s *next;
 };

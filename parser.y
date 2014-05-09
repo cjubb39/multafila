@@ -10,7 +10,8 @@
 #include "include/mem_manage.h"
 #include "include/ast.h"
 #include "include/symtab.h"
-#include "include/gen_test.h"
+#include "include/threadtab.h"
+#include "include/gen_code.h"
 #include "include/yacc_compatability.h"
 
 #define MAX_MSG_LEN 50
@@ -27,6 +28,7 @@ extern int yyparse();
 extern int lineno;
 int t;
 symtab *st;
+threadtab *tb;
 scope *cur_scope;
 heap_list_head *hList;
 
@@ -54,7 +56,7 @@ start_point
   : function_list
     {
       ast *root = (ast *) $1;
-			gen_test( root );
+			gen_code( root, st, tb );
       ast_destroy(root);
     }
   ;
@@ -262,6 +264,9 @@ loop_statement
 
 thread_statement
   : spawn_statement
+    {
+      $$ = $1;
+    }
   | lock_statement
   | barrier_statement
   ;
@@ -285,6 +290,9 @@ pfor_statement
 
 spawn_statement
   : SPAWN LPAREN IDENTIFIER RPAREN statement_list
+    {
+
+    }
   ;
 
 lock_statement
@@ -301,6 +309,12 @@ declaration
       /* add to symtab and then create node */
       ast_type t = (ast_type) $1;
       symtab_insert(st, $2, t);
+
+      /* add to threadtab if necessary */
+      if ((ast_type) $$ == AST_THREAD){
+        threadtab_insert(tb, create_thread_data($2, 1));
+      }
+
       ast* leaf = ast_create_leaf($2, t, st, cur_scope);
 
       ast_list *ident;
@@ -472,6 +486,7 @@ int main( int argc, char *argv[] )
   malloc_checked(hList);
   heap_list_init(hList);
   st = symtab_init();
+  tb = threadtab_init();
 
   /* pre-install printOut */
   symtab_insert( st, "printOut", AST_STRING);
@@ -507,6 +522,7 @@ int main( int argc, char *argv[] )
 
   fclose(yyin);
 
+  threadtab_destroy(tb);
   symtab_destroy(st);
   heap_list_purge(hList);
   free(hList);

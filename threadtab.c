@@ -3,6 +3,7 @@
 
 #include "include/global_config.h"
 #include "include/error_handling.h"
+#include "include/mem_manage.h"
 #include "include/threadtab.h"
 #include "include/threadtab_structs.h"
 

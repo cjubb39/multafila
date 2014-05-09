@@ -136,7 +136,13 @@ func_call
 
 arg_list
   : type IDENTIFIER
+    {
+      fprintf(stderr, "ARG_LIST 1: NOT YET IMPLEMENTED\n");
+    }
   | type IDENTIFIER COMMA arg_list
+     {
+      fprintf(stderr, "ARG_LIST 2: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 param_list
@@ -223,11 +229,17 @@ statement_list_internal
 
 statement
   : loop_statement
+    {
+      fprintf(stderr, "STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   | thread_statement
     {
       $$ = $1;
     }
   | conditional_statement
+    {
+      fprintf(stderr, "STATEMENT 3: NOT YET IMPLEMENTED\n");
+    }
   | declaration SEMI
     {
       $$ = $1;
@@ -241,11 +253,20 @@ statement
       $$ = $1;
     }
   | return_statement SEMI
+    {
+      fprintf(stderr, "STATEMENT 4: NOT YET IMPLEMENTED\n");
+    }
   | SEMI
+    {
+      fprintf(stderr, "STATEMENT 5: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 return_statement
  : RETURN IDENTIFIER
+    {
+      fprintf(stderr, "RETURN 1: NOT YET IMPLEMENTED\n");
+    }
  | RETURN literal 
     { 
       fprintf(stderr, "RETURN 2: NOT YET IMPLEMENTED\n");
@@ -260,8 +281,17 @@ return_statement
 
 loop_statement
   : while_statement
+    {
+      fprintf(stderr, "LOOP STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   | for_statement
+    {
+      fprintf(stderr, "LOOP STATEMENT 2: NOT YET IMPLEMENTED\n");
+    }
   | pfor_statement
+    {
+      fprintf(stderr, "LOOP STATEMENT 3: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 thread_statement
@@ -270,6 +300,9 @@ thread_statement
       $$ = $1;
     }
   | lock_statement
+    {
+      fprintf(stderr, "THREAD STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   | barrier_statement
     {
       $$ = $1;
@@ -278,19 +311,34 @@ thread_statement
 
 conditional_statement
   : IF LPAREN bool_expr RPAREN statement_list
+    {
+      fprintf(stderr, "COND STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   | IF LPAREN bool_expr RPAREN statement_list ELSE statement_list
+    {
+      fprintf(stderr, "COND STATEMENT 2: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 while_statement
   : WHILE LPAREN bool_expr RPAREN statement_list
+    {
+      fprintf(stderr, "WHILE STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 for_statement
   : FOR LPAREN assignment SEMI rel_expr SEMI unary_math RPAREN statement_list
+    {
+      fprintf(stderr, "FOR STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 pfor_statement
   : PFOR LPAREN IDENTIFIER COMMA IDENTIFIER COMMA INTEGER RPAREN statement_list
+    {
+      fprintf(stderr, "PFOR STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 spawn_statement
@@ -314,6 +362,9 @@ spawn_statement
 
 lock_statement
   : LOCK LPAREN param_list RPAREN statement_list
+    {
+      fprintf(stderr, "LOCK STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 barrier_statement
@@ -348,6 +399,9 @@ declaration
       $$ = ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
     }
   | type array
+    {
+      fprintf(stderr, "DECLARATION 2: NOT YET IMPLEMENTED\n");
+    }
   ; 
 
 assignment
@@ -384,6 +438,9 @@ lvalue
       $$ = ast_create_leaf( $1, t, st, cur_scope );
     }
   | type array
+    {
+      fprintf(stderr, "LVALUE 3: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 rvalue
@@ -395,42 +452,81 @@ rvalue
 
 expr
   : bool_expr
+    {
+      fprintf(stderr, "EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   | math_expr
+    {
+      fprintf(stderr, "EXPR 2: NOT YET IMPLEMENTED\n");
+    }
   | unary_math
+    {
+      fprintf(stderr, "EXPR 3: NOT YET IMPLEMENTED\n");
+    }
   | func_call
     {
       $$ = $1;
     }
   | braced_expr
+    {
+      fprintf(stderr, "EXPR 5: NOT YET IMPLEMENTED\n");
+    }
   | literal
     {
       $$ = $1;
     }
   /*| IDENTIFIER*/
   | array
+    {
+      fprintf(stderr, "EXPR 7: NOT YET IMPLEMENTED\n");
+    }
   | LPAREN expr RPAREN 
+    {
+      fprintf(stderr, "EXPR 8: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 braced_expr
   : LBRACE literal_list RBRACE
+    {
+      fprintf(stderr, "BRACED_EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 bool_expr
-  : rel_expr;
-  | IDENTIFIER;
-  | BOOLEANOP IDENTIFIER;
+  : rel_expr
+    {
+      fprintf(stderr, "BOOL EXPR 1: NOT YET IMPLEMENTED\n");
+    }
+  | IDENTIFIER
+    {
+      fprintf(stderr, "BOOL EXPR 2: NOT YET IMPLEMENTED\n");
+    }
+  | BOOLEANOP IDENTIFIER
+    {
+      fprintf(stderr, "BOOL EXPR 3: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 rel_expr
   : expr relop expr
+    {
+      fprintf(stderr, "REL EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 math_expr
-  : expr mathop expr;
+  : expr mathop expr
+    {
+      fprintf(stderr, "MATH EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 unary_math
   : IDENTIFIER unary_math_op
+    {
+      fprintf(stderr, "UNARY MATH EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 assignop

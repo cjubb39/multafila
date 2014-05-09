@@ -38,11 +38,6 @@ void check_expr(ast *a){
 	// 
 }
 
-/* struct ast_list_s {
-	struct ast_s *data;
-	struct ast_list_s *next;
-};  */
-
 /*check args are the correct type. check func exists. */
 	void check_func_call(ast *a){
 	// check that function exists in the symbol table 
@@ -60,7 +55,7 @@ void check_expr(ast *a){
 
 			if (arglist_compare(declaredargs, args) != 1) {
 				printf("argument types do not match function declaration");
-			}
+			
 
 		}
 	}
@@ -149,19 +144,7 @@ void check_expr(ast *a){
 	}
 
 	int arglist_compare(ast_list a, ast_list b) {
-		while(1)
-		{
-			if(a == NULL && b == NULL)     
-				{  return 1; }
-			if(a == NULL && b != NULL)  
-				{  return 0; }
-			if(a != NULL && b == NULL)  
-				{  return 0; }
-			if(a->data != b->data)
-				{  return 0; }
-			a = a->next;
-			b = b->next; 
-		}          
+		while (a-> )  
 
 	}
 /* check the main ast */

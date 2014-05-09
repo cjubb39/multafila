@@ -344,7 +344,7 @@ pfor_statement
 spawn_statement
   : SPAWN LPAREN IDENTIFIER RPAREN statement_list
     {
-      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
+      ast_type t = symtab_entry_get_type(symtab_lookup(st, $3, cur_scope));
 
       ast_list *body;
       ast_list *args;
@@ -353,7 +353,7 @@ spawn_statement
 
       body->data = (ast *) $5;
       body->next = args;
-      args->data = ast_create_leaf( $1, t, st, cur_scope );
+      args->data = ast_create_leaf( $3, t, st, cur_scope );
       args->next = NULL;
 
       $$ = ast_add_internal_node(NULL, body, AST_NODE_SPAWN, st, cur_scope);

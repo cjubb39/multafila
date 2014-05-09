@@ -131,7 +131,7 @@ ast **ast_create_node_while( ast **a, ast_list *children ) {
 ast **ast_create_node_spawn( ast **a, ast_list *children,
 	struct thread_data *thread, symtab *st, scope *cur_scope ) {
 	(*a)->data.spawn.body = NULL;//children->data;
-	(*a)->data.spawn.arguments = NULL;//children->next->data;
+	(*a)->data.spawn.arguments = children->next->data;
 
 	/* get pointer to thread being used */
 	struct thread_data * td = threadtab_lookup(symtab_get_threadtab(st),
@@ -159,12 +159,11 @@ ast **ast_create_node_spawn( ast **a, ast_list *children,
 	ast *new_func = ast_add_internal_node(func_name, body, AST_NODE_FUNCTION_DEF,
 		st, cur_scope);
 
-	heap_list_add(hList, (void *)new_func);
-
 	new_func->data.func_def.thread_generated = 1;
 	new_func->data.func_def.convert_to_ptr = 1;
 
 	threadtab_add_assoc_func(td, new_func);
+	(*a)->data.spawn.body = new_func;
 
 	return a;
 }

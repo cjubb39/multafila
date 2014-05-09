@@ -35,26 +35,48 @@ void check_func_def(ast *a){
 
 void check_expr(ast *a){
 
+}
 
+void check_func_call(ast *a){
+
+	ast *args = a->data.func_call.arguments;
+	
+	ast_type t = 
 }
 
 /* binary node checker */
 void check_bin(ast *a){
+	ast *a left = a->data.bin.left;
+	ast *a right = a->data.bin.right;
 	symtab_entry *s1 = a->data.bin.left.symtab_ptr;
 	ast_type t1 = symtab_entry_get_type(s1);
 	
 	symtab_entry *s2 = a->data.bin.right.symtab_ptr;
 	ast_type t2 = symtab_entry_get_type(s2);
 	
+	/* if t2 is a AST_NULL type, check to see if it's another bin_node or func_call */
+	if( t2 == AST_NULL){
+		ast_node_type t2n = symtab_entry_get_node_type(s2);
+		if (t2n == AST_NODE_BIN){
+		check_bin(right);
+		} else if (t2n == AST_NODE_FUNTION_CALL){
+				check_func_call(right);
+			}
+	}
+	
 	if (are_equivalent(t1, t2) == 0){
 		printf("binary node error, not an integer");
-	}
+	} 
 }
 
 /* unary node checker */
 void check_unary(ast *a){
 	symtab_entry *s = a->data.unary.operand.symtab_ptr;
 	ast_type t = symbtab_entry_get_type(s);
+	
+	if (t == AST_NULL){
+		
+	}
 	
 	if( t != AST_INT){
 		printf("unary operator error, not an integer");

@@ -55,6 +55,10 @@ struct ast_spawn_node {
 	struct ast_s *arguments;
 	struct ast_s *body;
 	struct thread_data *thread;
+	struct ast_spawn_vars{
+		struct ast_list_s *old_vars;
+		struct ast_list_s *new_vars;
+	} vars;
 };
 
 struct ast_barrier_node {

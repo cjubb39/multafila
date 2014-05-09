@@ -51,11 +51,12 @@ void print_threadtab(threadtab *tb){
 }
 
 void print_ast_type(ast_type at){
-	assert(at!=AST_NULL);
+	assert(at != AST_NULL);
 
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing AST_TYPE>");
 	#endif
+
 	switch(at){
 		case AST_STRING:
 			printf( "char *");
@@ -70,7 +71,7 @@ void print_ast_type(ast_type at){
 			break;
 
 		case AST_VOID_STAR:
-			printf("void*");
+			printf("void *");
 			break;
 
 		case AST_VOID:

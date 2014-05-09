@@ -11,6 +11,7 @@
 #include "threadtab_structs.h"
 
 #define SPAWN_FUNC_FORMAT "main_func_spawn_thread_%d"
+#define SPAWN_ARGS_FORMAT "spawn_struct_args_thread_%d"
 
 typedef struct threadtab_s threadtab;
 

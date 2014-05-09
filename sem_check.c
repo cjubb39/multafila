@@ -36,9 +36,9 @@ void check_func_def(ast *a){
 void check_expr(ast *a){
 
 }
-
+/*check args are the correct type. check func exists. */
 void check_func_call(ast *a){
-
+	
 	ast *args = a->data.func_call.arguments;
 	
 	ast_type t = 
@@ -59,8 +59,13 @@ void check_bin(ast *a){
 		ast_node_type t2n = symtab_entry_get_node_type(s2);
 		if (t2n == AST_NODE_BIN){
 		check_bin(right);
-		} else if (t2n == AST_NODE_FUNTION_CALL){
-				check_func_call(right);
+		} else if (t2n == AST_NODE_FUNCTION_CALL){
+				symtab_entry *s = a->data.func_call.func_symtab;
+				/* check func return type, see if it matches lvalue */
+				ast_type t3 = symtab_entry_get_type(s);
+				if (are_equivalent(t1, t3) != 0){
+					printf("return type does not match declaration"); 
+				}
 			}
 	}
 	
@@ -74,10 +79,6 @@ void check_unary(ast *a){
 	symtab_entry *s = a->data.unary.operand.symtab_ptr;
 	ast_type t = symbtab_entry_get_type(s);
 	
-	if (t == AST_NULL){
-		
-	}
-	
 	if( t != AST_INT){
 		printf("unary operator error, not an integer");
 	}
@@ -86,30 +87,47 @@ void check_unary(ast *a){
 /* while loop checker */
 void check_while(ast *a){
 	
+	/* should also check for funcs that return boolean?? */
 	char *c = a->data.while_statement.conditional_statement.bin.op;
 	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
 		printf("condition in while loop is not a boolean expression");
 		}
+	ast *a while_body = a->data.while_statement.body;
+	check_stmt(while_body);
 }
 
 /* if statement checker */
 void check_conditional(ast *a){
+
+	/* should also check for funcs that return boolean??*/
 	char *c = a->data.conditional_statement.conditional_statement.bin.op;
 	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
 		printf("condition in if statement is not a boolean expression");
 		}
+		
+	ast *a cond_stmt = a->data.conditional_statement.if_statement;
+	check_stmt(cond_stmt);
+	
+	ast *a else_stmt = a->data.conditional_statement.else_statement;
+	check_stmt(else_stmt);
+	
 }
 
-/*check return statement types */
-void check_return(ast *a){
-	if ( != NULL){
-		rettype = ;
+/* checks if a stmt node is valid */
+void check_stmt(ast *a){	
+	/* check to see if it belongs to one of the stmt types */
+	symtab_entry *s = a->data.stmt.body;
+	ast_type t = symbtab_entry_get_type(s);
+	if (t == AST_NULL){
+		ast_node_type t = symtab_entry_get_node_type(s);
+		switch(t){
+			case AST_NODE_BIN:
+				check_bin;
+			case AST_NODE_FUNCTION_CALL:
+					
+			
+		}
 	}
-	
-	if (funtype != rettype){
-		error
-	}
-
 }
 
 /* check the main ast */

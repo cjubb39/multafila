@@ -31,25 +31,26 @@ void check_func_list(ast *a){
 
 
 void check_func_def(ast *a){
-
-
+	//
 }
 
 void check_expr(ast *a){
-
-
-
+	// 
 }
+
 /*check args are the correct type. check func exists. */
 void check_func_call(ast *a){
 	// check that function exists in the symbol table 
-	if ()
-
-
+	// get symbol name
+	symtab_entry *s = a->data.func_call.func_symtab;
+	char *name = s->name;
+	symtab_entry *lookup = symtab_search_scope(a->containing_scope, name);
+	if (lookup == NULL) {
+		printf("function used without being declared");
+	}
 	// check that the arguments in the function call match the declared function
-	ast *args = a->data.func_call.arguments;
 
-	
+	ast *args = a->data.func_call.arguments;
 }
 
 /* binary node checker */
@@ -94,8 +95,6 @@ void check_unary(ast *a){
 
 /* while loop checker */
 void check_while(ast *a){
-	
-	/* should also check for funcs that return boolean?? */
 	char *c = a->data.while_statement.conditional_statement.bin.op;
 	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
 		printf("condition in while loop is not a boolean expression");
@@ -146,5 +145,4 @@ void check_ast(ast *){
 	switch(ast_get_node_type(a)){
 		case 
 	}
-
 }

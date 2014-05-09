@@ -10,6 +10,8 @@
 
 //#define AST_DEBUG
 
+extern heap_list_head *hList;
+
 /* CREATING LEAVES HERE */
 
 /*
@@ -135,12 +137,41 @@ ast **ast_create_node_while( ast **a, ast_list *children ) {
 	return a;
 }
 
-ast **ast_create_node_spawn( ast **a, ast_list *children, struct thread_data *thread ) {
-	(*a)->data.spawn.body = children->data;
-	(*a)->data.spawn.arguments = children->next->data;
+ast **ast_create_node_spawn( ast **a, ast_list *children,
+	struct thread_data *thread, symtab *st, scope *cur_scope ) {
+	//(*a)->data.spawn.body = children->data;
+	//(*a)->data.spawn.arguments = children->next->data;
 
 	/* get pointer to thread being used */
+	struct thread_data * td = threadtab_lookup(symtab_get_threadtab(st),
+			symtab_entry_get_name(children->next->data->data.symtab_ptr));
+	
+	assert (td != NULL);
 
+	(*a)->data.spawn.thread = td;
+
+	/* prepare function call */
+	char func_name[MAX_IDENT_LENGTH + 1];
+	strncpy(func_name, SPAWN_FUNC_FORMAT, td->offset);
+	symtab_insert(st, func_name, AST_VOID, ST_STATIC_DEC);
+
+	ast_list *body;
+	ast_list *arguments;
+	heap_list_malloc(hList, body);
+	heap_list_malloc(hList, arguments);
+
+	body->data = children->data;
+	body->next = arguments;
+	arguments->data = NULL;
+	arguments->next = NULL;
+
+	ast *new_func = ast_add_internal_node(func_name, body, AST_NODE_FUNCTION_DEF,
+		st, cur_scope);
+
+	new_func->data.func_def.thread_generated = 1;
+	new_func->data.func_def.convert_to_ptr = 1;
+
+	threadtab_add_assoc_func(td, new_func);
 
 	return a;
 }
@@ -190,12 +221,14 @@ ast **ast_create_node_func_def(ast **a, ast_list *children, char *name,
 
 	(*a)->data.func_def.arguments = children;
 	(*a)->data.func_def.thread_generated = 0;
+	(*a)->data.func_def.convert_to_ptr = 0;
 
 	#ifdef AST_DEBUG
 	fprintf(stderr, "FUNC DEF ARGUMENTS: base: %p data: %p", children, children->data);
 	#endif
 
 	symtab_entry *tmp = symtab_lookup(symbol_table, name, cur_scope);
+	assert(tmp != NULL);
 
 	/* and the type */
 	(*a)->type = symtab_entry_get_type(tmp);
@@ -315,7 +348,8 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 			break;
 
 		case AST_NODE_SPAWN:
-			ast_create_node_spawn(&new_node, children, (struct thread_data*) value);
+			ast_create_node_spawn(&new_node, children, (struct thread_data*) value,
+				symbol_table, cur_scope);
 			break;
 
 		case AST_NODE_UNARY:

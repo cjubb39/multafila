@@ -8,6 +8,7 @@
 #include "include/error_handling.h"
 #include "include/ast.h"
 #include "include/symtab.h"
+#include "include/threadtab.h"
 
 #include "include/ast_structs.h"
 #include "include/symtab_structs.h"
@@ -24,6 +25,9 @@ void print_header(){
 	printf( "#include <stdio.h>\nvoid printOut(char *m){printf(\"%%s\\n\", m);}\n\n");
 }
 
+void print_threadtab(threadtab *tb){
+
+}
 
 void print_ast_type(ast_type at){
 	assert(at!=AST_NULL);
@@ -43,6 +47,9 @@ void print_ast_type(ast_type at){
 		case AST_INT:
 			printf( "int");
 			break;
+
+		case AST_THREAD:
+			break; /* taken care of separately */
 
 		default:
 			break;
@@ -197,6 +204,12 @@ void print_spawn(ast *a){
 	print_ast(a->data.spawn.body);
 	printf( "pthread_exit(0);");
 	printf( "\n}\n");*/
+
+
+	/* for testing of AST */
+	printf("{\n");
+	print_ast(a->data.spawn.body);
+	printf("\n}\n");
 }
 
 void print_while(ast *a){
@@ -333,6 +346,7 @@ void gen_code(ast *a, symtab *st, threadtab *tb){
 #ifdef SIMPLE_OUTPUT
 	printf("\n/*==========OUTPUT CODE BELOW==========*/\n");
 	print_header();
+	print_threadtab(tb);
 	print_ast(a);
 #else
 	pid_t pid = fork();

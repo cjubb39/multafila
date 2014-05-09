@@ -7,10 +7,14 @@
 #define SYMTAB_H value
 
 #include "global_config.h"
+#include "threadtab.h"
 
 /* declarations for external structs, enums, etc */
 #define STI_VALID					0
 #define STI_ALREADYEXISTS	1
+
+#define ST_STATIC_DEC			2
+#define ST_NONSTATIC_DEC	3
 
 typedef struct symtab_s symtab;
 typedef struct symtab_scope scope;
@@ -55,7 +59,7 @@ scope *symtab_close_scope(symtab *symbol_table);
  *	Takes symbol name and types, as integer defined in yacc
  *	Returns STI_VALID on success, non-STI_VALID otherwise.
  */
-int symtab_insert(symtab *symbol_table, char *symbol_name, ast_type type);
+int symtab_insert(symtab *symbol_table, char *symbol_name, ast_type type, unsigned int);
 
 /*
  *	Takes symbol name and returns a type, as integer defined in yacc
@@ -71,5 +75,8 @@ int symtab_declared_curr_thread_block(symtab *symbol_table, char *symbol_name);
 
 ast_type symtab_entry_get_type(symtab_entry *entry);
 char *symtab_entry_get_name(symtab_entry *entry);
+
+void symtab_set_threadtab(symtab *, threadtab *);
+threadtab* symtab_get_threadtab(symtab*);
 
 #endif

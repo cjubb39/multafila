@@ -108,7 +108,7 @@ function_def
       arguments->data = NULL;
       arguments->next = NULL;
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t);
+      symtab_insert(st, $2, t, ST_STATIC_DEC);
       $$ = ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
@@ -204,7 +204,6 @@ statement_list_internal
     }
   | statement
     {
-      //$$ = $1;
       ast_list *stmt, *nextstmt;
       heap_list_malloc(hList, stmt);
       heap_list_malloc(hList, nextstmt);
@@ -225,6 +224,9 @@ statement_list_internal
 statement
   : loop_statement
   | thread_statement
+    {
+      $$ = $1;
+    }
   | conditional_statement
   | declaration SEMI
     {
@@ -291,7 +293,19 @@ pfor_statement
 spawn_statement
   : SPAWN LPAREN IDENTIFIER RPAREN statement_list
     {
+      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
 
+      ast_list *body;
+      ast_list *args;
+      heap_list_malloc(hList, body);
+      heap_list_malloc(hList, args);
+
+      body->data = (ast *) $5;
+      body->next = args;
+      args->data = ast_create_leaf( $1, t, st, cur_scope );
+      args->next = NULL;
+
+      $$ = ast_add_internal_node(NULL, body, AST_NODE_SPAWN, st, cur_scope);
     }
   ;
 
@@ -308,10 +322,13 @@ declaration
     {
       /* add to symtab and then create node */
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
 
       /* add to threadtab if necessary */
       if ((ast_type) $$ == AST_THREAD){
+        #ifdef PARSER_DEBUG
+        fprintf(stderr, "thread declaration\n");
+        #endif
         threadtab_insert(tb, create_thread_data($2, 1));
       }
 
@@ -351,7 +368,7 @@ lvalue
   : type IDENTIFIER  
     { 
       ast_type t = (ast_type) $1;
-      symtab_insert( st, $2, t );
+      symtab_insert( st, $2, t, ST_NONSTATIC_DEC );
       $$ = ast_create_leaf( $2, t, st, cur_scope );
       free($2);
     }
@@ -473,7 +490,7 @@ type
   | CHAR
   | BOOLEAN
   | STRING { $$ = AST_STRING; }
-  | THREAD 
+  | THREAD { $$ = AST_THREAD; }
   ;
 
 
@@ -487,9 +504,10 @@ int main( int argc, char *argv[] )
   heap_list_init(hList);
   st = symtab_init();
   tb = threadtab_init();
+  symtab_set_threadtab(st, tb);
 
   /* pre-install printOut */
-  symtab_insert( st, "printOut", AST_STRING);
+  symtab_insert( st, "printOut", AST_STRING, ST_STATIC_DEC);
 
   cur_scope = symtab_open_scope(st, SCOPE_FUNCTION);
 
@@ -528,12 +546,6 @@ int main( int argc, char *argv[] )
   free(hList);
 
   return flag;
-
-}
-
-void printTree( ast *root )
-{
-   
 
 }
 

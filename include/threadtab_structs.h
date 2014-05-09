@@ -10,6 +10,7 @@ struct thread_data {
 	char name[MAX_IDENT_LENGTH + 1];
 	uint64_t length;
 	uint64_t offset;
+	struct ast_s *assoc_ast;
 	struct thread_data *next;
 };
 

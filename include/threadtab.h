@@ -10,6 +10,8 @@
 #include "global_config.h"
 #include "threadtab_structs.h"
 
+#define SPAWN_FUNC_FORMAT "main_func_spawn_thread_%d"
+
 typedef struct threadtab_s threadtab;
 
 /*
@@ -29,6 +31,18 @@ threadtab *threadtab_init();
  *	Returns negative on error
  */
 int threadtab_insert(threadtab *thread_table, struct thread_data *data);
+
+/*
+ *	Lookup entry in thread table by name
+ *	Returns pointer to struct thread_data; NULL if not found
+ */
+struct thread_data *threadtab_lookup(threadtab *, char *);
+
+/*
+ *	Add function associated with thread
+ *	Returns pointer to modified struct thread_data
+ */
+struct thread_data *threadtab_add_assoc_func(struct thread_data *, struct ast_s *);
 
 /*
  *	Destroy thread table

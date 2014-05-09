@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <sys/wait.h> 
 #include <assert.h>
 
@@ -18,15 +19,35 @@
 //#define GEN_TEST_DEBUG
 #define SIMPLE_OUTPUT
 
+#define THREADSNAME "global_threads"
 
 void print_ast(ast *a);
 
 void print_header(){     
-	printf( "#include <stdio.h>\nvoid printOut(char *m){printf(\"%%s\\n\", m);}\n\n");
+	printf( "#include <stdio.h>\n#include <pthread.h>\n" \
+		"void printOut(char *m){printf(\"%%s\\n\", m);}\n\n");
+}
+
+void print_threadtab_func(ast *a){
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing THREADTAB_FUNC>");
+	#endif
+
+	print_ast(a);
 }
 
 void print_threadtab(threadtab *tb){
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing THREADTAB>");
+	#endif
 
+	printf("pthread_t " THREADSNAME " [%d];\n", (uint32_t) tb->length);
+
+	struct thread_data *td = tb->head;
+	while (td != NULL){
+		print_threadtab_func(td->assoc_ast);
+		td = td->next;
+	}
 }
 
 void print_ast_type(ast_type at){
@@ -46,6 +67,14 @@ void print_ast_type(ast_type at){
 
 		case AST_INT:
 			printf( "int");
+			break;
+
+		case AST_VOID_STAR:
+			printf("void*");
+			break;
+
+		case AST_VOID:
+			printf("void");
 			break;
 
 		case AST_THREAD:
@@ -183,17 +212,21 @@ void print_spawn(ast *a){
 	printf("<printing SPAWN>");
 	#endif	
 
+	int t_index = a->data.spawn.thread->offset;
+
 	// SPAWN LPAREN IDENTIFIER RPAREN statement_list
 	//printf( "pthread_t* thread_%d;", threadcount);
 
+	printf("{\n");
 	// int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
-/*	printf( "pthread_create(");
-	printf( "thread_%d,", threadcount);
-	printf( "NULL");
-	printf( "(void *) &thread_fuction_%d",threadcount);
-	printf( "(void *) &");
-	print_ast(a->data.spawn.arguments);
-	printf( " );");*/
+	printf( "pthread_create(");
+	printf("&" THREADSNAME "[%d],", t_index);
+	printf( " NULL, ");
+	printf( SPAWN_FUNC_FORMAT ", " , t_index);
+	printf("NULL);");
+	//printf( "(void *) &");
+	//print_ast(a->data.spawn.arguments);
+	//printf( " );");*/
 
 	// function def need to go to the top.
 	/*printf( "void thread_fuction_%d (void* args)", threadcount);*/
@@ -206,9 +239,7 @@ void print_spawn(ast *a){
 	printf( "\n}\n");*/
 
 
-	/* for testing of AST */
-	printf("{\n");
-	print_ast(a->data.spawn.body);
+	//print_ast(a->data.spawn.body);
 	printf("\n}\n");
 }
 

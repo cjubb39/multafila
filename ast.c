@@ -152,8 +152,8 @@ ast **ast_create_node_spawn( ast **a, ast_list *children,
 
 	/* prepare function call */
 	char func_name[MAX_IDENT_LENGTH + 1];
-	strncpy(func_name, SPAWN_FUNC_FORMAT, td->offset);
-	symtab_insert(st, func_name, AST_VOID, ST_STATIC_DEC);
+	snprintf(func_name, sizeof func_name, SPAWN_FUNC_FORMAT, td->offset);
+	symtab_insert(st, func_name, AST_VOID_STAR, ST_STATIC_DEC);
 
 	ast_list *body;
 	ast_list *arguments;

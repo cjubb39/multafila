@@ -54,6 +54,8 @@ int threadtab_insert(threadtab *thread_table, struct thread_data *data){
 		thread_table->tail = data;
 	}
 
+	data->next = NULL;
+
 	return 0;
 }
 

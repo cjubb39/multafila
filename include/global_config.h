@@ -23,6 +23,7 @@ typedef enum {
 	AST_NULL,
 	AST_THREAD,
 	AST_BARRIER,
+	AST_VOID_STAR,
 	AST_VOID
 } ast_type;
 

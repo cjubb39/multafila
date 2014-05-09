@@ -12,8 +12,9 @@ struct thread_data {
 	uint32_t offset;
 	struct ast_s *assoc_ast;
 	struct thread_data *next;
+	unsigned started			:1;
 	unsigned completed		:1;
-	unsigned							:7;
+	unsigned							:6;
 };
 
 struct threadtab_s{

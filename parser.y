@@ -271,6 +271,9 @@ thread_statement
     }
   | lock_statement
   | barrier_statement
+    {
+      $$ = $1;
+    }
   ;
 
 conditional_statement
@@ -315,6 +318,9 @@ lock_statement
 
 barrier_statement
   : BARRIER SEMI
+    {
+      $$ = ast_add_internal_node(NULL, NULL, AST_NODE_BARRIER, st, cur_scope);
+    }
   ;
 
 declaration

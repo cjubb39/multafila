@@ -56,11 +56,6 @@ ast **ast_create_leaf_thread ( ast **a, char *value, symtab *symbol_table, scope
 	return a;
 }
 
-ast **ast_create_leaf_barrier ( ast **a, char *value ) {
-	/* not yet implemented */
-	return a;
-}
-
 ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *cur_scope) {
 	assert(value != NULL);
 	assert(type != AST_NULL);
@@ -104,10 +99,6 @@ ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *c
 			ast_create_leaf_thread(&new_leaf, value, symbol_table, cur_scope );
 			break;
 
-		case AST_BARRIER:
-			ast_create_leaf_barrier(&new_leaf, value );
-			break;
-
 		default:
 			break;
 	}
@@ -139,8 +130,8 @@ ast **ast_create_node_while( ast **a, ast_list *children ) {
 
 ast **ast_create_node_spawn( ast **a, ast_list *children,
 	struct thread_data *thread, symtab *st, scope *cur_scope ) {
-	//(*a)->data.spawn.body = children->data;
-	//(*a)->data.spawn.arguments = children->next->data;
+	(*a)->data.spawn.body = NULL;//children->data;
+	(*a)->data.spawn.arguments = NULL;//children->next->data;
 
 	/* get pointer to thread being used */
 	struct thread_data * td = threadtab_lookup(symtab_get_threadtab(st),
@@ -168,11 +159,18 @@ ast **ast_create_node_spawn( ast **a, ast_list *children,
 	ast *new_func = ast_add_internal_node(func_name, body, AST_NODE_FUNCTION_DEF,
 		st, cur_scope);
 
+	heap_list_add(hList, (void *)new_func);
+
 	new_func->data.func_def.thread_generated = 1;
 	new_func->data.func_def.convert_to_ptr = 1;
 
 	threadtab_add_assoc_func(td, new_func);
 
+	return a;
+}
+
+ast **ast_create_node_barrier(ast **a, symtab *st){
+	(*a)->data.barrier.thread_table = symtab_get_threadtab(st);
 	return a;
 }
 
@@ -281,6 +279,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
  *	AST_NODE_CONDITIONAL:		IGNORED
  *  AST_NODE_WHILE:				IGNORED
  *	AST_NODE_SPAWN:				ptr to struct thread_Data created by create_thread_data
+ *	AST_NODE_BARRIER:			IGNORED
  *	AST_NODE_UNARY:				1-2 character unary op
  *	
  *	
@@ -294,13 +293,14 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
  *	AST_NODE_CONDITIONAL:	conditional statement, if body, else body (NULL if no else)
  *  AST_NODE_WHILE:			conditional statement, body
  *	AST_NODE_SPAWN:			body, arguments
+ *	AST_NODE_BARRIER:		IGNORED
  *	AST_NODE_UNARY:			operand
  *	
  *	Returns NULL on error
  */
 ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 		symtab *symbol_table, scope *cur_scope){
-	assert(children != NULL);
+	assert(children != NULL || type == AST_NODE_BARRIER);
 	ast *new_node;
 	malloc_checked(new_node);
 
@@ -350,6 +350,10 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 		case AST_NODE_SPAWN:
 			ast_create_node_spawn(&new_node, children, (struct thread_data*) value,
 				symbol_table, cur_scope);
+			break;
+
+		case AST_NODE_BARRIER:
+			ast_create_node_barrier(&new_node, symbol_table);
 			break;
 
 		case AST_NODE_UNARY:

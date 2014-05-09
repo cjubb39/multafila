@@ -22,7 +22,6 @@ typedef enum {
 	AST_CHARLITERAL,
 	AST_NULL,
 	AST_THREAD,
-	AST_BARRIER,
 	AST_VOID_STAR,
 	AST_VOID
 } ast_type;

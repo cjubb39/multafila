@@ -14,7 +14,7 @@ struct ast_function_def_node {
 	symtab_entry *func_symtab;
 	struct ast_s *body;
 	struct ast_list_s *arguments;
-	
+
 	unsigned thread_generated	:1;
 	unsigned convert_to_ptr		:1;
 	unsigned									:6;
@@ -55,6 +55,10 @@ struct ast_spawn_node {
 	struct ast_s *arguments;
 	struct ast_s *body;
 	struct thread_data *thread;
+};
+
+struct ast_barrier_node {
+	threadtab *thread_table;
 };
 
 struct ast_unary_math {

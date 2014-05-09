@@ -199,20 +199,16 @@ void print_unary(ast *a){
 	printf( " ;\n");
 }
 
-void print_barrier(ast *a){
-	#ifdef GEN_TEST_DEBUG
-	printf("<printing BARRIER>");
-	#endif	
-
-
-}
-
 void print_spawn(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing SPAWN>");
 	#endif	
 
-	int t_index = a->data.spawn.thread->offset;
+	struct thread_data *td = a->data.spawn.thread;
+	int t_index = td->offset;
+
+	td->started = 1;
+	td->completed = 0;
 
 	// SPAWN LPAREN IDENTIFIER RPAREN statement_list
 	//printf( "pthread_t* thread_%d;", threadcount);
@@ -241,6 +237,22 @@ void print_spawn(ast *a){
 
 	//print_ast(a->data.spawn.body);
 	printf("\n}\n");
+}
+
+void print_barrier(ast *a){
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing SPAWN>");
+	#endif
+
+	struct thread_data *td = a->data.barrier.thread_table->head;
+	while (td != NULL){
+		if (td->completed == 0 && td->started == 1){
+			printf("pthread_join(" THREADSNAME "[%d], NULL);\n", td->offset);
+			td->completed = 1;
+			td->started = 0;
+		}
+		td = td->next;
+	}
 }
 
 void print_while(ast *a){

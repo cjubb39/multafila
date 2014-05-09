@@ -49,6 +49,7 @@ typedef struct ast_s {
 		struct ast_conditional_node conditional_statement;
 		struct ast_while_node while_statement;
 		struct ast_spawn_node spawn;
+		struct ast_barrier_node barrier;
 		struct ast_unary_math unary;
 
 	} data;

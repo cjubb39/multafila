@@ -61,7 +61,7 @@ void check_func_list(ast *a){
 }
 
 void check_func_def(ast *a){
-	//check the body statements
+	//check the body statments
 	check_ast(a->data.func_def.body);
 	fuction_def_node = a;
 }
@@ -80,14 +80,9 @@ void check_func_call(ast *a){
 		ast_type return_type = symtab_entry_get_type(a->arguments.data.symtab_ptr);
 		ast_type fuction_type = symtab_entry_get_type(fuction_def_node->func_symtab);
 
-<<<<<<< HEAD
 		if(!are_equivalent(return_type, fuction_type)){
 			printf("return type does not match with fuction type");
 			errorcount++;
-=======
-		if(!are_equivalent(t, t1)){
-			printf("the return function type does not match the return type")
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
 		}
 
 	//if this not a return function call
@@ -117,13 +112,9 @@ void check_spawn(ast *a){
 	char *name = s->name;
 	if (symtab_lookup(st, name, a->containing_scope) == null) {
 		printf("cannot spawn an undeclared thread");
-<<<<<<< HEAD
 		errorcount++;
 	}
 	
-=======
-	}
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
 	check_ast(a->data.spawn.body);
 }
 
@@ -148,20 +139,14 @@ void check_bin(ast *a){
 			ast_type t3 = symtab_entry_get_type(s);
 			if (are_equivalent(t1, t3) != 0){
 				printf("return type does not match declaration");
-<<<<<<< HEAD
 				errorcount++;
-=======
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
 			}
 		}
 	}
 
 	if (are_equivalent(t1, t2) == 0){
 		printf("binary node error, not an integer");
-<<<<<<< HEAD
 		errorcount++;
-=======
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
 	}
 }
 
@@ -172,10 +157,7 @@ void check_unary(ast *a){
 
 	if( t != AST_INT){
 		printf("unary operator error, not an integer");
-<<<<<<< HEAD
 		errorcount++;
-=======
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
 	}
 }
 
@@ -187,15 +169,9 @@ void check_while(ast *a){
 
 	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
 		printf("condition in while loop is not a boolean expression");
-<<<<<<< HEAD
 		errorcount++;
 	} 
 	check_stmt(while_body);
-=======
-	} else{
-		return check_stmt(while_body);
-	}
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
 }
 
 /* if statement checker */
@@ -208,14 +184,7 @@ void check_conditional(ast *a){
 
 	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
 		printf("condition in if statement is not a boolean expression");
-<<<<<<< HEAD
 		errorcount++;
-=======
-	} else if(if_check == 0){
-		printf("condition in if statement is not a boolean expression");
-	}	else{
-		return(check_stmt(else_stmt));
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
 	}
 	check_stmt(else_stmt);
 }
@@ -231,7 +200,6 @@ void check_stmt(ast *a){
 		ast_node_type t2n = ast_get_node_type(body);
 		switch(t2n){
 
-<<<<<<< HEAD
 		case AST_NODE_BINARY:
 			check_bin(body);
 			break;
@@ -255,31 +223,6 @@ void check_stmt(ast *a){
 		 // spawn statement will be added 
 		case AST_NODE_SPAWN:
 			check_spawn(body);
-=======
-			case AST_NODE_BINARY:
-			return check_bin(body);
-			break;
-
-			case AST_NODE_UNARY:
-			return check_unary(body);
-			break;
-
-			case AST_NODE_FUNCTION_CALL:
-			return check_func_call(body);
-			break;
-
-			case AST_NODE_CONDITIONAL:
-			return check_conditional(body);
-			break;
-
-			case AST_NODE_WHILE:
-			return check_while(body);
-			break;
-
-		 // spawn statement will be added 
-			case AST_NODE_SPAWN:
-			return check_spawn(body);
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
 			break;
 
 		//  declaration statement checked in parser 
@@ -296,12 +239,8 @@ void check_stmt(ast *a){
 		// 	return check_pforbody);
 		// 	break;
 
-<<<<<<< HEAD
 		default:
 			return;
-=======
-			default:
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
 			break;		
 		}
 	}
@@ -319,7 +258,6 @@ void check_ast(ast *a){
 		ast_node_type t2n = ast_get_node_type(a);
 		switch(ast_get_node_type(t2n)){
 
-<<<<<<< HEAD
 		case AST_NODE_FUNCTION_LIST:
 			check_func_list(a);
 			break;
@@ -330,22 +268,8 @@ void check_ast(ast *a){
 
 		case AST_NODE_STATEMENT:
 			check_stmt(a);
-=======
-			case AST_NODE_FUNCTION_LIST:
-			return check_func_list(a);
 			break;
-
-			case AST_NODE_FUNCTION_DEF: 
-			return check_func_def(a);
-			break;
-
-			case AST_NODE_STATEMENT:
-			return check_stmt(a);
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b
-			break;
-		}
 	}
-<<<<<<< HEAD
 }
 
 void sem_check(ast *a){
@@ -356,5 +280,3 @@ void sem_check(ast *a){
 		printf("%d semantic error found \n", errorcount);
 	}
 }
-=======
->>>>>>> 12691a2e0077f233a2f61767c919bebebeed2e2b

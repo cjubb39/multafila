@@ -92,7 +92,22 @@ function_list
 function_def
   : type IDENTIFIER LPAREN arg_list RPAREN statement_list 
     {
-      fprintf(stderr, "FUNC_DEF 1: NOT YET IMPLEMENTED\n");
+      #ifdef PARSER_DEBUG
+      fprintf(stderr, "FUNCTION DEF IDENT: %s\n", (char *)$2);
+      #endif
+
+      ast_list *body, *arguments;
+      heap_list_malloc(hList, body);
+      heap_list_malloc(hList, arguments);
+
+      body->data = (ast *) $6;
+      body->next = arguments;
+      arguments->data = (ast *) $4;
+      arguments->next = NULL;
+      ast_type t = (ast_type) $1;
+      symtab_insert(st, $2, t, ST_STATIC_DEC);
+      $$ = ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
+
     }
   | type IDENTIFIER LPAREN RPAREN statement_list 
     {
@@ -138,11 +153,32 @@ func_call
 arg_list
   : type IDENTIFIER
     {
-      fprintf(stderr, "ARG_LIST 1: NOT YET IMPLEMENTED\n");
+      ast_type t = (ast_type) $1;
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      ast *leaf = ast_create_leaf($2, t, st, cur_scope);
+
+      ast_list *arg;
+      heap_list_malloc(hList, arg);
+      arg->data = leaf;
+      arg->next = NULL;
+
+      $$ = arg;
     }
   | type IDENTIFIER COMMA arg_list
-     {
-      fprintf(stderr, "ARG_LIST 2: NOT YET IMPLEMENTED\n");
+    {
+      ast_type t = (ast_type) $1;
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      ast *leaf = ast_create_leaf($2, t, st, cur_scope);
+
+      ast_list *arg, *nextarg;
+      heap_list_malloc(hList, arg);
+      heap_list_malloc(hList, nextarg);
+      arg->data = leaf;
+      arg->next = nextarg;
+      nextarg->data = $4;
+      nextarg->next = NULL;
+
+      $$ = arg;
     }
   ;
 
@@ -155,13 +191,12 @@ param_list
     }
   | param_list COMMA param_list
     {
-      fprintf(stderr, "PARAM_LIST 2: NOT YET IMPLEMENTED\n");
-      /*ast_list *firstparam;
+      ast_list *firstparam;
       heap_list_malloc(hList, firstparam);
 
       firstparam->data = (ast *) $1;
       firstparam->next = (ast *) $3;
-      $$ = firstparam;*/
+      $$ = firstparam;
     }
   | array
     {
@@ -229,7 +264,7 @@ statement_list_internal
       nextstmt->data = NULL;
       nextstmt->next = NULL;
 
-      $$ = ast_add_internal_node("statementS", stmt, AST_NODE_STATEMENT, st, cur_scope);
+      $$ = ast_add_internal_node("statements", stmt, AST_NODE_STATEMENT, st, cur_scope);
       
       #ifdef PARSER_DEBUG
       fprintf(stderr, "STMT-S DATA: %p %p %p\n", $1, NULL, $$);
@@ -279,7 +314,11 @@ statement
 return_statement
  : RETURN IDENTIFIER
     {
-      fprintf(stderr, "RETURN 1: NOT YET IMPLEMENTED\n");
+      ast_list *children;
+      heap_list_malloc(hList, children);
+
+      children->data = (ast *) $2;
+      $$ = ast_add_internal_node( "return", children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
  | RETURN literal 
     { 
@@ -326,18 +365,51 @@ thread_statement
 conditional_statement
   : IF LPAREN bool_expr RPAREN statement_list
     {
-      fprintf(stderr, "COND STATEMENT 1: NOT YET IMPLEMENTED\n");
+      ast_list *condstmt, *ifbody, *elsebody;
+      heap_list_malloc(hList, condstmt);
+      heap_list_malloc(hList, ifbody);
+      heap_list_malloc(hList, elsebody);
+
+      condstmt->data = (ast *) $3;
+      condstmt->next = ifbody;
+      ifbody->data = (ast *) $5,
+      ifbody->next = NULL;
+      elsebody->data = NULL;
+      elsebody->next = NULL;
+
+      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
     }
   | IF LPAREN bool_expr RPAREN statement_list ELSE statement_list
     {
-      fprintf(stderr, "COND STATEMENT 2: NOT YET IMPLEMENTED\n");
+      ast_list *condstmt, *ifbody, *elsebody;
+      heap_list_malloc(hList, condstmt);
+      heap_list_malloc(hList, ifbody);
+      heap_list_malloc(hList, elsebody);
+
+      condstmt->data = (ast *) $3;
+      condstmt->next = ifbody;
+      ifbody->data = (ast *) $5,
+      ifbody->next = elsebody;
+      elsebody->data = (ast *) $7;
+      elsebody->next = NULL;
+
+      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
     }
   ;
 
 while_statement
   : WHILE LPAREN bool_expr RPAREN statement_list
     {
-      fprintf(stderr, "WHILE STATEMENT 1: NOT YET IMPLEMENTED\n");
+      ast_list *condstmt, *whilebody;
+      heap_list_malloc(hList, condstmt);
+      heap_list_malloc(hList, whilebody);
+
+      condstmt->data = (ast *) $3;
+      condstmt->next = whilebody;
+      whilebody->data = (ast *) $5,
+      whilebody->next = NULL;
+
+      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_WHILE, st, cur_scope );
     }
   ;
 
@@ -412,10 +484,30 @@ declaration
 
       $$ = ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
     }
-  | type array
+  | type IDENTIFIER LBRACK INTEGER RBRACK
     {
-      fprintf(stderr, "DECLARATION 2: NOT YET IMPLEMENTED\n");
+      ast_type t;
+      int size;
+      if ( (ast_type) $1 == AST_CHAR ) {
+        t = AST_CHARARRAY;
+        size = sizeof(char) * (int) atoi($4);
+       } else if ( (ast_type) $1 == AST_INT ) {
+        t = AST_INTARRAY;
+        size = sizeof(int) * (int) atoi($4);
+      }
+
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      ast* leaf = ast_create_array_leaf($2, size, t, st, cur_scope);
+
+      ast_list *ident;
+      heap_list_malloc(hList, ident);
+      ident->data = leaf;
+      ident->next = NULL;
+
+      $$ = ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
+
     }
+  | type IDENTIFIER LBRACK IDENTIFIER LBRACK
   ; 
 
 assignment
@@ -478,18 +570,16 @@ expr
       fprintf(stderr, "EXPR 3: NOT YET IMPLEMENTED\n");
     }
   | func_call
-    {
-      $$ = $1;
-    }
   | braced_expr
     {
       fprintf(stderr, "EXPR 5: NOT YET IMPLEMENTED\n");
     }
   | literal
+  | IDENTIFIER
     {
-      $$ = $1;
+      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
+      $$ = ast_create_leaf( $1, t, st, cur_scope );
     }
-  /*| IDENTIFIER*/
   | array
     {
       fprintf(stderr, "EXPR 7: NOT YET IMPLEMENTED\n");
@@ -524,51 +614,75 @@ bool_expr
 
 rel_expr
   : expr relop expr
-    {
-      fprintf(stderr, "REL EXPR 1: NOT YET IMPLEMENTED\n");
+    { 
+      ast_list *lh;
+      ast_list *rh;
+      heap_list_malloc(hList, lh);
+      heap_list_malloc(hList, rh);
+
+      lh->data = (ast *) $1;
+      lh->next = rh;
+      rh->data = (ast *) $3;
+      rh->next = NULL;
+      $$ = ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
     }
   ;
 
 math_expr
   : expr mathop expr
-    {
-      fprintf(stderr, "MATH EXPR 1: NOT YET IMPLEMENTED\n");
+    { 
+      ast_list *lh;
+      ast_list *rh;
+      heap_list_malloc(hList, lh);
+      heap_list_malloc(hList, rh);
+
+      lh->data = (ast *) $1;
+      lh->next = rh;
+      rh->data = (ast *) $3;
+      rh->next = NULL;
+      $$ = ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
     }
   ;
 
 unary_math
   : IDENTIFIER unary_math_op
     {
-      fprintf(stderr, "UNARY MATH EXPR 1: NOT YET IMPLEMENTED\n");
+      ast_list *operand;
+      heap_list_malloc(hList, operand);
+
+      operand->data = (ast *) $1;
+      operand->next = NULL;
+
+      $$ = ast_add_internal_node( $1, operand, AST_NODE_UNARY, st, cur_scope );
     }
   ;
 
 assignop
   : ASSIGN { $$ = "="; }
-  | PLUSASSIGN
-  | MINUSASSIGN
+  | PLUSASSIGN { $$ = "+="; }
+  | MINUSASSIGN { $$ = "-="; }
   ;
 
 relop
-  : EQ
-  | NE
-  | LT
-  | LE
-  | GT
-  | GE
+  : EQ { $$ = "=="; }
+  | NE { $$ = "!="; }
+  | LT { $$ = "<"; }
+  | LE { $$ = "<="; }
+  | GT { $$ = ">"; }
+  | GE { $$ = ">="; }
   ;
 
 mathop
-  : PLUS
-  | MINUS
-  | TIMES
-  | OVER
-  | MOD
+  : PLUS { $$ = "+"; }
+  | MINUS { $$ = "-"; }
+  | TIMES { $$ = "*"; }
+  | OVER { $$ = "/"; }
+  | MOD { $$ = "%"; }
   ;
 
 unary_math_op
-  : INC
-  | DEC
+  : INC { $$ = "++"; }
+  | DEC { $$ = "--"; }
   ;
 
 literal_list
@@ -590,11 +704,18 @@ literal
 
 number
   : INTEGER
+    {
+      $$ = ast_create_leaf( $1, AST_INTLITERAL, st, cur_scope );
+      free($1);
+    }
   | FLOAT
   ;
 
 array
   : IDENTIFIER LBRACK INTEGER RBRACK
+    {
+
+    }
   | IDENTIFIER LBRACK IDENTIFIER RBRACK
   | IDENTIFIER LBRACK INTEGER RBRACK LBRACK INTEGER RBRACK
   | IDENTIFIER LBRACK IDENTIFIER RBRACK LBRACK IDENTIFIER RBRACK
@@ -602,8 +723,8 @@ array
 
 type
   : INT { $$ = AST_INT; }
-  | DOUBLE 
-  | CHAR
+  | DOUBLE
+  | CHAR { $$ = AST_CHAR; }
   | BOOLEAN
   | STRING { $$ = AST_STRING; }
   | THREAD { $$ = AST_THREAD; }

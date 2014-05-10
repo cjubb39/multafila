@@ -121,6 +121,58 @@ ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *c
 }
 
 
+/* CREATING ARRAY LEAVES HERE */
+
+ast **ast_create_leaf_ca (ast **a, char *value, symtab *symbol_table, scope *cur_scope){
+	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
+	return a;
+}
+
+ast **ast_create_leaf_cal (ast **a, char *value, int size){
+	(*a)->data.chararray = (char *) malloc(size * sizeof(char) + 1);
+
+	/* copy array elements from braced initializer into array */
+
+	return a;
+}
+
+ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab *symbol_table, scope *cur_scope) {
+	assert(value != NULL);
+	/*assert(size != NULL); should this be == 0? or nothing at all */
+	assert(type != AST_NULL);
+	assert(symbol_table != NULL);
+	assert(cur_scope != NULL);
+
+	ast *new_leaf;
+	malloc_checked(new_leaf);
+
+	/* fill out leaf */
+	new_leaf->node_type = AST_NODE_LEAF;
+	new_leaf->type = type;
+	new_leaf->containing_scope = cur_scope;
+
+	switch(type){
+		case AST_CHARARRAY:
+			ast_create_leaf_ca(&new_leaf, value, symbol_table, cur_scope );
+			break;
+
+		case AST_CHARARRAYLITERAL:
+			ast_create_leaf_cal(&new_leaf, value, size);
+			break;
+		
+		default:
+			break;
+	}
+
+	#ifdef AST_DEBUG
+  fprintf(stderr, "leaf value: %s; addr: %p\n", value, new_leaf);
+	#endif
+
+  return new_leaf;
+}
+
+
+
 /* CREATING INTERNAL NODES HERE */
 
 ast **ast_create_node_conditional( ast **a, ast_list *children ){

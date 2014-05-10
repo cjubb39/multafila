@@ -38,6 +38,9 @@ typedef struct ast_s {
 		char *string;
 		char *character;
 		double doub;
+		int *intarray;
+		char *chararray;
+		char **stringarray;
 		/* for variable names */
 		struct{
 			symtab_entry *symtab_ptr;
@@ -74,6 +77,8 @@ typedef struct ast_list_s ast_list;
  *	Returns NULL on error
  */
 ast *ast_create_leaf (char *value, ast_type type, symtab*, scope* cur_scope);
+
+ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope* cur_scope);
 
 /*
  *	Add internal (non-leaf) node to ast

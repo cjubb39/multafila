@@ -209,14 +209,50 @@ int check_stmt(ast *a){
 
 /* check the main ast */
 int check_ast(ast *){
+
 	if (a == NULL){
 		return;
 	}
-
-	switch(ast_get_node_type(t)){
-		case func_def: 
-		check_func_call();
-		case 
+	
+	ast_type t = ast_get_type(a);
+	if (t == AST_NULL){
+	ast_node_type t2n = ast_get_node_type(a);
+	switch(ast_get_node_type(t2n)){
+		case AST_NODE_FUNCTION_DEF: 
+		return check_func_def(a);
+		break;
+		case AST_NODE_STATEMENT:
+		return check_stmt(a);
+		break;
+		case AST_NODE_BINARY:
+		return check_bin(a);
+		break;
+		case AST_NODE_UNARY:
+		return check_unary(a);
+		break;
+		case AST_NODE_FUNCTION_CALL:
+		return check_func_call(a);
+		break;
+		/* func checks need to be implemented */
+		case AST_NODE_FUNCTION_LIST:
+		return check_func_list(a);
+		break;
+		case AST_NODE_FUNCTION_DEF:
+		return check_func_def(a);
+		break
+		case AST_NODE_CONDITIONAL:
+		return check_conditional;
+		break;
+		case AST_NODE_WHILE:
+		return check_while(a);
+		break;
+		/*spawn and barrier checks need to be implemented */
+		case AST_NODE_SPAWN:
+		return check_spawn(a);
+		break;
+		case AST_NODE_BARRIER:
+		return check_barrier(a);
+		break;
 	}
 
 }

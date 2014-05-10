@@ -17,8 +17,8 @@
 
 /* comment to send straight to gcc (./MFtest); uncomment to stdout */
 #define PRINT_TO_STDOUT
-//#define GEN_TEST_DEBUG
 //#define SIMPLE_OUTPUT
+//#define GEN_TEST_DEBUG
 
 #define THREADSNAME "global_threads"
 
@@ -390,6 +390,10 @@ void print_leaf(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing LEAF>");
 	#endif
+
+	if (a->flag == 1){
+		printf(" %s ", get_ast_type(a->type));
+	}
 
 	switch(a->type){
 		case AST_STRINGLITERAL:

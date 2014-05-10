@@ -100,10 +100,11 @@ function_def
       heap_list_malloc(hList, body);
       heap_list_malloc(hList, arguments);
 
+      arguments = $4;
       body->data = (ast *) $6;
       body->next = arguments;
-      arguments->data = (ast *) $4;
-      arguments->next = NULL;
+      /*arguments->data = (ast *) $4;
+      arguments->next = NULL;*/
       ast_type t = (ast_type) $1;
       symtab_insert(st, $2, t, ST_STATIC_DEC);
       $$ = ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
@@ -156,6 +157,7 @@ arg_list
       ast_type t = (ast_type) $1;
       symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
       ast *leaf = ast_create_leaf($2, t, st, cur_scope);
+      leaf->flag = 1;
 
       ast_list *arg;
       heap_list_malloc(hList, arg);
@@ -169,14 +171,12 @@ arg_list
       ast_type t = (ast_type) $1;
       symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
       ast *leaf = ast_create_leaf($2, t, st, cur_scope);
+      leaf->flag = 1;
 
-      ast_list *arg, *nextarg;
+      ast_list *arg;
       heap_list_malloc(hList, arg);
-      heap_list_malloc(hList, nextarg);
       arg->data = leaf;
-      arg->next = nextarg;
-      nextarg->data = $4;
-      nextarg->next = NULL;
+      arg->next = $4;
 
       $$ = arg;
     }
@@ -575,11 +575,6 @@ expr
       fprintf(stderr, "EXPR 5: NOT YET IMPLEMENTED\n");
     }
   | literal
-  | IDENTIFIER
-    {
-      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
-      $$ = ast_create_leaf( $1, t, st, cur_scope );
-    }
   | array
     {
       fprintf(stderr, "EXPR 7: NOT YET IMPLEMENTED\n");
@@ -603,8 +598,9 @@ bool_expr
       fprintf(stderr, "BOOL EXPR 1: NOT YET IMPLEMENTED\n");
     }
   | IDENTIFIER
-    {
-      fprintf(stderr, "BOOL EXPR 2: NOT YET IMPLEMENTED\n");
+   {
+      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
+      $$ = ast_create_leaf( $1, t, st, cur_scope );
     }
   | BOOLEANOP IDENTIFIER
     {

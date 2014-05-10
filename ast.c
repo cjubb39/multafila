@@ -75,6 +75,7 @@ ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *c
 	malloc_checked(new_leaf);
 
 	/* fill out leaf */
+	new_leaf->flag = 0;
 	new_leaf->node_type = AST_NODE_LEAF;
 	new_leaf->type = type;
 	new_leaf->containing_scope = cur_scope;
@@ -515,6 +516,7 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 	#endif
 
 	/* fill out node */
+	new_node->flag = 0;
 	new_node->type = AST_NULL;
 	new_node->node_type = type;
 	new_node->containing_scope = cur_scope;

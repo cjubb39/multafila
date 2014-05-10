@@ -15,9 +15,6 @@
 
 #include "include/y.tab.h"
 
-//#undef YYSTYPE
-//#define YYSTYPE char *
-
 #define MAX_MSG_LEN 50
 #define YYDEBUG 0
 

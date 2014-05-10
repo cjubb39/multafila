@@ -26,15 +26,34 @@ int are_equivalent(ast_type i, ast_type j){
 
 
 
+
 int check_func_def(ast *a){
 	// check that function parameters are properly formed
-	// check the return type matches the declaration type
 
-	// switch statements
+	symtab_entry *s = a->data.func_def.func_symtab;
+	ast_type t = symtab_entry_get_type(s);
+	ast_list *args = a->data.func_def.arguments;
+	
+	while (args != null) {
+		symtab_entry *e = args->data.symtab_ptr;
+		ast_type argt = symtab_entry_get_type(e);
+		if (argt == AST_NULL || argt==null) {
+			// I believe this is the best way to check that the parameters are properly formed?
+			printf("arguments are not properly typed");
+			return 0;
+		}
+		else {
+			args = args->next;
+		}
+	}
+	// check the return type matches the declaration type
+	// find the return type
+	
+	
 }
 
 /*check args are the correct type. check func exists. */
-void check_func_call(ast *a){
+int check_func_call(ast *a){
 	// check that function exists in the symbol table 
 	// get symbol name
 	symtab_entry *s = a->data.func_call.func_symtab;
@@ -42,6 +61,7 @@ void check_func_call(ast *a){
 	symtab_entry *lookup = symtab_search_scope(a->containing_scope, name);
 	if (lookup == NULL) {
 		printf("function used without being declared");
+		return 0;
 	}
 	// check that the arguments in the function call match the declared function
 	else {
@@ -50,9 +70,11 @@ void check_func_call(ast *a){
 
 		if (arglist_compare(declaredargs, args) != 1) {
 			printf("argument types do not match function declaration");
+			return 0;
 			
 		}
 	}
+	return 1;
 }
 
 
@@ -107,64 +129,63 @@ int check_bin(ast *a){
 	}
 
 /* while loop checker */
-int check_while(ast *a){
-	
-	/* should also check for funcs that return boolean?? */
-	char *c = a->data.while_statement.conditional_statement.bin.op;
+	int check_while(ast *a){
+
+		char *c = a->data.while_statement.conditional_statement.bin.op;
 	ast *a while_body = a->data.while_statement.body; /* get while symt body */
-	
-	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
-		printf("condition in while loop is not a boolean expression");
-		return 0;
+
+		if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
+			printf("condition in while loop is not a boolean expression");
+			return 0;
 		} else{
-	return check_stmt(while_body);
+			return check_stmt(while_body);
+		}
 	}
-}
 
 /* if statement checker */
-int check_conditional(ast *a){
+	int check_conditional(ast *a){
 
 	/* should also check for funcs that return boolean??*/
-	char *c = a->data.conditional_statement.conditional_statement.bin.op;
+		char *c = a->data.conditional_statement.conditional_statement.bin.op;
 	ast *a cond_stmt = a->data.conditional_statement.if_statement; /* get if stmt body */
 	ast *a else_stmt = a->data.conditional_statement.else_statement; /* get else stmt body */
 	int if_check = check_stmt(cond_stmt); /* check the validity of if statement body */	
 
-	
-	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
-		printf("condition in if statement is not a boolean expression");
-		return 0;
+
+		if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
+			printf("condition in if statement is not a boolean expression");
+			return 0;
 		} else if(if_check == 0){
-		return 0;
+			return 0;
 		}	else{
 			return(check_stmt(else_stmt));
-			}
-}
+		}
+	}
 
 /* checks if a stmt node is valid */
-int check_stmt(ast *a){	
+	int check_stmt(ast *a){	
 /* check to see if it belongs to one of the stmt types */
-	ast *body = a->data.stmt.body;
+		ast *body = a->data.stmt.body;
 /* symtab_entry *s = a->data.stmt.body.symtab_ptr; not sure if this is valid */
-	ast_type t = ast_get_type(body);
-	if (t == AST_NULL){
-		ast_node_type t2n = ast_get_node_type(body);
-		switch(t2n){
-			case AST_NODE_BIN:
-			return check_bin(body);
-			break;
-			case AST_NODE_UNARY:
-			return check_unary(body);
-			break;
-			case AST_NODE_FUNCTION_CALL:
-			return check_func_call(body);
-			break;
-			case AST_NODE_CONDITIONAL:
-			return check_conditional(body);
-			break;
-			case AST_NODE_WHILE:
-			return check_while(body);
-			break;
+		ast_type t = ast_get_type(body);
+		if (t == AST_NULL){
+			ast_node_type t2n = ast_get_node_type(body);
+			switch(t2n){
+				case AST_NODE_BIN:
+				return check_bin(body);
+				break;
+				case AST_NODE_UNARY:
+				return check_unary(body);
+				break;
+				case AST_NODE_FUNCTION_CALL:
+				return check_func_call(body);
+				break;
+				case AST_NODE_CONDITIONAL:
+				return check_conditional(body);
+				break;
+				case AST_NODE_WHILE:
+				return check_while(body);
+				break;
 		/* spawn statement will be added 
 		case AST_NODE_SPAWN:
 			return check_spawn(body);
@@ -175,36 +196,36 @@ int check_stmt(ast *a){
 			break;		
 		}
 	}
-	}
+}
 
 	/* returns 0 if arg lists are not of the same size or have different types */
 
-	int arglist_compare(ast_list a, ast_list b) {
-		while (1) {
-			symtab_entry *s = a->data.symtab_ptr;
-			symtab_entry *s1 = b->data.symtab_ptr;
-			if(s == NULL && s1 == NULL)     
-			{  
-				return 1; 
-			}
-			if(s == NULL && s1 != NULL)  
-			{  
-				return 0; 
-			}
-			if(s != NULL && s1 == NULL)  
-			{  
-				return 0; 
-			}
-			ast_type t = symtab_entry_get_type(s);
-			ast_type t1 = symtab_entry_get_type(s1);
-			if(!are_equivalent(t, t1))
-			{  
-				return 0; 
-			}
-			s =  a->next;
-			s1 = b->next;	
+int arglist_compare(ast_list a, ast_list b) {
+	while (1) {
+		symtab_entry *s = a->data.symtab_ptr;
+		symtab_entry *s1 = b->data.symtab_ptr;
+		if(s == NULL && s1 == NULL)     
+		{  
+			return 1; 
 		}
+		if(s == NULL && s1 != NULL)  
+		{  
+			return 0; 
+		}
+		if(s != NULL && s1 == NULL)  
+		{  
+			return 0; 
+		}
+		ast_type t = symtab_entry_get_type(s);
+		ast_type t1 = symtab_entry_get_type(s1);
+		if(!are_equivalent(t, t1))
+		{  
+			return 0; 
+		}
+		s =  a->next;
+		s1 = b->next;	
 	}
+}
 
 /* check the main ast */
 int check_ast(ast *){

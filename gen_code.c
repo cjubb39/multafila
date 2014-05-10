@@ -21,7 +21,8 @@
 
 #define THREADSNAME "global_threads"
 
-void print_ast(ast *a);
+void print_ast(ast *);
+void print_ast_type(ast_type);
 
 void print_header(){     
 	printf( "#include <stdio.h>\n#include <pthread.h>\n" \
@@ -32,6 +33,28 @@ void print_threadtab_func(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing THREADTAB_FUNC>");
 	#endif
+
+	if (a == NULL) return;
+
+	struct ast_spawn_node *asn = (struct ast_spawn_node *)(a->data.func_def.assoc_spawn_info);
+	struct ast_spawn_vars *asv = &asn->vars;
+	int t_index = asn->thread->offset;
+
+	/* create struct for passing args*/
+	ast_list *args_struct = asv->old_vars;
+	ast *tmp;
+	symtab_entry *se;
+	printf("struct " SPAWN_ARGS_FORMAT "{\n", t_index);
+	while((tmp = args_struct->data) != NULL){
+		se = tmp->data.symtab_ptr;
+		printf("\t");
+		print_ast_type(symtab_entry_get_type(se));
+		printf(" * arg_t%d_%s;\n", \
+			t_index, symtab_entry_get_name(se));
+
+		args_struct = args_struct->next;
+	}
+	printf("};\n\n");
 
 	print_ast(a);
 }

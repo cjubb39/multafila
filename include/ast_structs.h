@@ -14,6 +14,7 @@ struct ast_function_def_node {
 	symtab_entry *func_symtab;
 	struct ast_s *body;
 	struct ast_list_s *arguments;
+	void *assoc_spawn_info;
 
 	unsigned thread_generated	:1;
 	unsigned convert_to_ptr		:1;

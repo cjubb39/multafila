@@ -259,6 +259,9 @@ ast **ast_create_node_spawn( ast **a, ast_list *children,
 		tmp = tmp->next;
 	}*/
 
+	/* let function def know about var status (for code gen purposes) */
+	new_func->data.func_def.assoc_spawn_info = &(*a)->data.spawn;
+
 	free(svp);
 
 	return a;

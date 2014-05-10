@@ -16,7 +16,7 @@
 #include "include/y.tab.h"
 
 #define MAX_MSG_LEN 50
-#define YYDEBUG 0
+#define YYDEBUG 1
 
 //#define PARSER_DEBUG
 
@@ -376,7 +376,7 @@ conditional_statement
       condstmt->data = (ast *) $3;
       condstmt->next = ifbody;
       ifbody->data = (ast *) $5,
-      ifbody->next = NULL;
+      ifbody->next = elsebody;
       elsebody->data = NULL;
       elsebody->next = NULL;
 
@@ -694,6 +694,10 @@ literal_list
 
 literal
   : CHARLITERAL
+    { 
+      $$ = (void *) ast_create_leaf( $1, AST_CHARLITERAL, st, cur_scope ); 
+      free($1);
+    }
   | number
   | TRUE
   | FALSE

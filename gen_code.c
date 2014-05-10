@@ -27,9 +27,37 @@ extern char *exe_out_name;
 void print_ast(ast *);
 char* get_ast_type(ast_type);
 
-void print_header(){     
+void print_function_prototype(ast *a){
+	printf("%s", get_ast_type(symtab_entry_get_type(a->data.func_def.func_symtab)));
+	printf( " %s ( ", a->data.func_def.func_symtab->name);
+
+	struct ast_list_s *tmp = a->data.func_def.arguments;
+	while (tmp != NULL){
+		print_ast(tmp->data);
+		tmp = tmp->next;
+
+		if (tmp != NULL)
+			printf( ", ");
+	}
+
+	printf( " )");
+}
+
+void print_headers(ast *a){    
+	assert(a->node_type == AST_NODE_FUNCTION_LIST);
+	
+	/* standard headers */
 	printf( "#include <stdio.h>\n#include <pthread.h>\n" \
 		"void printOut(char *m){printf(\"%%s\\n\", m);}\n\n");
+
+	/* headers for our functions */
+	ast *tmp = a;
+	while(tmp != NULL){
+		print_function_prototype(tmp->data.func_list.cur_func);
+		printf(";\n");
+		tmp = tmp->data.func_list.next_func;
+	}
+	printf("\n");
 }
 
 void print_threadtab_func(ast *a){
@@ -174,19 +202,10 @@ void print_func_def_nominal(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing FUNC_DEF_NOMINAL>");
 	#endif
-	printf("%s", get_ast_type(symtab_entry_get_type(a->data.func_def.func_symtab)));
-	printf( " %s ( ", a->data.func_def.func_symtab->name);
 
-	struct ast_list_s *tmp = a->data.func_def.arguments;
-	while (tmp != NULL){
-		print_ast(tmp->data);
-		tmp = tmp->next;
+	print_function_prototype(a);
 
-		if (tmp != NULL)
-			printf( ", ");
-	}
-
-	printf( " )\n");
+	printf( "\n");
 	print_ast(a->data.func_def.body);
 	printf( "\n");
 }
@@ -478,7 +497,7 @@ void gen_code(ast *a, symtab *st, threadtab *tb){
 
 #ifdef SIMPLE_OUTPUT
 	printf("\n/*==========OUTPUT CODE BELOW==========*/\n");
-	print_header();
+	print_headers(a);
 	print_threadtab(tb);
 	print_ast(a);
 #else
@@ -522,7 +541,7 @@ void gen_code(ast *a, symtab *st, threadtab *tb){
 	    close(pipeFileDescriptors[1]);
 
 			printf("\n/*==========OUTPUT CODE BELOW==========*/\n");
-			print_header();
+			print_headers(a);
 			print_threadtab(tb);
 			print_ast(a);
 			exit(0);

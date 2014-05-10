@@ -8,6 +8,7 @@
 #include "include/mem_manage.h"
 #include "include/symtab.h"
 #include "include/symtab_structs.h"
+#include "include/threadtab.h"
 #include "y.tab.h"
 
 /* FUNCTIONS FOR BUILDING SYMBOL TABLE */
@@ -39,6 +40,7 @@ symtab *symtab_init(){
 
 	/* set current scope to global */
 	newST->cur_scope = newST->head;
+	newST->thread_table = NULL;
 
 	return newST;
 }
@@ -164,7 +166,8 @@ struct symtab_entry_s *symtab_create_entry(char *symbol_name, ast_type type){
  *	Takes symbol name and types, as integer defined in yacc
  *	Returns negative on error
  */
-int symtab_insert(symtab *symbol_table, char *symbol_name_in, ast_type type){
+int symtab_insert(symtab *symbol_table, char *symbol_name_in, ast_type type,
+		unsigned int static_dec){
 	assert(symbol_name_in != NULL);
 	assert(*symbol_name_in != '\0');
 	assert(symbol_table != NULL);
@@ -175,9 +178,14 @@ int symtab_insert(symtab *symbol_table, char *symbol_name_in, ast_type type){
 	strncpy(symbol_name, symbol_name_in, MAX_IDENT_LENGTH);
 	symbol_name[MAX_IDENT_LENGTH] = '\0';
 
-	struct symtab_scope *cur_scope = symbol_table->cur_scope;
+	struct symtab_scope *cur_scope = (static_dec) ?
+		symbol_table->head : symbol_table->cur_scope;
 	struct symtab_entry_s **add_point = &cur_scope->data[symtab_entry_hash(symbol_name)];
 	struct symtab_entry_s *new_entry = symtab_create_entry(symbol_name, type);
+
+	if (type == AST_THREAD){
+		new_entry->thread = 1;
+	}
 
 	if (*add_point == NULL){
 		*add_point = new_entry;
@@ -281,4 +289,16 @@ int symtab_declared_curr_thread_block(symtab *symbol_table, char *symbol_name){
 
 ast_type symtab_entry_get_type(symtab_entry *entry){
 	return entry->type;
+}
+
+char* symtab_entry_get_name(symtab_entry *entry){
+	return entry->name;
+}
+
+void symtab_set_threadtab(symtab *symbol_table, threadtab *thread_table){
+	symbol_table->thread_table = thread_table;
+}
+
+threadtab *symtab_get_threadtab(symtab *symbol_table){
+	return symbol_table->thread_table;
 }

@@ -3,8 +3,10 @@
 
 #include "include/global_config.h"
 #include "include/error_handling.h"
+#include "include/mem_manage.h"
 #include "include/threadtab.h"
 #include "include/threadtab_structs.h"
+#include "include/ast.h"
 
 /*
  *	Create thread_data object to be used in other functions
@@ -52,7 +54,31 @@ int threadtab_insert(threadtab *thread_table, struct thread_data *data){
 		thread_table->tail = data;
 	}
 
+	data->next = NULL;
+
 	return 0;
+}
+
+/*
+ *	Lookup entry in thread table by name
+ *	Returns pointer to struct thread_data; NULL if not found
+ */
+struct thread_data *threadtab_lookup(threadtab *thread_table, char *name){
+	struct thread_data *cur = thread_table->head;
+	while(cur != NULL && strcmp(cur->name, name) != 0){
+		cur = cur->next;
+	}
+
+	return cur;
+}
+
+/*
+ *	Add function associated with thread
+ *	Returns pointer to modified struct thread_data
+ */
+struct thread_data *threadtab_add_assoc_func(struct thread_data *td, ast *a){
+	td->assoc_ast = a;
+	return td;
 }
 
 /*

@@ -10,7 +10,8 @@
 #include "include/mem_manage.h"
 #include "include/ast.h"
 #include "include/symtab.h"
-#include "include/gen_test.h"
+#include "include/threadtab.h"
+#include "include/gen_code.h"
 #include "include/yacc_compatability.h"
 
 #define MAX_MSG_LEN 50
@@ -27,8 +28,10 @@ extern int yyparse();
 extern int lineno;
 int t;
 symtab *st;
+threadtab *tb;
 scope *cur_scope;
 heap_list_head *hList;
+char *exe_out_name;
 
 
 %}
@@ -54,7 +57,7 @@ start_point
   : function_list
     {
       ast *root = (ast *) $1;
-			gen_test( root );
+			gen_code( root, st, tb );
       ast_destroy(root);
     }
   ;
@@ -106,7 +109,7 @@ function_def
       arguments->data = NULL;
       arguments->next = NULL;
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t);
+      symtab_insert(st, $2, t, ST_STATIC_DEC);
       $$ = ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
@@ -134,7 +137,13 @@ func_call
 
 arg_list
   : type IDENTIFIER
+    {
+      fprintf(stderr, "ARG_LIST 1: NOT YET IMPLEMENTED\n");
+    }
   | type IDENTIFIER COMMA arg_list
+     {
+      fprintf(stderr, "ARG_LIST 2: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 param_list
@@ -202,7 +211,6 @@ statement_list_internal
     }
   | statement
     {
-      //$$ = $1;
       ast_list *stmt, *nextstmt;
       heap_list_malloc(hList, stmt);
       heap_list_malloc(hList, nextstmt);
@@ -222,8 +230,17 @@ statement_list_internal
 
 statement
   : loop_statement
+    {
+      fprintf(stderr, "STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   | thread_statement
+    {
+      $$ = $1;
+    }
   | conditional_statement
+    {
+      fprintf(stderr, "STATEMENT 3: NOT YET IMPLEMENTED\n");
+    }
   | declaration SEMI
     {
       $$ = $1;
@@ -237,11 +254,20 @@ statement
       $$ = $1;
     }
   | return_statement SEMI
+    {
+      fprintf(stderr, "STATEMENT 4: NOT YET IMPLEMENTED\n");
+    }
   | SEMI
+    {
+      fprintf(stderr, "STATEMENT 5: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 return_statement
  : RETURN IDENTIFIER
+    {
+      fprintf(stderr, "RETURN 1: NOT YET IMPLEMENTED\n");
+    }
  | RETURN literal 
     { 
       fprintf(stderr, "RETURN 2: NOT YET IMPLEMENTED\n");
@@ -256,43 +282,97 @@ return_statement
 
 loop_statement
   : while_statement
+    {
+      fprintf(stderr, "LOOP STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   | for_statement
+    {
+      fprintf(stderr, "LOOP STATEMENT 2: NOT YET IMPLEMENTED\n");
+    }
   | pfor_statement
+    {
+      fprintf(stderr, "LOOP STATEMENT 3: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 thread_statement
   : spawn_statement
+    {
+      $$ = $1;
+    }
   | lock_statement
+    {
+      fprintf(stderr, "THREAD STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   | barrier_statement
+    {
+      $$ = $1;
+    }
   ;
 
 conditional_statement
   : IF LPAREN bool_expr RPAREN statement_list
+    {
+      fprintf(stderr, "COND STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   | IF LPAREN bool_expr RPAREN statement_list ELSE statement_list
+    {
+      fprintf(stderr, "COND STATEMENT 2: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 while_statement
   : WHILE LPAREN bool_expr RPAREN statement_list
+    {
+      fprintf(stderr, "WHILE STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 for_statement
   : FOR LPAREN assignment SEMI rel_expr SEMI unary_math RPAREN statement_list
+    {
+      fprintf(stderr, "FOR STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 pfor_statement
   : PFOR LPAREN IDENTIFIER COMMA IDENTIFIER COMMA INTEGER RPAREN statement_list
+    {
+      fprintf(stderr, "PFOR STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 spawn_statement
   : SPAWN LPAREN IDENTIFIER RPAREN statement_list
+    {
+      ast_type t = symtab_entry_get_type(symtab_lookup(st, $3, cur_scope));
+
+      ast_list *body;
+      ast_list *args;
+      heap_list_malloc(hList, body);
+      heap_list_malloc(hList, args);
+
+      body->data = (ast *) $5;
+      body->next = args;
+      args->data = ast_create_leaf( $3, t, st, cur_scope );
+      args->next = NULL;
+
+      $$ = ast_add_internal_node(NULL, body, AST_NODE_SPAWN, st, cur_scope);
+    }
   ;
 
 lock_statement
   : LOCK LPAREN param_list RPAREN statement_list
+    {
+      fprintf(stderr, "LOCK STATEMENT 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 barrier_statement
   : BARRIER SEMI
+    {
+      $$ = ast_add_internal_node(NULL, NULL, AST_NODE_BARRIER, st, cur_scope);
+    }
   ;
 
 declaration
@@ -300,7 +380,16 @@ declaration
     {
       /* add to symtab and then create node */
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+
+      /* add to threadtab if necessary */
+      if ((ast_type) $$ == AST_THREAD){
+        #ifdef PARSER_DEBUG
+        fprintf(stderr, "thread declaration\n");
+        #endif
+        threadtab_insert(tb, create_thread_data($2, 1));
+      }
+
       ast* leaf = ast_create_leaf($2, t, st, cur_scope);
 
       ast_list *ident;
@@ -311,6 +400,9 @@ declaration
       $$ = ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
     }
   | type array
+    {
+      fprintf(stderr, "DECLARATION 2: NOT YET IMPLEMENTED\n");
+    }
   ; 
 
 assignment
@@ -337,7 +429,7 @@ lvalue
   : type IDENTIFIER  
     { 
       ast_type t = (ast_type) $1;
-      symtab_insert( st, $2, t );
+      symtab_insert( st, $2, t, ST_NONSTATIC_DEC );
       $$ = ast_create_leaf( $2, t, st, cur_scope );
       free($2);
     }
@@ -347,6 +439,9 @@ lvalue
       $$ = ast_create_leaf( $1, t, st, cur_scope );
     }
   | type array
+    {
+      fprintf(stderr, "LVALUE 3: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 rvalue
@@ -358,42 +453,81 @@ rvalue
 
 expr
   : bool_expr
+    {
+      fprintf(stderr, "EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   | math_expr
+    {
+      fprintf(stderr, "EXPR 2: NOT YET IMPLEMENTED\n");
+    }
   | unary_math
+    {
+      fprintf(stderr, "EXPR 3: NOT YET IMPLEMENTED\n");
+    }
   | func_call
     {
       $$ = $1;
     }
   | braced_expr
+    {
+      fprintf(stderr, "EXPR 5: NOT YET IMPLEMENTED\n");
+    }
   | literal
     {
       $$ = $1;
     }
   /*| IDENTIFIER*/
   | array
+    {
+      fprintf(stderr, "EXPR 7: NOT YET IMPLEMENTED\n");
+    }
   | LPAREN expr RPAREN 
+    {
+      fprintf(stderr, "EXPR 8: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 braced_expr
   : LBRACE literal_list RBRACE
+    {
+      fprintf(stderr, "BRACED_EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 bool_expr
-  : rel_expr;
-  | IDENTIFIER;
-  | BOOLEANOP IDENTIFIER;
+  : rel_expr
+    {
+      fprintf(stderr, "BOOL EXPR 1: NOT YET IMPLEMENTED\n");
+    }
+  | IDENTIFIER
+    {
+      fprintf(stderr, "BOOL EXPR 2: NOT YET IMPLEMENTED\n");
+    }
+  | BOOLEANOP IDENTIFIER
+    {
+      fprintf(stderr, "BOOL EXPR 3: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 rel_expr
   : expr relop expr
+    {
+      fprintf(stderr, "REL EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 math_expr
-  : expr mathop expr;
+  : expr mathop expr
+    {
+      fprintf(stderr, "MATH EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 unary_math
   : IDENTIFIER unary_math_op
+    {
+      fprintf(stderr, "UNARY MATH EXPR 1: NOT YET IMPLEMENTED\n");
+    }
   ;
 
 assignop
@@ -459,7 +593,7 @@ type
   | CHAR
   | BOOLEAN
   | STRING { $$ = AST_STRING; }
-  | THREAD 
+  | THREAD { $$ = AST_THREAD; }
   ;
 
 
@@ -472,9 +606,11 @@ int main( int argc, char *argv[] )
   malloc_checked(hList);
   heap_list_init(hList);
   st = symtab_init();
+  tb = threadtab_init();
+  symtab_set_threadtab(st, tb);
 
   /* pre-install printOut */
-  symtab_insert( st, "printOut", AST_STRING);
+  symtab_insert( st, "printOut", AST_STRING, ST_STATIC_DEC);
 
   cur_scope = symtab_open_scope(st, SCOPE_FUNCTION);
 
@@ -485,6 +621,18 @@ int main( int argc, char *argv[] )
     exit(0);
   }
 
+  /* get output file name */
+  exe_out_name = malloc_checked_string(64);
+  strncpy(exe_out_name, argv[1], sizeof exe_out_name);
+  char *extension_ptr = strstr(exe_out_name, ".mf");
+
+  if (extension_ptr == NULL){
+    strncpy(exe_out_name, "a.out", 6);
+  } else {
+    *extension_ptr = '\0';
+  }
+
+  /* open input file name */
   FILE *fp = fopen(argv[1],"r");
   if (!fp) {
     printf("Unable to open file for reading\n");
@@ -505,19 +653,16 @@ int main( int argc, char *argv[] )
   fprintf(stderr,"END OF PARSER\n");
   #endif
 
+  free(exe_out_name);
+
   fclose(yyin);
 
+  threadtab_destroy(tb);
   symtab_destroy(st);
   heap_list_purge(hList);
   free(hList);
 
   return flag;
-
-}
-
-void printTree( ast *root )
-{
-   
 
 }
 

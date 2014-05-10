@@ -24,7 +24,8 @@ typedef enum {
 	AST_NODE_SPAWN,
 	AST_NODE_BARRIER,
 	AST_NODE_UNARY,
-	AST_NODE_NATIVE_CODE
+	AST_NODE_NATIVE_CODE,
+	AST_NODE_RETURN
 } ast_node_type;
 
 typedef struct ast_s {
@@ -61,6 +62,7 @@ typedef struct ast_s {
 		struct ast_spawn_node spawn;
 		struct ast_barrier_node barrier;
 		struct ast_unary_math unary;
+		struct ast_return_node ret;
 
 	} data;
 } ast;
@@ -98,6 +100,7 @@ ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope
  *	AST_NODE_BARRIER:			IGNORED
  *	AST_NODE_UNARY:				1-2 character unary op
  *	AST_NODE_NATIVE_CODE:	CODE
+ *	AST_NODE_RETURN:			IGNORED
  *	
  *	
  *	CHILDREN:
@@ -113,6 +116,7 @@ ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope
  *	AST_NODE_BARRIER:		IGNORED
  *	AST_NODE_UNARY:			operand
  *	AST_NODE_NATIVE_CODE: IGNORED
+ *	AST_NODE_RETURN:			value of return (identifier)
  *	
  *	Returns NULL on error
  */

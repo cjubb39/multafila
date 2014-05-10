@@ -377,6 +377,11 @@ ast **ast_create_node_native_code( ast **a, char *value){
 	return a;
 }
 
+ast **ast_create_node_return(ast **a, ast_list *children){
+	(*a)->data.ret.value = children->data;
+
+	return a;
+}
 ast **ast_create_node_unary(ast **a, char *value, ast_list *children) {
 	strncpy( (*a)->data.unary.op, value, 3);
 
@@ -478,7 +483,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children, void *value){
  *	AST_NODE_DECLARATION:		IGNORED
  *	AST_NODE_BINARY:			1-2 character binary op
  *	AST_NODE_FUNCTION_DEF:		name of function being called
- *	AST_NODE_STATEMENT:			IGNORED
+ *	AST_NODE_STATEMENT:			BRACED_STATEMENT_MARKER if braced statement
  *	AST_NODE_FUNCTION_CALL:		name of function being called
  *	AST_NODE_FUNCTION_LIST:		IGNORED
  *	AST_NODE_CONDITIONAL:		IGNORED
@@ -487,6 +492,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children, void *value){
  *	AST_NODE_BARRIER:			IGNORED
  *	AST_NODE_UNARY:				1-2 character unary op
  *	AST_NODE_NATIVE_CODE:	CODE
+ *	AST_NODE_RETURN:			IGNORED
  *	
  *	
  *	CHILDREN:
@@ -502,6 +508,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children, void *value){
  *	AST_NODE_BARRIER:		IGNORED
  *	AST_NODE_UNARY:			operand
  *	AST_NODE_NATIVE_CODE: IGNORED
+ *	AST_NODE_RETURN:			value of return (identifier)
  *	
  *	Returns NULL on error
  */
@@ -571,6 +578,10 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 
 		case AST_NODE_NATIVE_CODE:
 			ast_create_node_native_code(&new_node, value);
+			break;
+
+		case AST_NODE_RETURN:
+			ast_create_node_return(&new_node, children);
 			break;
 
 		default:
@@ -661,6 +672,9 @@ void ast_destroy_helper(struct ast_s *tree){
 		case AST_NODE_NATIVE_CODE:
 			free(tree->data.string);
 			break;
+
+		case AST_NODE_RETURN:
+			ast_destroy_helper(tree->data.ret.value);
 
 		default:
 			assert(1);

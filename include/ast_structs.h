@@ -72,6 +72,9 @@ struct ast_unary_math {
 	struct ast_s *operand;
 };
 
+struct ast_return_node {
+	struct ast_s *value;
+};
 
 
 #endif

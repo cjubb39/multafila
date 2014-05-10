@@ -30,13 +30,12 @@ void check_func_list(ast *a){
 }
 
 void check_func_def(ast *a){
-	
 	//check the body statments
 	check_ast(a->data.func_def.body);
 }
 
 /*check args are the correct type. check func exists. */
-void check_func_call(ast *a){
+void check_func_call(ast *a, ast* fuction_node){
 	// check that function exists in the symbol table 
 	// get symbol name
 	symtab_entry *s = a->data.func_call.func_symtab;
@@ -44,7 +43,7 @@ void check_func_call(ast *a){
 	char temp[] = "return";
 	symtab_entry *lookup = symtab_search_scope(a->containing_scope, name);
 
-	//if this is a return function call, check the return type matches the declaration type
+	//if this is a return function call, check the return type matches the fuction return type
 	if(strncmp (name, temp, sizeof(name))){
 		ast_type t = symtab_entry_get_type(a->data.symtab_ptr);
 		ast_type t1 = //current fuction return type
@@ -65,32 +64,20 @@ void check_func_call(ast *a){
 
 			if (arglist_compare(declaredargs, args) != 1) {
 				printf("argument types do not match function declaration");
-
 			}
 		}
 	}
 }
 
-int check_dec(ast *a){
-//type IDENTIFIER
-//check if ID is used in current scope 
-
-}
 
 int check_spawn(ast *a){
-//SPAWN LPAREN IDENTIFIER RPAREN statement_list
+	//SPAWN LPAREN IDENTIFIER RPAREN statement_list
 
-//check if ID exists 
+	//check if ID exists 
 
 
-//check the body statments
-check_ast(a->data.spawn.body);
-}
-
-int check_barrier(ast *a){
-//BARRIER SEMI
-//no sure what to check
-
+	//check the body statments
+	check_ast(a->data.spawn.body);
 }
 
 /* binary node checker */
@@ -142,7 +129,6 @@ int check_unary(ast *a){
 
 /* while loop checker */
 int check_while(ast *a){
-
 	/* should also check for funcs that return boolean?? */
 	char *c = a->data.while_statement.conditional_statement.bin.op;
 	ast *a while_body = a->data.while_statement.body; /* get while symt body */
@@ -157,7 +143,6 @@ int check_while(ast *a){
 
 /* if statement checker */
 int check_conditional(ast *a){
-
 	/* should also check for funcs that return boolean??*/
 	char *c = a->data.conditional_statement.conditional_statement.bin.op;
 	ast *a cond_stmt = a->data.conditional_statement.if_statement; /* get if stmt body */
@@ -193,10 +178,6 @@ int check_stmt(ast *a){
 			return check_unary(body);
 			break;
 
-		case AST_NODE_DECLARATION:
-			return check_dec(body);
-			break;
-
 		case AST_NODE_FUNCTION_CALL:
 			return check_func_call(body);
 			break;
@@ -214,18 +195,17 @@ int check_stmt(ast *a){
 			return check_spawn(body);
 			break;
 
-		 // barrier statement will be added 
-		case AST_NODE_BARRIER:
-			return check_barrier(body);
-			break;
+		//  declaration statement checked in parser 
+
+		//  barrier statement checked in parser 
 
 		//  lock statement will be added 
-		// case AST_NODE_LOCK:
+		//  case AST_NODE_LOCK:
 		// 	return check_lock(body);
 		// 	break;
 
 		//  pfor statement will be added 
-		// case AST_NODE_PFOR:
+		//  case AST_NODE_PFOR:
 		// 	return check_pforbody);
 		// 	break;
 
@@ -237,7 +217,6 @@ int check_stmt(ast *a){
 }
 
 /* returns 0 if arg lists are not of the same size or have different types */
-
 int arglist_compare(ast_list a, ast_list b) {
 	while (1) {
 		symtab_entry *s = a->data.symtab_ptr;
@@ -268,7 +247,6 @@ int arglist_compare(ast_list a, ast_list b) {
 /* check the main ast */
 //checking outside fuction bodies
 int check_ast(ast *a){
-
 	if (a == NULL){
 		return;
 	}

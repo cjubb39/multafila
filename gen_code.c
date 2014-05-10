@@ -357,6 +357,11 @@ void print_barrier(ast *a){
 	}
 }
 
+void print_return(ast *a){
+	printf("return ");
+	print_ast(a->data.ret.value);
+}
+
 void print_while(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing WHILE>");
@@ -488,6 +493,10 @@ void print_ast(ast *a){
 
 		case AST_NODE_NATIVE_CODE:
 			print_native_code(a);
+			break;
+
+		case AST_NODE_RETURN:
+			print_return(a);
 			break;
 
 		default:

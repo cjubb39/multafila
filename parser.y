@@ -61,7 +61,7 @@ start_point
   : function_list
     {
       ast *root = (ast *) $1;
-			gen_code( root, st, tb );
+      gen_code( root, st, tb );
       ast_destroy(root);
     }
   ;

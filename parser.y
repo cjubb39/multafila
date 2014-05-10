@@ -142,7 +142,6 @@ func_call
       fprintf(stderr, "FUNCTION CALL IDENT: %s\n", (char *)$1);
       #endif
 
-      printf("hello\n\n");
 
 
       ast_list *children;

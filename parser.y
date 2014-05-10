@@ -356,7 +356,7 @@ thread_statement
     }
   | lock_statement
     {
-      fprintf(stderr, "THREAD STATEMENT 1: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | barrier_statement
     {
@@ -449,7 +449,16 @@ spawn_statement
 lock_statement
   : LOCK LPAREN param_list RPAREN statement_list
     {
-      fprintf(stderr, "LOCK STATEMENT 1: NOT YET IMPLEMENTED\n");
+      ast_list *body, *args;
+      heap_list_malloc(hList, body);
+      heap_list_malloc(hList, args);
+
+      body->data = (ast *) $5; 
+      body->next = args;
+      args->data = (ast *) $3;
+      args->next = NULL;
+
+      $$ = (void *) ast_add_internal_node(NULL, body, AST_NODE_LOCK, st, cur_scope);
     }
   ;
 

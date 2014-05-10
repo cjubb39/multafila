@@ -20,7 +20,9 @@
 #define SIMPLE_OUTPUT
 //#define GEN_TEST_DEBUG
 
-#define THREADSNAME "global_threads"
+#define THREADS_NAME "global_threads"
+#define MAIN_LOCK_NAME "global_lock"
+#define MAIN_LOCK_STRUCT_NAME "global_lock_struct"
 
 extern char *exe_out_name;
 
@@ -138,7 +140,7 @@ void print_threadtab(threadtab *tb){
 	printf("<printing THREADTAB>");
 	#endif
 
-	printf("pthread_t " THREADSNAME " [%d];\n", (uint32_t) tb->length);
+	printf("pthread_t " THREADS_NAME " [%d];\n", (uint32_t) tb->length);
 
 	struct thread_data *td = tb->head;
 	while (td != NULL){
@@ -335,7 +337,7 @@ void print_spawn(ast *a){
 
 	// int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
 	printf( "pthread_create(");
-	printf("&" THREADSNAME "[%d],", t_index);
+	printf("&" THREADS_NAME "[%d],", t_index);
 	printf( " NULL, ");
 	printf( SPAWN_FUNC_FORMAT ", " , t_index);
 	printf("& args_t%d_struct);\n", t_index);
@@ -349,7 +351,7 @@ void print_barrier(ast *a){
 	struct thread_data *td = a->data.barrier.thread_table->head;
 	while (td != NULL){
 		if (td->completed == 0 && td->started == 1){
-			printf("pthread_join(" THREADSNAME "[%d], NULL);\n", td->offset);
+			printf("pthread_join(" THREADS_NAME "[%d], NULL);\n", td->offset);
 			td->completed = 1;
 			td->started = 0;
 		}
@@ -360,6 +362,46 @@ void print_barrier(ast *a){
 void print_return(ast *a){
 	printf("return ");
 	print_ast(a->data.ret.value);
+}
+
+void print_lock(ast *a){
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing LOCK>");
+	#endif
+
+	ast_list *tmp = a->data.lock.params;
+	printf("{\n");
+	
+	/* get lock for main table */
+	printf("pthread_mutex_lock( &" MAIN_LOCK_NAME " );\n");
+	/* get locks on individual threads */
+	while (tmp != NULL){
+		printf("pthread_mutex_lock( &" MAIN_LOCK_STRUCT_NAME ".mutex_%p )\n",
+			tmp->data->data.symtab_ptr);
+		tmp = tmp->next;
+	}
+
+
+	/* release main table lock */
+	printf("pthread_mutex_unlock( &" MAIN_LOCK_NAME " );\n");
+
+	/* print body */
+	print_ast(a->data.lock.body);
+
+	/* get lock for main table */
+	printf("pthread_mutex_lock( &" MAIN_LOCK_NAME " );\n");
+	/* release locks on individual threads */
+	tmp = a->data.lock.params;
+	while (tmp != NULL){
+		printf("pthread_mutex_unlock( &" MAIN_LOCK_STRUCT_NAME ".mutex_%p )\n",
+			tmp->data->data.symtab_ptr);
+		tmp = tmp->next;
+	}
+
+	/* release main table lock */
+	printf("pthread_mutex_unlock( &" MAIN_LOCK_NAME " );\n");
+
+	printf("\n}\n");
 }
 
 void print_while(ast *a){
@@ -497,6 +539,10 @@ void print_ast(ast *a){
 
 		case AST_NODE_RETURN:
 			print_return(a);
+			break;
+
+		case AST_NODE_LOCK:
+			print_lock(a);
 			break;
 
 		default:

@@ -377,6 +377,13 @@ ast **ast_create_node_native_code( ast **a, char *value){
 	return a;
 }
 
+ast **ast_create_node_lock(ast **a, ast_list *children){
+	(*a)->data.lock.body = children->data;
+	(*a)->data.lock.params = children->next;
+
+	return a;
+}
+
 ast **ast_create_node_return(ast **a, ast_list *children){
 	(*a)->data.ret.value = children->data;
 
@@ -493,6 +500,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children, void *value){
  *	AST_NODE_UNARY:				1-2 character unary op
  *	AST_NODE_NATIVE_CODE:	CODE
  *	AST_NODE_RETURN:			IGNORED
+ *	AST_NODE_LOCK:			IGNORED
  *	
  *	
  *	CHILDREN:
@@ -509,6 +517,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children, void *value){
  *	AST_NODE_UNARY:			operand
  *	AST_NODE_NATIVE_CODE: IGNORED
  *	AST_NODE_RETURN:			value of return (identifier)
+ *	AST_NODE_LOCK:			body, params
  *	
  *	Returns NULL on error
  */
@@ -582,6 +591,10 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 
 		case AST_NODE_RETURN:
 			ast_create_node_return(&new_node, children);
+			break;
+
+		case AST_NODE_LOCK:
+			ast_create_node_lock(&new_node, children);
 			break;
 
 		default:
@@ -675,6 +688,12 @@ void ast_destroy_helper(struct ast_s *tree){
 
 		case AST_NODE_RETURN:
 			ast_destroy_helper(tree->data.ret.value);
+			break;
+
+		case AST_NODE_LOCK:
+			ast_destroy_helper(tree->data.lock.body);
+			ast_destroy_helper_ast_list(tree->data.lock.params);
+			break;
 
 		default:
 			assert(1);

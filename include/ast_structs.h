@@ -76,5 +76,9 @@ struct ast_return_node {
 	struct ast_s *value;
 };
 
+struct ast_lock_node {
+	struct ast_s* body;
+	struct ast_list_s *params;
+};
 
 #endif

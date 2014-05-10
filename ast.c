@@ -44,8 +44,8 @@ ast **ast_create_leaf_int (ast **a, char *value, symtab *symbol_table, scope *cu
 }
 
 ast **ast_create_leaf_il (ast **a, char *value){
-	(*a)->data.integer = malloc_checked_int(strlen(value) + 1);
-	(*a)->data.integer = value;
+	//(*a)->data.integer = malloc_checked_int(strlen(value) + 1);
+	(*a)->data.integer = atoi(value);
 	return a;
 }
 
@@ -604,9 +604,6 @@ void ast_destroy_helper(struct ast_s *tree){
 		case AST_NODE_LEAF:
 			if (tree->type == AST_STRINGLITERAL){
 				free(tree->data.string);
-			}
-			if (tree->type == AST_INTLITERAL){
-				free(tree->data.integer);
 			}
 			if (tree->type == AST_CHARLITERAL){
 				free(tree->data.character);

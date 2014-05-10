@@ -35,7 +35,7 @@ typedef struct ast_s {
 
 	union {
 		/* for literal values */
-		int *integer;
+		int integer;
 		char *string;
 		char *character;
 		double doub;

@@ -649,10 +649,13 @@ unary_math
       ast_list *operand;
       heap_list_malloc(hList, operand);
 
-      operand->data = (ast *) $1;
+      symtab_entry *s = symtab_lookup( st, $1, cur_scope );
+      ast_type t = symtab_entry_get_type(s);
+
+      operand->data = ast_create_leaf ( $1, t, st, cur_scope );
       operand->next = NULL;
 
-      $$ = (void *) ast_add_internal_node( $1, operand, AST_NODE_UNARY, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( $2, operand, AST_NODE_UNARY, st, cur_scope );
     }
   ;
 

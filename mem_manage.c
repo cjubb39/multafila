@@ -13,14 +13,6 @@ char *malloc_checked_string(size_t size){
 	return tmp;
 }
 
-int *malloc_checked_int(size_t size){
-	int *tmp = malloc(size * sizeof(char));
-	if (tmp == NULL)
-		die("Malloc Error. Exiting.");
-
-	return tmp;
-}
-
 heap_list_head* heap_list_init(heap_list_head *head){
 	head->head = NULL;
 	head->tail = NULL;

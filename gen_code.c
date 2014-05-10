@@ -374,15 +374,14 @@ void print_con(ast *a){
 	#endif
 	printf( "if(");
 	print_ast(a->data.conditional_statement.conditional_statement);
-	printf( " )\n{\n");
+	printf( " )\n");
 	print_ast(a->data.conditional_statement.if_statement);
-	printf( "\n}\n");
+	printf( "\n");
 
 	//print else statment if there is one
 	if(a->data.conditional_statement.else_statement != NULL){
-		printf( "\n{\n");
+		printf( "else\n");
 		print_ast(a->data.conditional_statement.else_statement);
-		printf( "\n}\n");
 	}
 }
 
@@ -406,7 +405,7 @@ void print_leaf(ast *a){
 			break;
 
 		case AST_INTLITERAL:
-			printf( "%d", *(a->data.integer));
+			printf( "%d", (a->data.integer));
 			break;
 
 		case AST_INT:

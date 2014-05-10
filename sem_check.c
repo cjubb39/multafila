@@ -51,7 +51,6 @@ void check_func_call(ast *a){
 		if (arglist_compare(declaredargs, args) != 1) {
 			printf("argument types do not match function declaration");
 			
-
 		}
 	}
 }

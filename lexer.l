@@ -1,11 +1,20 @@
 %{
 
-	#define YYSTYPE char *
 	#include <stdio.h>
 	#include <string.h>
-	#include "y.tab.h"
+	#include "include/global_config.h"
+	#include "include/y.tab.h"
+	#include "include/symtab.h"
+
+	#define YY_NO_INPUT
+
+	extern symtab *st;
+	extern scope *cur_scope;
 
 %}
+
+%option nounput
+%option yylineno
 
 delim 			[ \t\n]
 ws    			{delim}+
@@ -70,8 +79,15 @@ float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 "/"             { return OVER; }
 "%"				{ return MOD; }
 
-"{"             { return LBRACE; }
-"}"             { return RBRACE; }
+"{"             { 
+									cur_scope = symtab_open_scope(st, SCOPE_NORMAL);
+					 				return LBRACE;
+					 			}
+
+"}"             { 
+									cur_scope = symtab_close_scope(st);
+					 				return RBRACE;
+					 			}
 "["             { return LBRACK; }
 "]"             { return RBRACK; }
 "("             { return LPAREN; }

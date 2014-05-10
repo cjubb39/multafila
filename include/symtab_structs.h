@@ -10,6 +10,7 @@
 #include "global_config.h"
 #include "symtab.h"
 #include "ast.h"
+#include "threadtab.h"
 
 /*declarations for internal structs, enums, etc */
 struct symtab_entry_s {
@@ -17,7 +18,8 @@ struct symtab_entry_s {
 	ast_type type;
 	/* gives us bit flags */
 	unsigned initialized	:1;
-	unsigned							:7;
+	unsigned thread				:1;
+	unsigned							:6;
 
 	struct symtab_entry_s *next;
 };
@@ -33,6 +35,7 @@ struct symtab_scope {
 struct symtab_s {
 	struct symtab_scope *head;
 	struct symtab_scope *cur_scope;
+	threadtab *thread_table;
 };
 
 #endif

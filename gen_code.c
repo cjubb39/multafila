@@ -17,7 +17,7 @@
 
 /* comment to send straight to gcc (./MFtest); uncomment to stdout */
 #define PRINT_TO_STDOUT
-//#define SIMPLE_OUTPUT
+#define SIMPLE_OUTPUT
 //#define GEN_TEST_DEBUG
 
 #define THREADSNAME "global_threads"
@@ -368,9 +368,9 @@ void print_while(ast *a){
 	#endif
 	printf( "while(");
 	print_ast(a->data.while_statement.conditional_statement);
-	printf( " )\n{\n");
+	printf( " )\n");
 	print_ast(a->data.while_statement.body);
-	printf( "\n}\n");
+	printf( "\n");
 }
 
 void print_con(ast *a){

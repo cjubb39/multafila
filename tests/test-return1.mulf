@@ -1,9 +1,10 @@
 /* return statement, should return 11 */
 
-int main(string[] args){
+int main(){
 	int x = 5;
 	int y = 6;
 	
+	printOut("Should return 11");
 	return x+y;
 
 }

@@ -1,8 +1,10 @@
 /* assignment 1 */
 
-int main (string[] args){
+int main (){
 	int i = 4;
-	int j = i * 4;
+	int j = i * 5;
 	
-	return j;
+	printOut("should return 20");
+	return j; /*should return 20 */
+
 }

@@ -1,18 +1,20 @@
-/* booleans and boolean operator AND in conditional statements, should print hello! */
+/* relops in conditional statements, should print "1 = 1, passed" and  */
 
-int main(string[] args){
+int main(){
 
-	if (true && true){
-		printOut " hello!";
+	if (1 == 1){
+		printOut ("1 = 1, passed");
 	}
 	else {
-		printOut "failed";
+		printOut ("1 = 1, failed");
 	}
 
-	if (true && false){
-		printOut "cool";
+	if (1 == 0){
+		printOut ("1 = 0, failed");
 	}
-	else {
-		printOut "failed";
+	else{
+		printOut ("1 = 0, passed");
 	}
+	
+	return 1;
 }

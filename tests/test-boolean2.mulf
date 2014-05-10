@@ -1,26 +1,35 @@
-/* booleans and boolean operator OR in conditional statements, should print hello! cool */
+/* more relops in conditional statements, should print hello! cool */
 
-int main(string[] args){
+int main(){
 
-	if (true || true){
-		printOut("hello!");
+	if (1 > 0){
+		printOut("gt pass");
 	}
 	else {
-		printOut("failed");
+		printOut("gt failed");
 	}
 
-	if (true || false){
-		printOut("cool");
+	if (0 < 1){
+		printOut("lt pass");
 	}
 	else {
-		printOut("failed");
+		printOut("lt fail");
 	}
 	
-	if (false || false){
-		printOut("cat");
+	if (1 >= 0){
+		printOut("geq pass");
 	}
 	else {
-		printOut("failed");
+		printOut("geq fail");
 	}
+	
+	if (0 <= 1){
+		printOut("leq pass");
+	}
+	else {
+		printOut("leq fail");
+	}
+	
+	return 1;
 	
 }

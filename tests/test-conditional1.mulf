@@ -1,6 +1,6 @@
 /* basic conditional statement, should return 22 */
 
-int main(string[] args){
+int main(){
 	int x = 5;
 	int y = 4;
 	int z = 3;
@@ -11,6 +11,7 @@ int main(string[] args){
 	else {
 		z = y+z;
 	}
-
-	return x+y+z; /* should return 21 */
+	
+	printOut("should return 21");
+	int result = x+y+z; /* should return 21 */
 }

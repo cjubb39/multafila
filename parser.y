@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "include/global_config.h"
 #include "include/error_handling.h"
 #include "include/mem_manage.h"
@@ -60,7 +61,7 @@ start_point
   : function_list
     {
       ast *root = (ast *) $1;
-			gen_code( root, st, tb );
+      gen_code( root, st, tb );
       ast_destroy(root);
     }
   ;
@@ -144,8 +145,7 @@ func_call
       ast_list *children;
       heap_list_malloc(hList, children);
 
-      children->data = (ast *) $3;
-      children->next = NULL;
+      children = (ast_list *) $3;
       $$ = (void *) ast_add_internal_node( $1, children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
   | IDENTIFIER LPAREN RPAREN
@@ -186,19 +186,24 @@ arg_list
   ;
 
 param_list
-  : IDENTIFIER
-    {
-      symtab_entry *s = symtab_lookup( st, $1, cur_scope );
-      ast_type t = symtab_entry_get_type(s);
-      $$ = (void *) ast_create_leaf ( $1, t, st, cur_scope );
-    }
-  | param_list COMMA param_list
+  : ident
     {
       ast_list *firstparam;
       heap_list_malloc(hList, firstparam);
-
       firstparam->data = (ast *) $1;
+      firstparam->next = NULL;
+
+      $$ = (void *) firstparam;
+    }
+  | ident COMMA param_list
+    {
+      ast *leaf = (ast *) $1;
+
+      ast_list *firstparam;
+      heap_list_malloc(hList, firstparam);
+      firstparam->data = leaf;
       firstparam->next = (ast_list *) $3;
+
       $$ = (void *) firstparam;
     }
   | array
@@ -315,23 +320,24 @@ statement
   ;
 
 return_statement
- : RETURN IDENTIFIER
+ : RETURN ident
     {
       ast_list *children;
       heap_list_malloc(hList, children);
 
       children->data = (ast *) $2;
-      $$ = (void *) ast_add_internal_node( "return", children, AST_NODE_FUNCTION_CALL, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( NULL, children, AST_NODE_RETURN, st, cur_scope );
     }
  | RETURN literal 
     { 
       fprintf(stderr, "RETURN 2: NOT YET IMPLEMENTED\n");
-      /*ast_list *children;
+      
+      ast_list *children;
       heap_list_malloc(hList, children);
 
       children->data = (ast *) $2;
-      $$ = ast_add_internal_node( "return", children, AST_NODE_FUNCTION_CALL, st, cur_scope );
-      */
+
+      $$ = (void *) ast_add_internal_node(NULL, children, AST_NODE_RETURN, st, cur_scope );
     }
  ;
 
@@ -424,17 +430,15 @@ for_statement
   ;
 
 pfor_statement
-  : PFOR LPAREN IDENTIFIER COMMA IDENTIFIER COMMA INTEGER RPAREN statement_list
+  : PFOR LPAREN ident COMMA ident COMMA INTEGER RPAREN statement_list
     {
       fprintf(stderr, "PFOR STATEMENT 1: NOT YET IMPLEMENTED\n");
     }
   ;
 
 spawn_statement
-  : SPAWN LPAREN IDENTIFIER RPAREN statement_list
+  : SPAWN LPAREN ident RPAREN statement_list
     {
-      ast_type t = symtab_entry_get_type(symtab_lookup(st, $3, cur_scope));
-
       ast_list *body;
       ast_list *args;
       heap_list_malloc(hList, body);
@@ -442,7 +446,7 @@ spawn_statement
 
       body->data = (ast *) $5;
       body->next = args;
-      args->data = ast_create_leaf( $3, t, st, cur_scope );
+      args->data = (ast *) $3;
       args->next = NULL;
 
       $$ = (void *) ast_add_internal_node(NULL, body, AST_NODE_SPAWN, st, cur_scope);
@@ -510,7 +514,7 @@ declaration
       $$ = (void *) ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
 
     }
-  | type IDENTIFIER LBRACK IDENTIFIER LBRACK
+  | type ident LBRACK ident LBRACK
   ; 
 
 assignment
@@ -534,17 +538,16 @@ assignment
   ;
 
 lvalue 
-  : type IDENTIFIER  
+  : type IDENTIFIER 
     { 
       ast_type t = (ast_type) $1;
       symtab_insert( st, $2, t, ST_NONSTATIC_DEC );
       $$ = (void *) ast_create_leaf( $2, t, st, cur_scope );
       free($2);
     }
-  | IDENTIFIER
+  | ident
     {
-      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
-      $$ = (void *) ast_create_leaf( $1, t, st, cur_scope );
+      $$ = $1;
     }
   | type array
     {
@@ -600,12 +603,11 @@ bool_expr
     {
       fprintf(stderr, "BOOL EXPR 1: NOT YET IMPLEMENTED\n");
     }
-  | IDENTIFIER
-   {
-      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
-      $$ = (void *) ast_create_leaf( $1, t, st, cur_scope );
+  | ident
+    {
+      $$ = $1;
     }
-  | BOOLEANOP IDENTIFIER
+  | BOOLEANOP ident
     {
       fprintf(stderr, "BOOL EXPR 3: NOT YET IMPLEMENTED\n");
     }
@@ -644,15 +646,12 @@ math_expr
   ;
 
 unary_math
-  : IDENTIFIER unary_math_op
+  : ident unary_math_op
     {
       ast_list *operand;
       heap_list_malloc(hList, operand);
 
-      symtab_entry *s = symtab_lookup( st, $1, cur_scope );
-      ast_type t = symtab_entry_get_type(s);
-
-      operand->data = ast_create_leaf ( $1, t, st, cur_scope );
+      operand->data = (ast *) $1;
       operand->next = NULL;
 
       $$ = (void *) ast_add_internal_node( $2, operand, AST_NODE_UNARY, st, cur_scope );
@@ -718,13 +717,13 @@ number
   ;
 
 array
-  : IDENTIFIER LBRACK INTEGER RBRACK
+  : ident LBRACK INTEGER RBRACK
     {
 
     }
-  | IDENTIFIER LBRACK IDENTIFIER RBRACK
-  | IDENTIFIER LBRACK INTEGER RBRACK LBRACK INTEGER RBRACK
-  | IDENTIFIER LBRACK IDENTIFIER RBRACK LBRACK IDENTIFIER RBRACK
+  | ident LBRACK ident RBRACK
+  | ident LBRACK INTEGER RBRACK LBRACK INTEGER RBRACK
+  | ident LBRACK ident RBRACK LBRACK ident RBRACK
   ;
 
 type
@@ -734,6 +733,14 @@ type
   | BOOLEAN
   | STRING { $$ = (void *) AST_STRING; }
   | THREAD { $$ = (void *) AST_THREAD; }
+  ;
+
+ident
+  : IDENTIFIER
+    {
+      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
+      $$ = (void *) ast_create_leaf( $1, t, st, cur_scope );
+    }
   ;
 
 %%

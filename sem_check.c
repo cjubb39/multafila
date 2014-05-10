@@ -108,71 +108,74 @@ int check_bin(ast *a){
 	}
 
 /* while loop checker */
-	int check_while(ast *a){
-
+int check_while(ast *a){
+	
 	/* should also check for funcs that return boolean?? */
-		char *c = a->data.while_statement.conditional_statement.bin.op;
-		if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
-			printf("condition in while loop is not a boolean expression");
-			retrun 0;
-		}
-
-		ast *a while_body = a->data.while_statement.body;
-		check_stmt(while_body);
+	char *c = a->data.while_statement.conditional_statement.bin.op;
+	ast *a while_body = a->data.while_statement.body; /* get while symt body */
+	
+	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
+		printf("condition in while loop is not a boolean expression");
+		return 0;
+		} else{
+	return check_stmt(while_body);
 	}
+}
 
 /* if statement checker */
-	int check_conditional(ast *a){
+int check_conditional(ast *a){
 
 	/* should also check for funcs that return boolean??*/
-		char *c = a->data.conditional_statement.conditional_statement.bin.op;
-		if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
-			printf("condition in if statement is not a boolean expression");
-			return 0;
-		}
+	char *c = a->data.conditional_statement.conditional_statement.bin.op;
+	ast *a cond_stmt = a->data.conditional_statement.if_statement; /* get if stmt body */
+	ast *a else_stmt = a->data.conditional_statement.else_statement; /* get else stmt body */
+	int if_check = check_stmt(cond_stmt); /* check the validity of if statement body */	
 
-		ast *a cond_stmt = a->data.conditional_statement.if_statement;
-		return(check_stmt(cond_stmt));
-
-		ast *a else_stmt = a->data.conditional_statement.else_statement;
-		return(check_stmt(else_stmt));
-
-	}
+	
+	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
+		printf("condition in if statement is not a boolean expression");
+		return 0;
+		} else if(if_check == 0){
+		return 0;
+		}	else{
+			return(check_stmt(else_stmt));
+			}
+}
 
 /* checks if a stmt node is valid */
-	int check_stmt(ast *a){	
-	/* check to see if it belongs to one of the stmt types */
-		ast *body = a->data.stmt.body;
-	/* symtab_entry *s = a->data.stmt.body.symtab_ptr; not sure if this is valid */
-		ast_type t = ast_get_type(body);
-		if (t == AST_NULL){
-			ast_node_type t2n = ast_get_node_type(body);
-			switch(t2n){
-				case AST_NODE_BIN:
-				return check_bin(body);
-				break;
-				case AST_NODE_UNARY:
-				return check_unary(body);
-				break;
-				case AST_NODE_FUNCTION_CALL:
-				return check_func_call(body);
-				break;
-				case AST_NODE_CONDITIONAL:
-				return check_conditional(body);
-				break;
-				case AST_NODE_WHILE:
-				return check_while(body);
-				break;
-			/* spawn statement will be added 
-			case AST_NODE_SPAWN:
-				return check_spawn(body);
-			*/	
-			/* return will be added */
-				default:
-				return 0;
-				break;		
-			}
+int check_stmt(ast *a){	
+/* check to see if it belongs to one of the stmt types */
+	ast *body = a->data.stmt.body;
+/* symtab_entry *s = a->data.stmt.body.symtab_ptr; not sure if this is valid */
+	ast_type t = ast_get_type(body);
+	if (t == AST_NULL){
+		ast_node_type t2n = ast_get_node_type(body);
+		switch(t2n){
+			case AST_NODE_BIN:
+			return check_bin(body);
+			break;
+			case AST_NODE_UNARY:
+			return check_unary(body);
+			break;
+			case AST_NODE_FUNCTION_CALL:
+			return check_func_call(body);
+			break;
+			case AST_NODE_CONDITIONAL:
+			return check_conditional(body);
+			break;
+			case AST_NODE_WHILE:
+			return check_while(body);
+			break;
+		/* spawn statement will be added 
+		case AST_NODE_SPAWN:
+			return check_spawn(body);
+		*/	
+		/* return will be added */
+			default:
+			return 0;
+			break;		
 		}
+	}
 	}
 
 	/* returns 0 if arg lists are not of the same size or have different types */
@@ -205,15 +208,15 @@ int check_bin(ast *a){
 	}
 
 /* check the main ast */
-	int check_ast(ast *){
-		if (a == NULL){
-			return;
-		}
-
-		switch(ast_get_node_type(t)){
-			case func_def: 
-			check_func_call();
-			case 
-		}
-
+int check_ast(ast *){
+	if (a == NULL){
+		return;
 	}
+
+	switch(ast_get_node_type(t)){
+		case func_def: 
+		check_func_call();
+		case 
+	}
+
+}

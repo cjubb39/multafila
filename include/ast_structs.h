@@ -39,6 +39,7 @@ struct ast_binary_node {
 struct ast_statement_node {
 	struct ast_s *body;
 	struct ast_s *next;
+	unsigned int braced;
 };
 
 struct ast_conditional_node {

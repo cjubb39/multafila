@@ -9,6 +9,8 @@
 #include "ast_structs.h"
 #include "symtab.h"
 
+#define BRACED_STATEMENT_MARKER ((void*)0x06081993)
+
 typedef enum {
 	AST_NODE_FUNCTION_LIST,
 	AST_NODE_FUNCTION_DEF,
@@ -81,7 +83,7 @@ ast *ast_create_leaf (char *value, ast_type type, symtab*, scope* cur_scope);
  *	AST_NODE_DECLARATION:		IGNORED
  *	AST_NODE_BINARY:			1-2 character binary op
  *	AST_NODE_FUNCTION_DEF:		name of function being called
- *	AST_NODE_STATEMENT:			IGNORED
+ *	AST_NODE_STATEMENT:			BRACED_STATEMENT_MARKER if braced statement
  *	AST_NODE_FUNCTION_CALL:		name of function being called
  *	AST_NODE_FUNCTION_LIST:		IGNORED
  *	AST_NODE_CONDITIONAL:		IGNORED

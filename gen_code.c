@@ -186,9 +186,9 @@ void print_func_def_nominal(ast *a){
 			printf( ", ");
 	}
 
-	printf( " )\n{\n");
+	printf( " )\n");
 	print_ast(a->data.func_def.body);
-	printf( "\n}\n");
+	printf( "\n");
 }
 
 void print_func_def_thread_gen(ast *a){
@@ -260,9 +260,16 @@ void print_stmt(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing STMT>");
 	#endif
-	print_ast(a->data.stmt.body);
-	printf( " ;\n");
-	print_ast(a->data.stmt.next);
+
+	if(a->data.stmt.braced == 0){
+		print_ast(a->data.stmt.body);
+		printf( " ;\n");
+		print_ast(a->data.stmt.next);
+	} else {
+		printf("{\n");
+		print_ast(a->data.stmt.body);
+		printf("}\n");
+	}
 }
 
 void print_unary(ast *a){

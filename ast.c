@@ -401,11 +401,13 @@ ast **ast_create_node_func_call(ast **a, ast_list *children, char *name,
 }
 
 
-ast **ast_create_node_stmt(ast **a, ast_list *children){
+ast **ast_create_node_stmt(ast **a, ast_list *children, void *value){
 	(*a)->data.stmt.body = children->data;
 	(*a)->data.stmt.next = children->next->data;
 
 	(*a)->type = (*a)->data.stmt.body->type;
+
+	(*a)->data.stmt.braced = (value == BRACED_STATEMENT_MARKER);
 
 	#ifdef AST_DEBUG
 	fprintf(stderr, "statement node created:: cur: %p; next: %p\n", (*a)->data.stmt.body, (*a)->data.stmt.next);
@@ -484,7 +486,7 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 			break;
 
 		case AST_NODE_STATEMENT:
-			ast_create_node_stmt(&new_node, children);
+			ast_create_node_stmt(&new_node, children, value);
 			break;
 
 		case AST_NODE_FUNCTION_LIST:

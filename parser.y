@@ -176,9 +176,18 @@ param_list
 statement_list
   : LBRACE statement_list_internal RBRACE 
     {
-      $$ = $2;
+      ast_list *body, *nextstmt;
+      heap_list_malloc(hList, body);
+      heap_list_malloc(hList, nextstmt);
+
+      body->data = (ast *) $2;
+      body->next = nextstmt;
+      nextstmt->data = NULL;
+      nextstmt->next = NULL;
+
+      $$ = ast_add_internal_node(BRACED_STATEMENT_MARKER, body, AST_NODE_STATEMENT, st, cur_scope);
     }
-  | statement
+  ;/*| statement
     {
       fprintf(stderr, "SL 2: NOT YET IMPLEMENTED\n");
       /*ast_list *stmt;
@@ -187,9 +196,9 @@ statement_list
       stmt->data = (ast *) $1;
       stmt->next = NULL;
       //$$ = stmt;
-      $$ = ast_add_internal_node("statementSL", stmt, AST_NODE_STATEMENT, st, cur_scope);*/
+      $$ = ast_add_internal_node("statementSL", stmt, AST_NODE_STATEMENT, st, cur_scope);
     }
-  ;
+  ;*/
 
 statement_list_internal
   : statement statement_list_internal
@@ -260,6 +269,10 @@ statement
   | SEMI
     {
       fprintf(stderr, "STATEMENT 5: NOT YET IMPLEMENTED\n");
+    }
+  | statement_list
+    {
+      $$ = $1;
     }
   ;
 

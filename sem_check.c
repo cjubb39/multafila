@@ -32,8 +32,11 @@ void check_func_list(ast *a){
 void check_func_def(ast *a){
 	//check if the function ID is allowed (not reserved word) and if the ID already exists in the scope
 
+
 	//in the case of there is an arg list. 
 	//check if arglist IDs is allowed (not reserved word)
+
+
 
 	//check the body statments
 	check_ast(a->data.func_def.body);
@@ -78,6 +81,22 @@ void check_func_call(ast *a){
 int check_dec(ast *a){
 //type IDENTIFIER
 //check if ID is used in current scope 
+
+}
+
+int check_spawn(ast *a){
+//SPAWN LPAREN IDENTIFIER RPAREN statement_list
+
+//check if ID exists 
+
+
+//check the body statments
+check_ast(a->data.spawn.body);
+}
+
+int check_barrier(ast *a){
+//BARRIER SEMI
+//no sure what to check
 
 }
 
@@ -197,15 +216,15 @@ int check_stmt(ast *a){
 			return check_while(body);
 			break;
 
-		//  spawn statement will be added 
-		// case AST_NODE_SPAWN:
-		// 	return check_spawn(body);
-		// 	break;
+		 // spawn statement will be added 
+		case AST_NODE_SPAWN:
+			return check_spawn(body);
+			break;
 
-		//  barrier statement will be added 
-		// case AST_NODE_BARRIER:
-		// 	return check_barrier(body);
-		// 	break;
+		 // barrier statement will be added 
+		case AST_NODE_BARRIER:
+			return check_barrier(body);
+			break;
 
 		//  lock statement will be added 
 		// case AST_NODE_LOCK:

@@ -1,15 +1,20 @@
 %{
 
-	#define YYSTYPE char *
 	#include <stdio.h>
 	#include <string.h>
+	#include "include/global_config.h"
 	#include "include/y.tab.h"
 	#include "include/symtab.h"
+
+	#define YY_NO_INPUT
 
 	extern symtab *st;
 	extern scope *cur_scope;
 
 %}
+
+%option nounput
+%option yylineno
 
 delim 			[ \t\n]
 ws    			{delim}+

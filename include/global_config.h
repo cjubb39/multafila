@@ -29,4 +29,6 @@ typedef enum {
 	AST_VOID
 } ast_type;
 
+#define YYSTYPE char *
+
 #endif

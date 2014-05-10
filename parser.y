@@ -1,6 +1,5 @@
 %{
 
-#define YYSTYPE char *
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +12,11 @@
 #include "include/threadtab.h"
 #include "include/gen_code.h"
 #include "include/yacc_compatability.h"
+
+#include "include/y.tab.h"
+
+//#undef YYSTYPE
+//#define YYSTYPE char *
 
 #define MAX_MSG_LEN 50
 #define YYDEBUG 0
@@ -33,6 +37,8 @@ scope *cur_scope;
 heap_list_head *hList;
 char *exe_out_name;
 
+int yylex(void);
+int yyerror(char *);
 
 %}
 
@@ -73,7 +79,7 @@ function_list
       current_function->next = next_function;
       next_function->data = (ast *) $2;
       next_function->next = NULL;
-      $$ = ast_add_internal_node( NULL, current_function, AST_NODE_FUNCTION_LIST, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( NULL, current_function, AST_NODE_FUNCTION_LIST, st, cur_scope );
     }
   | function_def
     {
@@ -85,7 +91,7 @@ function_list
       current_function->next = next_function;
       next_function->data = NULL;
       next_function->next = NULL;
-      $$ = ast_add_internal_node( NULL, current_function, AST_NODE_FUNCTION_LIST, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( NULL, current_function, AST_NODE_FUNCTION_LIST, st, cur_scope );
     }
   ;
 
@@ -100,14 +106,14 @@ function_def
       heap_list_malloc(hList, body);
       heap_list_malloc(hList, arguments);
 
-      arguments = $4;
+      arguments = (ast_list *) $4;
       body->data = (ast *) $6;
       body->next = arguments;
       /*arguments->data = (ast *) $4;
       arguments->next = NULL;*/
       ast_type t = (ast_type) $1;
       symtab_insert(st, $2, t, ST_STATIC_DEC);
-      $$ = ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
   | type IDENTIFIER LPAREN RPAREN statement_list 
@@ -126,7 +132,7 @@ function_def
       arguments->next = NULL;
       ast_type t = (ast_type) $1;
       symtab_insert(st, $2, t, ST_STATIC_DEC);
-      $$ = ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
   ;
@@ -143,7 +149,7 @@ func_call
 
       children->data = (ast *) $3;
       children->next = NULL;
-      $$ = ast_add_internal_node( $1, children, AST_NODE_FUNCTION_CALL, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( $1, children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
   | IDENTIFIER LPAREN RPAREN
     {
@@ -164,7 +170,7 @@ arg_list
       arg->data = leaf;
       arg->next = NULL;
 
-      $$ = arg;
+      $$ = (void *) arg;
     }
   | type IDENTIFIER COMMA arg_list
     {
@@ -176,9 +182,9 @@ arg_list
       ast_list *arg;
       heap_list_malloc(hList, arg);
       arg->data = leaf;
-      arg->next = $4;
+      arg->next = (ast_list *) $4;
 
-      $$ = arg;
+      $$ = (void *) arg;
     }
   ;
 
@@ -187,7 +193,7 @@ param_list
     {
       symtab_entry *s = symtab_lookup( st, $1, cur_scope );
       ast_type t = symtab_entry_get_type(s);
-      $$ = ast_create_leaf ( $1, t, st, cur_scope );
+      $$ = (void *) ast_create_leaf ( $1, t, st, cur_scope );
     }
   | param_list COMMA param_list
     {
@@ -195,8 +201,8 @@ param_list
       heap_list_malloc(hList, firstparam);
 
       firstparam->data = (ast *) $1;
-      firstparam->next = (ast *) $3;
-      $$ = firstparam;
+      firstparam->next = (ast_list *) $3;
+      $$ = (void *) firstparam;
     }
   | array
     {
@@ -220,7 +226,7 @@ statement_list
       nextstmt->data = NULL;
       nextstmt->next = NULL;
 
-      $$ = ast_add_internal_node(BRACED_STATEMENT_MARKER, body, AST_NODE_STATEMENT, st, cur_scope);
+      $$ = (void *) ast_add_internal_node(BRACED_STATEMENT_MARKER, body, AST_NODE_STATEMENT, st, cur_scope);
     }
   ;/*| statement
     {
@@ -247,7 +253,7 @@ statement_list_internal
       nextstmt->data = (ast *) $2;
       nextstmt->next = NULL;
 
-      $$ = ast_add_internal_node("statementS-SLI", firststmt, AST_NODE_STATEMENT, st, cur_scope);
+      $$ = (void *) ast_add_internal_node("statementS-SLI", firststmt, AST_NODE_STATEMENT, st, cur_scope);
 
       #ifdef PARSER_DEBUG
       fprintf(stderr, "STMT-SLI DATA: %p %p %p\n", $1, $2, $$);
@@ -264,7 +270,7 @@ statement_list_internal
       nextstmt->data = NULL;
       nextstmt->next = NULL;
 
-      $$ = ast_add_internal_node("statements", stmt, AST_NODE_STATEMENT, st, cur_scope);
+      $$ = (void *) ast_add_internal_node("statements", stmt, AST_NODE_STATEMENT, st, cur_scope);
       
       #ifdef PARSER_DEBUG
       fprintf(stderr, "STMT-S DATA: %p %p %p\n", $1, NULL, $$);
@@ -318,7 +324,7 @@ return_statement
       heap_list_malloc(hList, children);
 
       children->data = (ast *) $2;
-      $$ = ast_add_internal_node( "return", children, AST_NODE_FUNCTION_CALL, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( "return", children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
  | RETURN literal 
     { 
@@ -377,7 +383,7 @@ conditional_statement
       elsebody->data = NULL;
       elsebody->next = NULL;
 
-      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
     }
   | IF LPAREN bool_expr RPAREN statement_list ELSE statement_list
     {
@@ -393,7 +399,7 @@ conditional_statement
       elsebody->data = (ast *) $7;
       elsebody->next = NULL;
 
-      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( $1, condstmt, AST_NODE_CONDITIONAL, st, cur_scope );
     }
   ;
 
@@ -409,7 +415,7 @@ while_statement
       whilebody->data = (ast *) $5,
       whilebody->next = NULL;
 
-      $$ = ast_add_internal_node( $1, condstmt, AST_NODE_WHILE, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( $1, condstmt, AST_NODE_WHILE, st, cur_scope );
     }
   ;
 
@@ -442,7 +448,7 @@ spawn_statement
       args->data = ast_create_leaf( $3, t, st, cur_scope );
       args->next = NULL;
 
-      $$ = ast_add_internal_node(NULL, body, AST_NODE_SPAWN, st, cur_scope);
+      $$ = (void *) ast_add_internal_node(NULL, body, AST_NODE_SPAWN, st, cur_scope);
     }
   ;
 
@@ -456,7 +462,7 @@ lock_statement
 barrier_statement
   : BARRIER SEMI
     {
-      $$ = ast_add_internal_node(NULL, NULL, AST_NODE_BARRIER, st, cur_scope);
+      $$ = (void *) ast_add_internal_node(NULL, NULL, AST_NODE_BARRIER, st, cur_scope);
     }
   ;
 
@@ -482,7 +488,7 @@ declaration
       ident->data = leaf;
       ident->next = NULL;
 
-      $$ = ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
+      $$ = (void *) ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
     }
   | type IDENTIFIER LBRACK INTEGER RBRACK
     {
@@ -504,7 +510,7 @@ declaration
       ident->data = leaf;
       ident->next = NULL;
 
-      $$ = ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
+      $$ = (void *) ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
 
     }
   | type IDENTIFIER LBRACK IDENTIFIER LBRACK
@@ -522,7 +528,7 @@ assignment
       lh->next = rh;
       rh->data = (ast *) $3;
       rh->next = NULL;
-      $$ = ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
+      $$ = (void *) ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
       
       #ifdef PARSER_DEBUG
       fprintf(stderr, "BIN NODE DATA: %p %s %p %p\n", $1, (char *)$2, $3, $$);
@@ -535,13 +541,13 @@ lvalue
     { 
       ast_type t = (ast_type) $1;
       symtab_insert( st, $2, t, ST_NONSTATIC_DEC );
-      $$ = ast_create_leaf( $2, t, st, cur_scope );
+      $$ = (void *) ast_create_leaf( $2, t, st, cur_scope );
       free($2);
     }
   | IDENTIFIER
     {
       ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
-      $$ = ast_create_leaf( $1, t, st, cur_scope );
+      $$ = (void *) ast_create_leaf( $1, t, st, cur_scope );
     }
   | type array
     {
@@ -600,7 +606,7 @@ bool_expr
   | IDENTIFIER
    {
       ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
-      $$ = ast_create_leaf( $1, t, st, cur_scope );
+      $$ = (void *) ast_create_leaf( $1, t, st, cur_scope );
     }
   | BOOLEANOP IDENTIFIER
     {
@@ -620,7 +626,7 @@ rel_expr
       lh->next = rh;
       rh->data = (ast *) $3;
       rh->next = NULL;
-      $$ = ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
+      $$ = (void *) ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
     }
   ;
 
@@ -636,7 +642,7 @@ math_expr
       lh->next = rh;
       rh->data = (ast *) $3;
       rh->next = NULL;
-      $$ = ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
+      $$ = (void *) ast_add_internal_node( $2, lh, AST_NODE_BINARY, st, cur_scope ) ;
     }
   ;
 
@@ -649,7 +655,7 @@ unary_math
       operand->data = (ast *) $1;
       operand->next = NULL;
 
-      $$ = ast_add_internal_node( $1, operand, AST_NODE_UNARY, st, cur_scope );
+      $$ = (void *) ast_add_internal_node( $1, operand, AST_NODE_UNARY, st, cur_scope );
     }
   ;
 
@@ -693,7 +699,7 @@ literal
   | FALSE
   | STRINGLITERAL 
     { 
-      $$ = ast_create_leaf( $1, AST_STRINGLITERAL, st, cur_scope ); 
+      $$ = (void *) ast_create_leaf( $1, AST_STRINGLITERAL, st, cur_scope ); 
       free($1);
     }
   ;
@@ -701,7 +707,7 @@ literal
 number
   : INTEGER
     {
-      $$ = ast_create_leaf( $1, AST_INTLITERAL, st, cur_scope );
+      $$ = (void *) ast_create_leaf( $1, AST_INTLITERAL, st, cur_scope );
       free($1);
     }
   | FLOAT
@@ -718,15 +724,13 @@ array
   ;
 
 type
-  : INT { $$ = AST_INT; }
+  : INT { $$ = (void *) AST_INT; }
   | DOUBLE
-  | CHAR { $$ = AST_CHAR; }
+  | CHAR { $$ = (void *) AST_CHAR; }
   | BOOLEAN
-  | STRING { $$ = AST_STRING; }
-  | THREAD { $$ = AST_THREAD; }
+  | STRING { $$ = (void *) AST_STRING; }
+  | THREAD { $$ = (void *) AST_THREAD; }
   ;
-
-
 
 %%
 

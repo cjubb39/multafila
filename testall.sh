@@ -51,8 +51,8 @@ Run() {
 Check() {
     error=0
     basename=`echo $1 | sed 's/.*\\///
-                             s/.mulf//'`
-    reffile=`echo $1 | sed 's/.mulf$//'`
+    						s/.mulf//'`
+    reffile=`echo $1 | sed 's/.mulf$/.out/'`
     basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
 
     echo -n "$basename..."
@@ -62,13 +62,9 @@ Check() {
 
     generatedfiles=""
 
-    generatedfiles="$generatedfiles ${basename}.i.out" &&
-    Run "$MULTAFILA" "-i" "<" $1 ">" ${basename}.i.out &&
-    Compare ${basename}.i.out ${reffile}.out ${basename}.i.diff
-
-    generatedfiles="$generatedfiles ${basename}.c.out" &&
-    Run "$MULTAFILA" "-c" "<" $1 ">" ${basename}.c.out &&
-    Compare ${basename}.c.out ${reffile}.out ${basename}.c.diff
+    generatedfiles="$generatedfiles ${basename}.out" &&
+    Run "$MULTAFILA" "-i" "<" $1 ">" ${basename}.mulf &&
+    Compare ${basename}.mulf ${reffile}.mulf ${basename}.out.diff
 
     # Report the status and clean up the generated files
 
@@ -109,9 +105,6 @@ do
     case $file in
 	*test-*)
 	    Check $file 2>> $globallog
-	    ;;
-	*fail-*)
-	    CheckFail $file 2>> $globallog
 	    ;;
 	*)
 	    echo "unknown file type $file"

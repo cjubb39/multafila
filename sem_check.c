@@ -31,7 +31,7 @@ int check_func_def(ast *a){
 	// check that function parameters are properly formed
 
 	symtab_entry *s = a->data.func_def.func_symtab;
-	ast_type t = symtab_entry_get_type(s);
+	ast_ type t = symtab_entry_get_type(s);
 	ast_list *args = a->data.func_def.arguments;
 	
 	while (args != null) {

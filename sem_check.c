@@ -12,6 +12,7 @@
 #include "include/ast_structs.h"
 #include "include/symtab_structs.h"
 
+extern symtab *st;
 
 int check_ast (ast *a);
 
@@ -41,7 +42,8 @@ void check_func_call(ast *a, ast* fuction_node){
 	symtab_entry *s = a->data.func_call.func_symtab;
 	char *name = s->name;
 	char temp[] = "return";
-	symtab_entry *lookup = symtab_search_scope(a->containing_scope, name);
+
+	symtab_entry *lookup = symtab_lookup(st, name, a->containing_scope);
 
 	//if this is a return function call, check the return type matches the fuction return type
 	if(strncmp (name, temp, sizeof(name))){
@@ -71,12 +73,9 @@ void check_func_call(ast *a, ast* fuction_node){
 
 
 int check_spawn(ast *a){
-	//SPAWN LPAREN IDENTIFIER RPAREN statement_list
-
-	//check if ID exists 
-
-
-	//check the body statments
+	ast *param = a->data.spawn.arguments
+	symtab_entry *s = param->data.symtab_ptr;
+	
 	check_ast(a->data.spawn.body);
 }
 

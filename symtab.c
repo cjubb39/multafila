@@ -9,7 +9,7 @@
 #include "include/symtab.h"
 #include "include/symtab_structs.h"
 #include "include/threadtab.h"
-#include "y.tab.h"
+#include "include/y.tab.h"
 
 /* FUNCTIONS FOR BUILDING SYMBOL TABLE */
 

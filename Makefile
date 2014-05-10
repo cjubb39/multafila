@@ -22,7 +22,7 @@ small-parser: $(SRC) $(HEADERS)
 	$(CC) $(CFLAGS) $(SRC) $(LDFLAGS) -o small-parser
 
 y.tab.c: parser.y
-	yacc -d $<
+	yacc --defines=include/y.tab.h $<
 
 lex.yy.c: lexer.l
 	lex $<

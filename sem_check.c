@@ -75,7 +75,11 @@ void check_func_call(ast *a, ast* fuction_node){
 int check_spawn(ast *a){
 	ast *param = a->data.spawn.arguments
 	symtab_entry *s = param->data.symtab_ptr;
-	
+	char *name = s->name;
+	if (symtab_lookup(st, name, a->containing_scope) == null) {
+		printf("cannot spawn an undeclared thread");
+		return 0;
+	}
 	check_ast(a->data.spawn.body);
 }
 

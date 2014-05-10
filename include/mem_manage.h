@@ -1,6 +1,8 @@
 #ifndef MEM_MANAGE_H
 #define MEM_MANAGE_H
 
+#include <string.h>
+
 typedef struct heap_list_node_s {
 	struct heap_list_node_s *next;
 	void *data;

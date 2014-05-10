@@ -7,6 +7,7 @@
 
 #include "include/global_config.h"
 #include "include/error_handling.h"
+#include "include/mem_manage.h"
 #include "include/ast.h"
 #include "include/symtab.h"
 #include "include/threadtab.h"
@@ -22,7 +23,7 @@
 #define THREADSNAME "global_threads"
 
 void print_ast(ast *);
-void print_ast_type(ast_type);
+char* get_ast_type(ast_type);
 
 void print_header(){     
 	printf( "#include <stdio.h>\n#include <pthread.h>\n" \
@@ -38,7 +39,7 @@ void print_threadtab_func(ast *a){
 
 	struct ast_spawn_node *asn = (struct ast_spawn_node *)(a->data.func_def.assoc_spawn_info);
 	struct ast_spawn_vars *asv = &asn->vars;
-	int t_index = asn->thread->offset;
+	const int t_index = asn->thread->offset;
 
 	/* create struct for passing args*/
 	ast_list *args_struct = asv->old_vars;
@@ -47,8 +48,7 @@ void print_threadtab_func(ast *a){
 	printf("struct " SPAWN_ARGS_FORMAT "{\n", t_index);
 	while((tmp = args_struct->data) != NULL){
 		se = tmp->data.symtab_ptr;
-		printf("\t");
-		print_ast_type(symtab_entry_get_type(se));
+		printf("\t%s", get_ast_type(symtab_entry_get_type(se)));
 		printf(" * arg_t%d_%s;\n", \
 			t_index, symtab_entry_get_name(se));
 
@@ -56,7 +56,51 @@ void print_threadtab_func(ast *a){
 	}
 	printf("};\n\n");
 
+	/* large buffer for generated code */
+	size_t large_buff_size = 1024 * 1024;
+	char *buffer = malloc_checked_string(large_buff_size);
+
+	char buffer2[1024]; /* smaller buffer for intermediate code */
+	memset(buffer, 0, sizeof buffer);
+	memset(buffer2, 0, sizeof large_buff_size);
+
+	/* generate transfer from struct */
+	args_struct = asv->old_vars;
+
+	snprintf(buffer2, sizeof buffer2, "struct " SPAWN_ARGS_FORMAT
+		"* args_t%d = (struct " SPAWN_ARGS_FORMAT "*) args_" SPAWN_FUNC_FORMAT ";\n",
+		t_index,
+		t_index,
+		t_index,
+		t_index
+	);
+
+	strncat(buffer, buffer2, large_buff_size);
+
+	while ((tmp = args_struct->data) != NULL){
+		se = tmp->data.symtab_ptr;
+
+		snprintf(buffer2, sizeof buffer2, "%s * %s = args_t%d->arg_t%d_%s;\n",
+			get_ast_type(symtab_entry_get_type(se)),
+			symtab_entry_get_name(se),
+			t_index,
+			t_index,
+			symtab_entry_get_name(se)
+		);
+
+		size_t tmp_strlen = strlen(buffer);
+		strncat(buffer, buffer2, large_buff_size - tmp_strlen - 1);
+
+		args_struct = args_struct->next;
+	}
+
+	ast *native = ast_add_internal_node(buffer, NULL, AST_NODE_NATIVE_CODE, NULL, NULL);
+
+	ast_insert_native_code(a, native);
+
 	print_ast(a);
+
+	/* buffer freed on AST disassembly */
 }
 
 void print_threadtab(threadtab *tb){
@@ -73,7 +117,11 @@ void print_threadtab(threadtab *tb){
 	}
 }
 
-void print_ast_type(ast_type at){
+void print_native_code(ast *a){
+	printf("%s", a->data.string);
+}
+
+char* get_ast_type(ast_type at){
 	assert(at != AST_NULL);
 
 	#ifdef GEN_TEST_DEBUG
@@ -82,29 +130,31 @@ void print_ast_type(ast_type at){
 
 	switch(at){
 		case AST_STRING:
-			printf( "char *");
+			return "char *";
 			break;
 
 		case AST_STRINGLITERAL:
-			printf( "char *");
+			return "char *";
 			break;
 
 		case AST_INT:
-			printf( "int");
+			return "int";
 			break;
 
 		case AST_VOID_STAR:
-			printf("void *");
+			return "void *";
 			break;
 
 		case AST_VOID:
-			printf("void");
+			return "void";
 			break;
 
 		case AST_THREAD:
+			return "";
 			break; /* taken care of separately */
 
 		default:
+			return "";
 			break;
 	}
 }
@@ -122,7 +172,7 @@ void print_func_def_nominal(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing FUNC_DEF_NOMINAL>");
 	#endif
-	print_ast_type(symtab_entry_get_type(a->data.func_def.func_symtab));
+	printf("%s", get_ast_type(symtab_entry_get_type(a->data.func_def.func_symtab)));
 	printf( " %s ( ", a->data.func_def.func_symtab->name);
 
 	struct ast_list_s *tmp = a->data.func_def.arguments;
@@ -145,7 +195,7 @@ void print_func_def_thread_gen(ast *a){
 	#endif
 	
 	/* print opening statement */
-	print_ast_type(symtab_entry_get_type(a->data.func_def.func_symtab));
+	printf("%s", get_ast_type(symtab_entry_get_type(a->data.func_def.func_symtab)));
 	printf( " %s ( ", a->data.func_def.func_symtab->name);
 	printf( " void * args_%s", symtab_entry_get_name(a->data.func_def.func_symtab));
 	printf( " )\n{\n");
@@ -190,8 +240,7 @@ void print_dec(ast *a){
 	printf("<printing DEC>");
 	#endif
 
-	print_ast_type(a->type);
-	printf( "  ");
+	printf( "%s  ", get_ast_type(a->type));
 	print_ast(a->data.dec.var);
 }
 
@@ -229,21 +278,58 @@ void print_spawn(ast *a){
 	#endif	
 
 	struct thread_data *td = a->data.spawn.thread;
+	struct ast_spawn_vars *asv = &a->data.spawn.vars;
 	int t_index = td->offset;
 
 	td->started = 1;
 	td->completed = 0;
 
+	/* create struct for passing */
+	ast_list *args_struct = asv->old_vars;
+	ast *tmp;
+	symtab_entry *se;
+	
+////////////////////////
+/*	printf("struct " SPAWN_ARGS_FORMAT "{\n", t_index);
+	while((tmp = args_struct->data) != NULL){
+		se = tmp->data.symtab_ptr;
+		printf("\t%s", get_ast_type(symtab_entry_get_type(se)));
+		printf(" * arg_t%d_%s;\n", \
+			t_index, symtab_entry_get_name(se));
+
+		args_struct = args_struct->next;
+	}
+	printf("};\n\n");*/
+/////////////////////////////
+
+	printf("struct " SPAWN_ARGS_FORMAT " args_t%d_struct;\n", t_index, t_index);
+	
+	while((tmp = args_struct->data) != NULL){
+		se = tmp->data.symtab_ptr;
+		printf("args_t%d_struct.arg_t%d_%s = &%s;\n",
+			t_index, t_index, symtab_entry_get_name(se), symtab_entry_get_name(se));
+
+/*
+		printf(" %s", get_ast_type(symtab_entry_get_type(se)));
+		printf(" * arg_t%d_%s;\n", \
+			t_index, symtab_entry_get_name(se));*/
+
+		args_struct = args_struct->next;
+	}
+	//printf("};\n\n");
+
+
+
 	// SPAWN LPAREN IDENTIFIER RPAREN statement_list
 	//printf( "pthread_t* thread_%d;", threadcount);
 
-	printf("{\n");
+	//printf("{\n");
 	// int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
 	printf( "pthread_create(");
 	printf("&" THREADSNAME "[%d],", t_index);
 	printf( " NULL, ");
 	printf( SPAWN_FUNC_FORMAT ", " , t_index);
-	printf("NULL);");
+	printf("& args_t%d_struct);\n", t_index);
 	//printf( "(void *) &");
 	//print_ast(a->data.spawn.arguments);
 	//printf( " );");*/
@@ -260,7 +346,7 @@ void print_spawn(ast *a){
 
 
 	//print_ast(a->data.spawn.body);
-	printf("\n}\n");
+	//printf("\n}\n");
 }
 
 void print_barrier(ast *a){
@@ -319,7 +405,8 @@ void print_leaf(ast *a){
 			break;
 
 		case AST_STRING:
-			printf( "%s", a->data.string);
+			if(a->data.convert_to_ptr == 1) printf("* ");
+			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
 			break;
 
 		case AST_INTLITERAL:
@@ -327,6 +414,7 @@ void print_leaf(ast *a){
 			break;
 
 		case AST_INT:
+			if(a->data.convert_to_ptr == 1) printf("* ");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
 			break;
 
@@ -335,6 +423,7 @@ void print_leaf(ast *a){
 			break;
 
 		case AST_CHAR:
+			if(a->data.convert_to_ptr == 1) printf("* ");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
 			break;
 			

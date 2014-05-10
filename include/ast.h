@@ -37,7 +37,10 @@ typedef struct ast_s {
 		char *character;
 		double doub;
 		/* for variable names */
-		symtab_entry *symtab_ptr;
+		struct{
+			symtab_entry *symtab_ptr;
+			unsigned int convert_to_ptr;
+		};
 
 
 		/* internal nodes */

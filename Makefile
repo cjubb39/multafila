@@ -1,6 +1,6 @@
 CC  = gcc
 
-CFLAGS	= -g -std=gnu89 -Wall $(INCLUDES)
+CFLAGS	= -g3 -O0 -std=gnu89 -Wall $(INCLUDES)
 LDFLAGS	= -lm
 
 .PHONY: default

@@ -327,7 +327,7 @@ void print_leaf(ast *a){
 			break;
 
 		case AST_INT:
-			printf( "%s", a->data.string);
+			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
 			break;
 
 		case AST_CHARLITERAL:
@@ -335,7 +335,7 @@ void print_leaf(ast *a){
 			break;
 
 		case AST_CHAR:
-			printf( "%s", a->data.character);
+			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
 			break;
 			
 		default:
@@ -400,6 +400,10 @@ void print_ast(ast *a){
 
 		case AST_NODE_UNARY:
 			print_unary(a);
+			break;
+
+		case AST_NODE_NATIVE_CODE:
+			print_native_code(a);
 			break;
 
 		default:

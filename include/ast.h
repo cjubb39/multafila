@@ -21,7 +21,8 @@ typedef enum {
 	AST_NODE_WHILE,
 	AST_NODE_SPAWN,
 	AST_NODE_BARRIER,
-	AST_NODE_UNARY
+	AST_NODE_UNARY,
+	AST_NODE_NATIVE_CODE
 } ast_node_type;
 
 typedef struct ast_s {
@@ -72,6 +73,36 @@ ast *ast_create_leaf (char *value, ast_type type, symtab*, scope* cur_scope);
 /*
  *	Add internal (non-leaf) node to ast
  *	Action will be specified by value of type argument
+ *
+ *	VALUE:
+ *	AST_NODE_DECLARATION:		IGNORED
+ *	AST_NODE_BINARY:			1-2 character binary op
+ *	AST_NODE_FUNCTION_DEF:		name of function being called
+ *	AST_NODE_STATEMENT:			IGNORED
+ *	AST_NODE_FUNCTION_CALL:		name of function being called
+ *	AST_NODE_FUNCTION_LIST:		IGNORED
+ *	AST_NODE_CONDITIONAL:		IGNORED
+ *  AST_NODE_WHILE:				IGNORED
+ *	AST_NODE_SPAWN:				ptr to struct thread_Data created by create_thread_data
+ *	AST_NODE_BARRIER:			IGNORED
+ *	AST_NODE_UNARY:				1-2 character unary op
+ *	AST_NODE_NATIVE_CODE:	CODE
+ *	
+ *	
+ *	CHILDREN:
+ *	AST_NODE_DECLARATION: 	variable being declared
+ *	AST_NODE_BINARY:		left, right
+ *	AST_NODE_FUNCTION_DEF:	body, arguments
+ *	AST_NODE_STATEMENT		body, next
+ *	AST_NODE_FUNCTION_CALL:	arguments
+ *	AST_NODE_FUNCTION_LIST:	current func, next func
+ *	AST_NODE_CONDITIONAL:	conditional statement, if body, else body (NULL if no else)
+ *  AST_NODE_WHILE:			conditional statement, body
+ *	AST_NODE_SPAWN:			body, arguments
+ *	AST_NODE_BARRIER:		IGNORED
+ *	AST_NODE_UNARY:			operand
+ *	AST_NODE_NATIVE_CODE: IGNORED
+ *	
  *	Returns NULL on error
  */
 ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type, symtab *, scope* cur_scope);
@@ -106,5 +137,7 @@ void ast_walker(struct ast_s *, void*, void(*)(struct ast_s *, void*),
 	void(*)(struct ast_list_s *, void*), void(*)(struct ast_s *, void*));
 
 void blank_func(void *, void *);
+
+ast *ast_insert_native_code(ast*, ast*);
 
 #endif

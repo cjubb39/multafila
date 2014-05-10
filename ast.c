@@ -232,6 +232,10 @@ ast **ast_create_node_spawn( ast **a, ast_list *children,
 	heap_list_malloc(hList, old_vars);
 	heap_list_malloc(hList, new_vars);
 
+	/* initialize */
+	old_vars->data = NULL;
+	new_vars->data = NULL;
+
 	struct ast_spawn_var_ptr *svp;
 	malloc_checked(svp);
 
@@ -269,6 +273,12 @@ ast **ast_create_node_spawn( ast **a, ast_list *children,
 
 ast **ast_create_node_barrier(ast **a, symtab *st){
 	(*a)->data.barrier.thread_table = symtab_get_threadtab(st);
+	return a;
+}
+
+ast **ast_create_node_native_code( ast **a, char *value){
+	(*a)->data.string = value;
+
 	return a;
 }
 
@@ -379,6 +389,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
  *	AST_NODE_SPAWN:				ptr to struct thread_Data created by create_thread_data
  *	AST_NODE_BARRIER:			IGNORED
  *	AST_NODE_UNARY:				1-2 character unary op
+ *	AST_NODE_NATIVE_CODE:	CODE
  *	
  *	
  *	CHILDREN:
@@ -393,12 +404,13 @@ ast **ast_create_node_stmt(ast **a, ast_list *children){
  *	AST_NODE_SPAWN:			body, arguments
  *	AST_NODE_BARRIER:		IGNORED
  *	AST_NODE_UNARY:			operand
+ *	AST_NODE_NATIVE_CODE: IGNORED
  *	
  *	Returns NULL on error
  */
 ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 		symtab *symbol_table, scope *cur_scope){
-	assert(children != NULL || type == AST_NODE_BARRIER);
+	assert(children != NULL || type == AST_NODE_BARRIER || type == AST_NODE_NATIVE_CODE);
 	ast *new_node;
 	malloc_checked(new_node);
 
@@ -457,6 +469,10 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 		case AST_NODE_UNARY:
 			assert(strlen(value) < 3);
 			ast_create_node_unary(&new_node, value, children );
+			break;
+
+		case AST_NODE_NATIVE_CODE:
+			ast_create_node_native_code(&new_node, value);
 			break;
 
 		default:
@@ -545,6 +561,10 @@ void ast_destroy_helper(struct ast_s *tree){
 
 		case AST_NODE_UNARY:
 			ast_destroy_helper(tree->data.unary.operand);
+			break;
+
+		case AST_NODE_NATIVE_CODE:
+			free(tree->data.string);
 			break;
 
 		default:
@@ -677,7 +697,42 @@ void ast_walker(struct ast_s *ast_to_walk, void * ptr, void(*ast_func)(struct as
 			ast_walker(ast_to_walk->data.unary.operand, ptr, ast_func, ast_list_func, leaf_func);
 			break;
 
+		case AST_NODE_NATIVE_CODE:
+			/* no action */
+			break;
+
 		default:
 			assert(1);
 	}
+}
+
+ast *ast_insert_native_code(ast *cur, ast *new){
+	assert(cur != NULL);
+	assert(new != NULL);
+
+	ast *to_ret = NULL;
+
+	ast_list *new_body = NULL;
+	ast_list *new_next = NULL;
+
+	switch(cur->node_type){
+		case(AST_NODE_FUNCTION_DEF):
+			heap_list_malloc(hList, new_body);
+			heap_list_malloc(hList, new_next);
+
+			new_body->data = new;
+			new_body->next = new_next;
+			new_next->data = cur->data.func_def.body;
+			new_next->next = NULL;
+
+			ast *new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
+			cur->data.func_def.body = new_statement;
+			to_ret = cur;
+			break;
+
+		default:
+			break;
+	}
+
+	return to_ret;
 }

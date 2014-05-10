@@ -20,22 +20,24 @@
 
 //#define PARSER_DEBUG
 
+int yylex(void);
+int yyerror(char*);
+
 int errcnt = 0;
 char errmsg[40];
+
 extern char *yytext;
 extern FILE *yyin;
 extern FILE *yyout;
 extern int yyparse();
 extern int lineno;
+
 int t;
 symtab *st;
 threadtab *tb;
 scope *cur_scope;
 heap_list_head *hList;
 char *exe_out_name;
-
-int yylex(void);
-int yyerror(char *);
 
 %}
 
@@ -205,7 +207,7 @@ param_list
     }
   | literal
     {
-      fprintf(stderr, "PARAM_LIST 4: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   ;
 
@@ -276,7 +278,7 @@ statement_list_internal
 statement
   : loop_statement
     {
-      fprintf(stderr, "STATEMENT 1: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | thread_statement
     {
@@ -300,7 +302,7 @@ statement
     }
   | return_statement SEMI
     {
-      fprintf(stderr, "STATEMENT 4: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | SEMI
     {
@@ -323,8 +325,6 @@ return_statement
     }
  | RETURN literal 
     { 
-      fprintf(stderr, "RETURN 2: NOT YET IMPLEMENTED\n");
-      
       ast_list *children;
       heap_list_malloc(hList, children);
 
@@ -337,7 +337,7 @@ return_statement
 loop_statement
   : while_statement
     {
-      fprintf(stderr, "LOOP STATEMENT 1: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | for_statement
     {
@@ -558,7 +558,7 @@ rvalue
 expr
   : bool_expr
     {
-      fprintf(stderr, "EXPR 1: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | math_expr
     {
@@ -566,7 +566,7 @@ expr
     }
   | unary_math
     {
-      fprintf(stderr, "EXPR 3: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | func_call
   | braced_expr
@@ -594,7 +594,7 @@ braced_expr
 bool_expr
   : rel_expr
     {
-      fprintf(stderr, "BOOL EXPR 1: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | ident
     {
@@ -744,9 +744,9 @@ int main( int argc, char *argv[] )
   symtab_set_threadtab(st, tb);
 
   /* pre-install printOut */
-  symtab_insert( st, "printOut", AST_STRING, ST_STATIC_DEC);
+  symtab_insert( st, "printOut", AST_VOID, ST_STATIC_DEC);
 
-  cur_scope = symtab_open_scope(st, SCOPE_FUNCTION);
+  cur_scope = symtab_open_scope(st, SCOPE_GLOBAL);
 
   strcpy(errmsg,"type error\n");
 
@@ -757,7 +757,7 @@ int main( int argc, char *argv[] )
 
   /* get output file name */
   exe_out_name = malloc_checked_string(64);
-  strncpy(exe_out_name, argv[1], sizeof exe_out_name);
+  strncpy(exe_out_name, argv[1], 64);
   char *extension_ptr = strstr(exe_out_name, ".mf");
 
   if (extension_ptr == NULL){

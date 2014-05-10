@@ -31,6 +31,7 @@ symtab *st;
 threadtab *tb;
 scope *cur_scope;
 heap_list_head *hList;
+char *exe_out_name;
 
 
 %}
@@ -620,6 +621,18 @@ int main( int argc, char *argv[] )
     exit(0);
   }
 
+  /* get output file name */
+  exe_out_name = malloc_checked_string(64);
+  strncpy(exe_out_name, argv[1], sizeof exe_out_name);
+  char *extension_ptr = strstr(exe_out_name, ".mf");
+
+  if (extension_ptr == NULL){
+    strncpy(exe_out_name, "a.out", 6);
+  } else {
+    *extension_ptr = '\0';
+  }
+
+  /* open input file name */
   FILE *fp = fopen(argv[1],"r");
   if (!fp) {
     printf("Unable to open file for reading\n");
@@ -639,6 +652,8 @@ int main( int argc, char *argv[] )
   #ifdef PARSER_DEBUG
   fprintf(stderr,"END OF PARSER\n");
   #endif
+
+  free(exe_out_name);
 
   fclose(yyin);
 

@@ -18,9 +18,11 @@
 /* comment to send straight to gcc (./MFtest); uncomment to stdout */
 #define PRINT_TO_STDOUT
 //#define GEN_TEST_DEBUG
-#define SIMPLE_OUTPUT
+//#define SIMPLE_OUTPUT
 
 #define THREADSNAME "global_threads"
+
+extern char *exe_out_name;
 
 void print_ast(ast *);
 char* get_ast_type(ast_type);
@@ -288,19 +290,7 @@ void print_spawn(ast *a){
 	ast_list *args_struct = asv->old_vars;
 	ast *tmp;
 	symtab_entry *se;
-	
-////////////////////////
-/*	printf("struct " SPAWN_ARGS_FORMAT "{\n", t_index);
-	while((tmp = args_struct->data) != NULL){
-		se = tmp->data.symtab_ptr;
-		printf("\t%s", get_ast_type(symtab_entry_get_type(se)));
-		printf(" * arg_t%d_%s;\n", \
-			t_index, symtab_entry_get_name(se));
 
-		args_struct = args_struct->next;
-	}
-	printf("};\n\n");*/
-/////////////////////////////
 
 	printf("struct " SPAWN_ARGS_FORMAT " args_t%d_struct;\n", t_index, t_index);
 	
@@ -316,37 +306,13 @@ void print_spawn(ast *a){
 
 		args_struct = args_struct->next;
 	}
-	//printf("};\n\n");
 
-
-
-	// SPAWN LPAREN IDENTIFIER RPAREN statement_list
-	//printf( "pthread_t* thread_%d;", threadcount);
-
-	//printf("{\n");
 	// int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);
 	printf( "pthread_create(");
 	printf("&" THREADSNAME "[%d],", t_index);
 	printf( " NULL, ");
 	printf( SPAWN_FUNC_FORMAT ", " , t_index);
 	printf("& args_t%d_struct);\n", t_index);
-	//printf( "(void *) &");
-	//print_ast(a->data.spawn.arguments);
-	//printf( " );");*/
-
-	// function def need to go to the top.
-	/*printf( "void thread_fuction_%d (void* args)", threadcount);*/
-
-	// thread fuction 
-/*	printf( "void thread_fuction_%d (void* args)", threadcount);
-	printf( "\n{\n");
-	print_ast(a->data.spawn.body);
-	printf( "pthread_exit(0);");
-	printf( "\n}\n");*/
-
-
-	//print_ast(a->data.spawn.body);
-	//printf("\n}\n");
 }
 
 void print_barrier(ast *a){
@@ -532,7 +498,7 @@ void gen_code(ast *a, symtab *st, threadtab *tb){
       }
       exit(0);
 	#else
-			execlp("gcc", "gcc", "-o", "MFtest", "-xc", "-", NULL);
+			execlp("gcc", "gcc", "-g", "-pthread", "-o", exe_out_name, "-xc", "-", NULL);
 	#endif
 
 		} else {
@@ -548,9 +514,9 @@ void gen_code(ast *a, symtab *st, threadtab *tb){
 	        die("dup2 error: ls to pipe stderr");*/
 	    close(pipeFileDescriptors[1]);
 
-
-			fprintf(stderr, "\n==========OUTPUT CODE BELOW==========\n");
+			printf("\n/*==========OUTPUT CODE BELOW==========*/\n");
 			print_header();
+			print_threadtab(tb);
 			print_ast(a);
 			exit(0);
 		}

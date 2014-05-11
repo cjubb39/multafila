@@ -1,0 +1,20 @@
+/* function declaration & function calls */
+
+
+int mul_helper(int x, int y){
+	int result = x * y;
+	return result;
+
+}
+int main(){
+
+	int i = 4;
+	int j = 7;
+	
+	int mul = mul_helper(i, j);
+	
+	printOut(mul); /*should print 28 */
+	
+	return 1;
+	
+}

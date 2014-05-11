@@ -23,11 +23,10 @@ pthread_mutex_init( & global_lock , NULL);
 pthread_cond_init( & global_cond , NULL);
 }
  ;
-x = 5 ;
-y = 6 ;
-result = x + y ;
-printOut( result ) ;
-printOut( "Should return 11" ) ;
-return result ;
+i = 4 ;
+j = 5 ;
+j = (i + j) * i ;
+printOut( "should return 36" ) ;
+return j ;
 }
 

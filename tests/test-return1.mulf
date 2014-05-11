@@ -3,8 +3,11 @@
 int main(){
 	int x = 5;
 	int y = 6;
+	int result = x+y;
 	
+	printOut(result);
 	printOut("Should return 11");
-	return x+y;
+	
+	return result;
 
 }

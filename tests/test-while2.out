@@ -23,11 +23,25 @@ pthread_mutex_init( & global_lock , NULL);
 pthread_cond_init( & global_cond , NULL);
 }
  ;
-x = 5 ;
-y = 6 ;
-result = x + y ;
-printOut( result ) ;
-printOut( "Should return 11" ) ;
-return result ;
+i = 0 ;
+x = 0 ;
+while(i < 10 )
+{
+x = i + 1 ;
+if(x < 5 )
+{
+printOut( i ) ;
+}
+
+else
+{
+printOut( "x is greater than 5" ) ;
+}
+ ;
+i ++  ;
+}
+
+ ;
+return 1 ;
 }
 

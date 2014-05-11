@@ -50,8 +50,6 @@ float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 "pfor"			{ return PFOR; }
 "spawn"			{ return SPAWN; }
 "barrier"		{ return BARRIER; }
-"true"			{ return TRUE; }
-"false"			{ return FALSE; }
 "return"		{ return RETURN; }
 "lock"			{ return LOCK; }
 
@@ -62,6 +60,9 @@ float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 "string"		{ return STRING; }
 "thread"		{ return THREAD; }
 "void"			{ return VOID; }
+
+"true"			{ return TRUE; }
+"false"			{ return FALSE; }
 
 "="             { return ASSIGN; }
 "+="			{ return PLUSASSIGN; }

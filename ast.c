@@ -126,23 +126,28 @@ struct ast_spawn_var_ptr{
 
 /* CREATING ARRAY LEAVES HERE */
 
+
  ast **ast_create_leaf_ca (ast **a, char *value, int size, symtab *symbol_table, scope *cur_scope){
  	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
- 	(*a)->data.arraysize = size;
+ 	(*a)->arraysize = size;
  	return a;
  }
 
- ast **ast_create_leaf_cal (ast **a, char *value, int size){
- 	(*a)->data.chararray = (char *) malloc(size * sizeof(char) + 1);
+ ast **ast_create_leaf_ia (ast **a, char *value, int size, symtab *symbol_table, scope *cur_scope){
+ 	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
+ 	(*a)->arraysize = size;
+ 	return a;
+ }
 
-	/* copy array elements from braced initializer into array */
-
+ ast **ast_create_leaf_ta (ast **a, char *value, int size, symtab *symbol_table, scope *cur_scope){
+ 	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
+ 	(*a)->arraysize = size;
  	return a;
  }
 
  ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab *symbol_table, scope *cur_scope) {
  	assert(value != NULL);
-	/*assert(size != NULL); should this be == 0? or nothing at all */
+	//assert(size != 0);
  	assert(type != AST_NULL);
  	assert(symbol_table != NULL);
  	assert(cur_scope != NULL);
@@ -162,8 +167,12 @@ struct ast_spawn_var_ptr{
  		ast_create_leaf_ca(&new_leaf, value, size, symbol_table, cur_scope );
  		break;
 
- 		case AST_CHARARRAYLITERAL:
- 		ast_create_leaf_cal(&new_leaf, value, size);
+ 		case AST_INTARRAY:
+ 		ast_create_leaf_ia(&new_leaf, value, size, symbol_table, cur_scope );
+ 		break;
+
+  		case AST_THREADARRAY:
+ 		ast_create_leaf_ca(&new_leaf, value, size, symbol_table, cur_scope );
  		break;
 
  		default:

@@ -525,11 +525,19 @@ declaration
     }
   | type IDENTIFIER LBRACK INTEGER RBRACK
     {
-      printf("hello");
       ast_type t;
       int size = (int) atoi($4);
+
       if ( (ast_type) $1 == AST_CHAR ) {
-        t = AST_CHARARRAY;
+        t = (ast_type) AST_CHARARRAY;
+      } else if ( (ast_type) $1 == AST_INT  ) {
+        t = (ast_type) AST_INTARRAY;
+      } else if ( (ast_type) $1 == AST_THREAD ) {
+        t = (ast_type) AST_THREADARRAY;
+        #ifdef PARSER_DEBUG
+        fprintf(stderr, "thread declaration\n");
+        #endif
+        threadtab_insert(tb, create_thread_data($2, size));
       }
 
       symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
@@ -541,7 +549,6 @@ declaration
       ident->next = NULL;
 
       $$ = (void *) ast_add_internal_node("declaration", ident, AST_NODE_DECLARATION, st, cur_scope);
-
     }
   | type ident LBRACK ident LBRACK
   ; 
@@ -578,9 +585,13 @@ lvalue
     {
       $$ = $1;
     }
-  | type array
+  | IDENTIFIER LBRACK INTEGER RBRACK 
     {
-      fprintf(stderr, "LVALUE 3: NOT YET IMPLEMENTED\n");
+      symtab_entry *se = symtab_lookup(st, $1, cur_scope);
+      ast_type t = symtab_entry_get_type(se);
+      int size = (int) atoi($3);
+
+      $$ = (void *) ast_create_array_leaf( $1, size, t, st, cur_scope );
     }
   ;
 

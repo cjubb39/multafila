@@ -239,12 +239,20 @@ char* get_ast_type(ast_type at){
 			return "";
 			break; /* taken care of separately */
 
+		case AST_THREADARRAY:
+			return "";
+			break; /* taken care of separately */
+
 		case AST_CHAR:
 			return "char";
 			break;
 
 		case AST_CHARARRAY:
 			return "char ";
+			break;
+
+		case AST_INTARRAY:
+			return "int ";
 			break;
 
 		default:
@@ -324,7 +332,6 @@ void print_dec(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing DEC>");
 	#endif
-
 	printf( "%s  ", get_ast_type(a->type));
 	print_ast(a->data.dec.var);
 }
@@ -549,9 +556,17 @@ void print_leaf(ast *a){
 			if(a->data.convert_to_ptr == 1) printf("* ");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
 			printf( "[");
-			printf( "%d", (a->data.arraysize) );
+			printf( "%d", (a->arraysize) );
 			printf( "]");
 			break;
+
+		case AST_INTARRAY:
+			if(a->data.convert_to_ptr == 1) printf("* ");
+			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
+			printf( "[");
+			printf( "%d", (a->arraysize) );
+			printf( "]");
+			break;		
 			
 		default:
 			assert(1);

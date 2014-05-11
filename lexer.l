@@ -1,11 +1,20 @@
 %{
 
-	#define YYSTYPE char *
 	#include <stdio.h>
 	#include <string.h>
-	#include "y.tab.h"
+	#include "include/global_config.h"
+	#include "include/y.tab.h"
+	#include "include/symtab.h"
+
+	#define YY_NO_INPUT
+
+	extern symtab *st;
+	extern scope *cur_scope;
 
 %}
+
+%option nounput
+%option yylineno
 
 delim 			[ \t\n]
 ws    			{delim}+
@@ -18,15 +27,12 @@ number			[-]?{non-zero}{digit}*|[0]
 float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 
 
-%x C_COMMENT
-
 %%
 
 {ws}			{  }
-"/*"            { BEGIN(C_COMMENT); }
-<C_COMMENT>"*/" { BEGIN(INITIAL); }
-<C_COMMENT>.    { }
-"//"[^\n]\n 	{  }
+
+"/*"((("*"[^/])?)|[^*])*"*/" { } /* comments */
+"//"[^\n]*\n 	{  }
 
 "if"            { return IF; }
 "else"          { return ELSE; }
@@ -70,8 +76,15 @@ float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 "/"             { return OVER; }
 "%"				{ return MOD; }
 
-"{"             { return LBRACE; }
-"}"             { return RBRACE; }
+"{"             { 
+									cur_scope = symtab_open_scope(st, SCOPE_NORMAL);
+					 				return LBRACE;
+					 			}
+
+"}"             { 
+									cur_scope = symtab_close_scope(st);
+					 				return RBRACE;
+					 			}
 "["             { return LBRACK; }
 "]"             { return RBRACK; }
 "("             { return LPAREN; }
@@ -88,23 +101,3 @@ float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 
 
 %%
-
-/*
-int installID() {
-	yylex();
-	yylval = malloc(sizeof(yytext));
-	strncpy(yylval,yytext,yyleng);   // copy string to symbol table
-	return ID;		// return token name
-}
-
-int installInt() {
-	yylex();
-	yylval = malloc(sizeof(yytext));
-	yylval = atoi(yytext);	// assign int value to symbol table
-	return INTEGER;								// return token name
-}
-*/
-
-
-
-

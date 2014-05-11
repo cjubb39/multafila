@@ -5,19 +5,22 @@
 
 #include "global_config.h"
 #include "threadtab.h"
-#include "symtab_structs.h"
 
 struct thread_data {
 	char name[MAX_IDENT_LENGTH + 1];
-	uint64_t length;
-	uint64_t offset;
+	uint32_t length;
+	uint32_t offset;
+	struct ast_s *assoc_ast;
 	struct thread_data *next;
+	unsigned started			:1;
+	unsigned completed		:1;
+	unsigned							:6;
 };
 
 struct threadtab_s{
 	struct thread_data *head;
 	struct thread_data *tail;
-	uint64_t length;
+	uint32_t length;
 };
 
 #endif

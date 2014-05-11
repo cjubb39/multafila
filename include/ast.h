@@ -22,11 +22,13 @@ typedef enum {
 	AST_NODE_CONDITIONAL,
 	AST_NODE_WHILE,
 	AST_NODE_SPAWN,
+	AST_NODE_FOR,
 	AST_NODE_BARRIER,
 	AST_NODE_UNARY,
 	AST_NODE_NATIVE_CODE,
 	AST_NODE_RETURN,
-	AST_NODE_LOCK
+	AST_NODE_LOCK,
+	AST_NODE_PFOR
 } ast_node_type;
 
 typedef struct ast_s {
@@ -34,6 +36,7 @@ typedef struct ast_s {
 	ast_node_type node_type; /* kind of node */
 	scope *containing_scope;
 	unsigned int flag;
+	int arraysize;
 
 	union {
 		/* for literal values */
@@ -41,9 +44,12 @@ typedef struct ast_s {
 		char *string;
 		char *character;
 		double doub;
+
+		/* for arrays*/
 		int *intarray;
 		char *chararray;
 		char **stringarray;
+
 		/* for variable names */
 		struct{
 			symtab_entry *symtab_ptr;
@@ -65,7 +71,7 @@ typedef struct ast_s {
 		struct ast_unary_math unary;
 		struct ast_return_node ret;
 		struct ast_lock_node lock;
-
+		struct ast_for_node for_statement;
 	} data;
 } ast;
 
@@ -98,12 +104,14 @@ ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope
  *	AST_NODE_FUNCTION_LIST:		IGNORED
  *	AST_NODE_CONDITIONAL:		IGNORED
  *  AST_NODE_WHILE:				IGNORED
- *	AST_NODE_SPAWN:				ptr to struct thread_Data created by create_thread_data
+ *	AST_NODE_SPAWN:				ptr to ast of counter / NULL
  *	AST_NODE_BARRIER:			IGNORED
  *	AST_NODE_UNARY:				1-2 character unary op
  *	AST_NODE_NATIVE_CODE:	CODE
  *	AST_NODE_RETURN:			IGNORED
  *	AST_NODE_LOCK:			IGNORED
+ *  AST_NODE_FOR:			IGNORED
+ *  AST_NODE_PFOR:			count max
  *	
  *	
  *	CHILDREN:
@@ -120,7 +128,9 @@ ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope
  *	AST_NODE_UNARY:			operand
  *	AST_NODE_NATIVE_CODE: IGNORED
  *	AST_NODE_RETURN:			value of return (identifier)
- *	AST_NODE_LOCK:			body, params
+<<<<<<< HEAD
+ *  AST_NODE_FOR:			assignment, relexpr, unary, body
+ *  AST_NODE_PFOR:			thread array, index variable, body
  *	
  *	Returns NULL on error
  */
@@ -152,10 +162,10 @@ uint64_t ast_getValue(ast *ast_to_value);
  */
 int ast_destroy(ast*);
 
-void ast_walker(struct ast_s *, void*, void(*)(struct ast_s *, void*),
-	void(*)(struct ast_list_s *, void*), void(*)(struct ast_s *, void*));
+void ast_walker(struct ast_s *, void*, void*, void(*)(struct ast_s *, void*, void*),
+	void(*)(struct ast_list_s *, void*, void*), void(*)(struct ast_s *, void*, void*));
 
-void blank_func(void *, void *);
+void blank_func(void *, void *, void *);
 
 ast *ast_insert_native_code(ast*, ast*);
 

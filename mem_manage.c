@@ -7,6 +7,7 @@
  */
 char *malloc_checked_string(size_t size){
 	char *tmp = malloc(size * sizeof(char));
+	memset(tmp, 0, size * sizeof(char));
 	if (tmp == NULL)
 		die("Malloc Error. Exiting.");
 

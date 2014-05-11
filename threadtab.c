@@ -3,8 +3,10 @@
 
 #include "include/global_config.h"
 #include "include/error_handling.h"
+#include "include/mem_manage.h"
 #include "include/threadtab.h"
 #include "include/threadtab_structs.h"
+#include "include/ast.h"
 
 /*
  *	Create thread_data object to be used in other functions
@@ -34,6 +36,32 @@ threadtab *threadtab_init(){
 	return newTB;
 }
 
+int threadtab_insert_helper(threadtab *thread_table, struct thread_data *data, int count){
+	if (count == 0) {
+		free(data);
+		return 0;
+	}
+
+	data->offset = thread_table->length;
+	++thread_table->length;
+
+	if (thread_table->head == NULL){
+		thread_table->head = (thread_table->tail = data);
+	} else {
+		thread_table->tail->next = data;
+		thread_table->tail = data;
+	}
+	data->next = NULL;
+
+	/* copy thread_data */
+	struct thread_data *new_data;
+	malloc_checked(new_data);
+	memcpy(new_data, data, sizeof (*new_data));
+	threadtab_insert_helper(thread_table, new_data, count - 1);
+
+	return 0;
+}
+
 /*
  *	Insert thread data into thread table
  *	Returns negative on error
@@ -42,17 +70,31 @@ int threadtab_insert(threadtab *thread_table, struct thread_data *data){
 	assert(thread_table != NULL);
 	assert(data != NULL);
 
-	data->offset = thread_table->length;
-	thread_table->length += data->length;
-
-	if (thread_table->head == NULL){
-		thread_table->head = (thread_table->tail = data);
-	} else {
-		thread_table->tail->next = data;
-		thread_table->tail = data;
-	}
+	threadtab_insert_helper(thread_table, data, data->length);
 
 	return 0;
+}
+
+/*
+ *	Lookup entry in thread table by name
+ *	Returns pointer to struct thread_data; NULL if not found
+ */
+struct thread_data *threadtab_lookup(threadtab *thread_table, char *name){
+	struct thread_data *cur = thread_table->head;
+	while(cur != NULL && strcmp(cur->name, name) != 0){
+		cur = cur->next;
+	}
+
+	return cur;
+}
+
+/*
+ *	Add function associated with thread
+ *	Returns pointer to modified struct thread_data
+ */
+struct thread_data *threadtab_add_assoc_func(struct thread_data *td, ast *a){
+	td->assoc_ast = a;
+	return td;
 }
 
 /*

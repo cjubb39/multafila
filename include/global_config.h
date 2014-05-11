@@ -11,7 +11,6 @@
 #define PARSER_DEBUG
 #endif
 
-
 #define MAX_IDENT_LENGTH 32
 
 typedef enum {
@@ -19,11 +18,17 @@ typedef enum {
 	AST_STRING,
 	AST_INT,
 	AST_INTLITERAL,
+	AST_INTARRAY,
 	AST_CHAR,
 	AST_CHARLITERAL,
+	AST_CHARARRAY,
 	AST_NULL,
 	AST_THREAD,
-	AST_BARRIER
+	AST_THREADARRAY,
+	AST_VOID_STAR,
+	AST_VOID
 } ast_type;
+
+#define YYSTYPE char *
 
 #endif

@@ -53,6 +53,13 @@ struct ast_while_node {
 	struct ast_s *body;
 };
 
+struct ast_for_node {
+	struct ast_s *assignment;
+	struct ast_s *relexpr;
+	struct ast_s *unary;
+	struct ast_s *body;	 
+};
+
 struct ast_spawn_node {
 	struct ast_s *arguments;
 	struct ast_s *body;
@@ -60,7 +67,10 @@ struct ast_spawn_node {
 	struct ast_spawn_vars{
 		struct ast_list_s *old_vars;
 		struct ast_list_s *new_vars;
+		struct ast_s *counter;
 	} vars;
+	unsigned int native_spawn	:1;
+	unsigned int							:7;
 };
 
 struct ast_barrier_node {

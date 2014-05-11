@@ -808,11 +808,11 @@ literal
   | number
   | TRUE
     {
-      $$ = (void *) ast_create_leaf( $1, AST_BOOLEANLITERAL, st, cur_scope );
+      $$ = (void *) ast_create_leaf( $1, AST_BOOLEANLITERAL, st, cur_scope, yylineno );
     }
   | FALSE
     {
-      $$ = (void *) ast_create_leaf( $1, AST_BOOLEANLITERAL, st, cur_scope );
+      $$ = (void *) ast_create_leaf( $1, AST_BOOLEANLITERAL, st, cur_scope, yylineno );
     }
   | STRINGLITERAL 
     { 

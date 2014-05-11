@@ -11,6 +11,7 @@
 #include "include/ast.h"
 #include "include/symtab.h"
 #include "include/threadtab.h"
+#include "include/locktab.h"
 
 #include "include/ast_structs.h"
 #include "include/symtab_structs.h"
@@ -23,6 +24,7 @@
 #define THREADS_NAME "global_threads"
 #define MAIN_LOCK_NAME "global_lock"
 #define MAIN_LOCK_STRUCT_NAME "global_lock_struct"
+#define MAIN_LOCK_STRUCT_TYPE "global_lock_struct_s"
 
 extern char *exe_out_name;
 
@@ -50,7 +52,8 @@ void print_headers(ast *a){
 	
 	/* standard headers */
 	printf( "#include <stdio.h>\n#include <pthread.h>\n" \
-		"void printOut(char *m){printf(\"%%s\\n\", m);}\n\n");
+		"void printOut(char *m){printf(\"%%s\\n\", m);}\n" \
+		"void printInt(int m){printf(\"%%d\\n\", m);}\n\n");
 
 	/* headers for our functions */
 	ast *tmp = a;
@@ -60,6 +63,57 @@ void print_headers(ast *a){
 		tmp = tmp->data.func_list.next_func;
 	}
 	printf("\n");
+}
+
+void print_locktab(locktab *lt, ast *a){
+	/* define struct and global lock */
+	printf("pthread_mutex_t %s;\n\n", MAIN_LOCK_NAME);
+	printf("struct " MAIN_LOCK_STRUCT_TYPE "{\n");
+
+	struct locktab_data *tmp = lt->head;
+	while(tmp != NULL){
+		printf("pthread_mutex_t mutex_%p;\n", tmp->ptr);
+		tmp = tmp->next;
+	}
+
+	printf("} %s;\n\n", MAIN_LOCK_STRUCT_NAME);
+
+	/* create node to add native code to initialize mutexes */
+	/* large buffer for generated code */
+	size_t large_buff_size = 1024 * 1024;
+	char *buffer = malloc_checked_string(large_buff_size);
+
+	char buffer2[1024]; /* smaller buffer for intermediate code */
+	memset(buffer, 0, large_buff_size);
+	memset(buffer2, 0, sizeof buffer2);
+
+	strcat(buffer, "\n{\n");
+
+	tmp = lt->head;
+	while(tmp != NULL){
+		snprintf(buffer2, sizeof buffer2, "pthread_mutex_init( & %s .mutex_%p, NULL);\n", 
+			MAIN_LOCK_STRUCT_NAME, tmp->ptr);
+		strncat(buffer, buffer2, large_buff_size);
+		tmp = tmp->next;
+	}
+	strcat(buffer, "}\n");
+
+	ast *native = ast_add_internal_node(buffer, NULL, AST_NODE_NATIVE_CODE, NULL, NULL);
+
+	/* insert native code into main */
+	assert(a->node_type == AST_NODE_FUNCTION_LIST);
+	ast *a_tmp = a;
+	ast *a_tmp2 = a;
+	while(a != NULL){
+		if( strcmp( "main",	symtab_entry_get_name(
+				(a_tmp2 = a_tmp->data.func_list.cur_func)->data.func_def.func_symtab)) == 0){
+			/* we've found main */
+			ast_insert_native_code(a_tmp2->data.func_def.body, native);
+			break;
+		}
+		a_tmp = a_tmp->data.func_list.next_func;
+	}
+	/* free for buffer done when purging ast */
 }
 
 void print_threadtab_func(ast *a){
@@ -93,8 +147,8 @@ void print_threadtab_func(ast *a){
 	char *buffer = malloc_checked_string(large_buff_size);
 
 	char buffer2[1024]; /* smaller buffer for intermediate code */
-	memset(buffer, 0, sizeof buffer);
-	memset(buffer2, 0, sizeof large_buff_size);
+	memset(buffer, 0, large_buff_size);
+	memset(buffer2, 0, sizeof buffer2);
 
 	/* generate transfer from struct */
 	args_struct = asv->old_vars;
@@ -376,7 +430,7 @@ void print_lock(ast *a){
 	printf("pthread_mutex_lock( &" MAIN_LOCK_NAME " );\n");
 	/* get locks on individual threads */
 	while (tmp != NULL){
-		printf("pthread_mutex_lock( &" MAIN_LOCK_STRUCT_NAME ".mutex_%p )\n",
+		printf("pthread_mutex_lock( &" MAIN_LOCK_STRUCT_NAME ".mutex_%p );\n",
 			tmp->data->data.symtab_ptr);
 		tmp = tmp->next;
 	}
@@ -393,7 +447,7 @@ void print_lock(ast *a){
 	/* release locks on individual threads */
 	tmp = a->data.lock.params;
 	while (tmp != NULL){
-		printf("pthread_mutex_unlock( &" MAIN_LOCK_STRUCT_NAME ".mutex_%p )\n",
+		printf("pthread_mutex_unlock( &" MAIN_LOCK_STRUCT_NAME ".mutex_%p );\n",
 			tmp->data->data.symtab_ptr);
 		tmp = tmp->next;
 	}
@@ -551,11 +605,12 @@ void print_ast(ast *a){
 	}
 }
 
-void gen_code(ast *a, symtab *st, threadtab *tb){
+void gen_code(ast *a, symtab *st, threadtab *tb, locktab *lt){
 
 #ifdef SIMPLE_OUTPUT
 	printf("\n/*==========OUTPUT CODE BELOW==========*/\n");
 	print_headers(a);
+	print_locktab(lt, a);
 	print_threadtab(tb);
 	print_ast(a);
 #else
@@ -600,6 +655,7 @@ void gen_code(ast *a, symtab *st, threadtab *tb){
 
 			printf("\n/*==========OUTPUT CODE BELOW==========*/\n");
 			print_headers(a);
+			print_locktab(lt, a);
 			print_threadtab(tb);
 			print_ast(a);
 			exit(0);

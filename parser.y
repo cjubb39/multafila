@@ -10,6 +10,7 @@
 #include "include/ast.h"
 #include "include/symtab.h"
 #include "include/threadtab.h"
+#include "include/locktab.h"
 #include "include/gen_code.h"
 #include "include/yacc_compatability.h"
 
@@ -35,6 +36,7 @@ extern int lineno;
 int t;
 symtab *st;
 threadtab *tb;
+locktab *lt;
 scope *cur_scope;
 heap_list_head *hList;
 char *exe_out_name;
@@ -62,7 +64,7 @@ start_point
   : function_list
     {
       ast *root = (ast *) $1;
-			gen_code( root, st, tb );
+			gen_code( root, st, tb, lt );
       ast_destroy(root);
     }
   ;
@@ -754,10 +756,12 @@ int main( int argc, char *argv[] )
   heap_list_init(hList);
   st = symtab_init();
   tb = threadtab_init();
+  lt = locktab_init();
   symtab_set_threadtab(st, tb);
 
   /* pre-install printOut */
   symtab_insert( st, "printOut", AST_VOID, ST_STATIC_DEC);
+  symtab_insert( st, "printInt", AST_VOID, ST_STATIC_DEC);
 
   cur_scope = symtab_open_scope(st, SCOPE_GLOBAL);
 
@@ -804,6 +808,7 @@ int main( int argc, char *argv[] )
 
   fclose(yyin);
 
+  locktab_destroy(lt);
   threadtab_destroy(tb);
   symtab_destroy(st);
   heap_list_purge(hList);

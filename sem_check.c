@@ -131,6 +131,7 @@ void check_func_call(ast *a, symtab *st){
 	symtab_entry *s = a->data.func_call.func_symtab;
 	char *name = symtab_entry_get_name(s);
 	symtab_entry *lookup = symtab_lookup(st, name, a->containing_scope);
+
 	// check the return type matches the declaration type
 	if (lookup == NULL) {
 		printf("function used without being declared\n");
@@ -138,6 +139,9 @@ void check_func_call(ast *a, symtab *st){
 	}
 	// check that the arguments in the function call match the declared function
 	else {
+		// add symtab info to node
+		a->data.func_call.func_symtab = lookup;
+		a->type = symtab_entry_get_type(lookup);
 
 		//get the function's node
 		ast* function_node = getfunction(name);
@@ -235,8 +239,9 @@ void check_bin(ast *a, symtab *st){
 	// 		}
 	// 	}
 	// }
-	
-		if (are_equivalent(t1, t3) == 0){
+
+	ast_type t2 = symtab_entry_get_type(a_right->data.symtab_ptr);
+		if (are_equivalent(t1, t2) == 0){
 			printf("binary node error, type mismatch\n");
 			errorcount++;
 		}

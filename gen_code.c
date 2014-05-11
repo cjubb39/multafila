@@ -1,3 +1,13 @@
+
+/*
+ *	Module for generating target code (C code) for multafila, a language
+ *	focusing on making multithreading easy and intuitive.  Assumes only an
+ *	implementation of POSIX Threads.
+ *	
+ *	Chae Jubb
+ *	
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

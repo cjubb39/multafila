@@ -1,3 +1,12 @@
+
+/*
+ *  Parser for multafila, a language focusing on making multithreading
+ *  easy and intuitive.
+ *  
+ *  Chae Jubb
+ *  
+ */
+
 %{
 
 

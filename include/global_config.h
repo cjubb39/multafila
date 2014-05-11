@@ -1,3 +1,12 @@
+
+/*
+ *	Global configuration header file for multafila, a language focusing on
+ *	making multithreading easy and intuitive.
+ *	
+ *	Chae Jubb
+ *	
+ */
+
 #ifndef GLOBAL_CONFIG_H
 #define GLOBAL_CONFIG_H
 

@@ -1,3 +1,12 @@
+
+/*
+ *	Lexer for multafila, a language focusing on making multithreading easy 
+ *	and intuitive.
+ *	
+ *	<authors>
+ *	
+ */
+
 %{
 
 	#include <stdio.h>

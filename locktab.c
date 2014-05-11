@@ -1,3 +1,13 @@
+
+/*
+ *	Module for creating a table holding information necessary to generate
+ * 	lock statement for multafila, a language focusing on making multithreading
+ *	easy and intuitive.
+ *	
+ *	Chae Jubb
+ *	
+ */
+
 #include <string.h>
 #include <assert.h>
 

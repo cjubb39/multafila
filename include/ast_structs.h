@@ -1,3 +1,13 @@
+
+/*
+ *	Supplementary structs for module for creating an abstract syntax tree for
+ *	multafila, a language focusing on making multithreading easy and
+ *	intuitive.
+ *	
+ *	Chae Jubb
+ *	
+ */
+
 #ifndef AST_STRUCTS_H
 #define AST_STRUCTS_H
 

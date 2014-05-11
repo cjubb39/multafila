@@ -1,3 +1,12 @@
+
+/*
+ *	Module for creating a symbol table for multafila, a language focusing on
+ *	making multithreading easy and intuitive.
+ *	
+ *	Chae Jubb
+ *	
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>

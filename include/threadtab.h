@@ -1,6 +1,11 @@
+
 /*
- *	Holds information on threads
- *
+ *	Header for module for creating a table holding information necessary to
+ * 	generate threading constructs for multafila, a language focusing on making 
+ *	multithreading easy and intuitive.
+ *	
+ *	Chae Jubb
+ *	
  */
 
 #ifndef THREADTAB_H

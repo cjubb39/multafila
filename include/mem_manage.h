@@ -1,3 +1,13 @@
+
+/*
+ *	Header for module for easy memory management for multafila, a language
+ *	focusing on  making multithreading easy and intuitive, whose compilation
+ *	process involves many heap allocations.
+ *	
+ *	Chae Jubb
+ *	
+ */
+
 #ifndef MEM_MANAGE_H
 #define MEM_MANAGE_H
 

@@ -1,3 +1,13 @@
+
+/*
+ *	Supplementary structs for module for creating a symbol table for
+ *	multafila, a language focusing on making multithreading easy and
+ *	intuitive.
+ *	
+ *	Chae Jubb
+ *	
+ */
+
 #ifndef SYMTAB_STRUCTS_H
 #define SYMTAB_STRUCTS_H
 

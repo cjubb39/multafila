@@ -1,6 +1,11 @@
+
 /*
- *	Holds information on locks
- *
+ *	Header for module for creating a table holding information necessary to
+ * 	generate lock statement for multafila, a language focusing on making
+ *	multithreading easy and intuitive.
+ *	
+ *	Chae Jubb
+ *	
  */
 
 #ifndef LOCKTAB_H

@@ -1,6 +1,10 @@
+
 /*
- *	Store symbol name, data type, whether initialized, scope
- *
+ *	Header for module for creating a symbol table for multafila, a language
+ *	focusing on making multithreading easy and intuitive.
+ *	
+ *	Chae Jubb
+ *	
  */
 
 #ifndef SYMTAB_H

@@ -1,3 +1,13 @@
+
+/*
+ *	Module for easy memory management for multafila, a language focusing on 
+ *	making multithreading easy and intuitive, whose compilation process
+ *	involves many heap allocations.
+ *	
+ *	Chae Jubb
+ *	
+ */
+
 #include <stdlib.h>
 #include "include/mem_manage.h"
 #include "include/error_handling.h"

@@ -1,3 +1,13 @@
+
+/*
+ *	Supplementary structs for module for creating a table holding information 
+ * 	necessary to generate threading constructs for multafila, a language
+ *	focusing on making  multithreading easy and intuitive.
+ *	
+ *	Chae Jubb
+ *	
+ */
+
 #ifndef THREADTAB_STRUCTS_H
 #define THREADTAB_STRUCTS_H
 

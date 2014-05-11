@@ -3,10 +3,10 @@
  *	Lexer for multafila, a language focusing on making multithreading easy 
  *	and intuitive.
  *	
- *	<authors>
+ *	Alessandra Castro Poblador
+ *	Bo Yin
  *	
  */
-
 %{
 
 	#include <stdio.h>

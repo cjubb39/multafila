@@ -5,7 +5,9 @@
  *	implementation of POSIX Threads.
  *	
  *	Chae Jubb
- *	
+ *	Alessandra Castro Poblador
+ *	Bo Yin
+ *
  */
 
 #include <stdio.h>

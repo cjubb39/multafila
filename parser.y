@@ -788,8 +788,9 @@ ident
      
       if(se == NULL){
         snprintf(errmsg, sizeof errmsg, 
-          "identifier %s not found: line %d\n", (char *) $1, yylineno);
+          "identifier %s not found: line %d", (char *) $1, yylineno);
         yyerror(errmsg);
+        memset(errmsg, 0, sizeof errmsg);
       }
       
       ast_type t = symtab_entry_get_type(se);
@@ -875,6 +876,6 @@ int yywrap()
 
 int yyerror(char * msg)
 { 
-  fprintf(stderr,"%s \n",msg);
+  fprintf(stderr,"%s\n",msg);
   return 0;
 }

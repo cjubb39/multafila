@@ -35,7 +35,7 @@ float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 "/*"            { BEGIN(C_COMMENT); }
 <C_COMMENT>"*/" { BEGIN(INITIAL); }
 <C_COMMENT>.    { }
-"//"[^\n]\n 	{  }
+"//"[^\n]*\n 	{  }
 
 "if"            { return IF; }
 "else"          { return ELSE; }
@@ -104,23 +104,3 @@ float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 
 
 %%
-
-/*
-int installID() {
-	yylex();
-	yylval = malloc(sizeof(yytext));
-	strncpy(yylval,yytext,yyleng);   // copy string to symbol table
-	return ID;		// return token name
-}
-
-int installInt() {
-	yylex();
-	yylval = malloc(sizeof(yytext));
-	yylval = atoi(yytext);	// assign int value to symbol table
-	return INTEGER;								// return token name
-}
-*/
-
-
-
-

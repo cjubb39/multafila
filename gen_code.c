@@ -353,7 +353,6 @@ void print_unary(ast *a){
 	#endif
 	print_ast(a->data.unary.operand);
 	printf( " %s ", a->data.unary.op);
-	printf( " ;\n");
 }
 
 void print_spawn(ast *a){
@@ -479,7 +478,7 @@ void print_for(ast *a){
 	print_ast(a->data.for_statement.relexpr);
 	printf("; ");
 	print_ast(a->data.for_statement.unary);
-	printf(") \n");
+	printf(")\n");
 	print_ast(a->data.for_statement.body);
 	printf("\n");
 }

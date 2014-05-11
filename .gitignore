@@ -5,3 +5,7 @@ include/y.tab.h
 
 *.swp
 
+#macs suck
+.DS_Store
+*.dSYM
+

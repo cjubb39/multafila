@@ -110,6 +110,7 @@ struct ast_spawn_var_ptr{
  	new_leaf->node_type = AST_NODE_LEAF;
  	new_leaf->type = type;
  	new_leaf->lineno = lineno;
+ 	new_leaf->arraysize = -1;
  	new_leaf->containing_scope = cur_scope;
 	new_leaf->data.convert_to_ptr = 0; /* default no change */
 
@@ -215,14 +216,17 @@ struct ast_spawn_var_ptr{
 
  	switch(type){
  		case AST_CHARARRAY:
+ 		case AST_CHAR:
  		ast_create_leaf_ca(&new_leaf, value, size, symbol_table, cur_scope );
  		break;
 
  		case AST_INTARRAY:
+ 		case AST_INT:
  		ast_create_leaf_ia(&new_leaf, value, size, symbol_table, cur_scope );
  		break;
 
-  		case AST_THREADARRAY:
+  	case AST_THREADARRAY:
+  	case AST_THREAD:
  		ast_create_leaf_ca(&new_leaf, value, size, symbol_table, cur_scope );
  		break;
 
@@ -781,6 +785,7 @@ struct ast_spawn_var_ptr{
  	new_node->node_type = type;
  	new_node->containing_scope = cur_scope;
  	new_node->lineno = lineno;
+ 	new_node->arraysize = -1;
 
  	switch(type){
  		case AST_NODE_BINARY:
@@ -1180,4 +1185,28 @@ struct ast_spawn_var_ptr{
  	}
 
  	return to_ret;
- }
+}
+
+ast_type ast_strip_array(ast_type t){
+	ast_type to_ret = AST_NULL;
+
+	switch(t){
+		case AST_INTARRAY:
+			to_ret = AST_INT;
+			break;
+
+		case AST_CHARARRAY:
+			to_ret = AST_CHAR;
+			break;
+
+		case AST_THREADARRAY:
+			to_ret = AST_THREAD;
+			break;
+
+		default:
+			to_ret = t;
+			break;
+	}
+
+	return to_ret;
+}

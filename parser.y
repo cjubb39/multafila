@@ -280,8 +280,19 @@ param_list
     }
   | array
     {
-      fprintf(stderr, "PARAM_LIST 3: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
+  | array COMMA param_list
+  {
+    ast *leaf = (ast *) $1;
+
+    ast_list *firstparam;
+    heap_list_malloc(hList, firstparam);
+    firstparam->data = leaf;
+    firstparam->next = (ast_list *) $3;
+
+    $$ = (void *) firstparam;
+  }
   | literal
     {
       ast_list *firstparam;
@@ -663,7 +674,7 @@ lvalue
     {
       $$ = $1;
     }
-  | IDENTIFIER LBRACK INTEGER RBRACK 
+  | array
     {
       symtab_entry *se = symtab_lookup(st, $1, cur_scope);
       ast_type t = symtab_entry_get_type(se);
@@ -846,6 +857,7 @@ array
       char *size = $3,
 
       $$ = (void *) ast_create_array_leaf( $1, size, t, st, cur_scope, yylineno );
+      ((ast *) $$)->type = ast_strip_array(((ast *) $$)->type);
     }
   ;
 
@@ -908,7 +920,7 @@ int main( int argc, char *argv[] )
   heap_list_malloc(hList, pi_arg_lh);
   heap_list *pi_hl;
   heap_list_malloc(hList, pi_hl);
-  ast *pi_ast_type = ast_create_leaf(NULL, AST_STRING, st, cur_scope, yylineno);
+  ast *pi_ast_type = ast_create_leaf(NULL, AST_INT, st, cur_scope, yylineno);
   pi_hl->data = pi_ast_type;
   pi_hl->next = NULL;
   pi_arg_lh->head = pi_hl;

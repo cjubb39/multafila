@@ -359,7 +359,7 @@ loop_statement
     }
   | pfor_statement
     {
-      fprintf(stderr, "LOOP STATEMENT 3: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   ;
 
@@ -430,7 +430,7 @@ while_statement
   ;
 
 for_statement
-  : FOR LPAREN assignment SEMI rel_expr SEMI unary_math RPAREN statement_list
+  : FOR LPAREN assignment SEMI bool_expr SEMI unary_math RPAREN statement_list
     {
       ast_list *assignment, *relexpr, *unary, *body;
       heap_list_malloc(hList, assignment);
@@ -457,7 +457,21 @@ for_statement
 pfor_statement
   : PFOR LPAREN ident COMMA ident COMMA INTEGER RPAREN statement_list
     {
-      fprintf(stderr, "PFOR STATEMENT 1: NOT YET IMPLEMENTED\n");
+      ast_list *t_ident, *i_ident, *body;
+      heap_list_malloc(hList, t_ident);
+      heap_list_malloc(hList, i_ident);
+      heap_list_malloc(hList, body);
+
+      t_ident->data = (ast *) $3;
+      t_ident->next = i_ident;
+      i_ident->data = (ast *) $5;
+      i_ident->next = body;
+      body->data = (ast *) $9;
+      body->next = NULL;
+
+      long count = (long) $7 ;//((ast *) $7)->data.integer;
+
+      $$ = (void *) ast_add_internal_node((char *) count, t_ident, AST_NODE_PFOR, st, cur_scope);
     }
   ;
 

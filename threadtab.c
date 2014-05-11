@@ -36,6 +36,32 @@ threadtab *threadtab_init(){
 	return newTB;
 }
 
+int threadtab_insert_helper(threadtab *thread_table, struct thread_data *data, int count){
+	if (count == 0) {
+		free(data);
+		return 0;
+	}
+
+	data->offset = thread_table->length;
+	++thread_table->length;
+
+	if (thread_table->head == NULL){
+		thread_table->head = (thread_table->tail = data);
+	} else {
+		thread_table->tail->next = data;
+		thread_table->tail = data;
+	}
+	data->next = NULL;
+
+	/* copy thread_data */
+	struct thread_data *new_data;
+	malloc_checked(new_data);
+	memcpy(new_data, data, sizeof (*new_data));
+	threadtab_insert_helper(thread_table, new_data, count - 1);
+
+	return 0;
+}
+
 /*
  *	Insert thread data into thread table
  *	Returns negative on error
@@ -44,17 +70,7 @@ int threadtab_insert(threadtab *thread_table, struct thread_data *data){
 	assert(thread_table != NULL);
 	assert(data != NULL);
 
-	data->offset = thread_table->length;
-	thread_table->length += data->length;
-
-	if (thread_table->head == NULL){
-		thread_table->head = (thread_table->tail = data);
-	} else {
-		thread_table->tail->next = data;
-		thread_table->tail = data;
-	}
-
-	data->next = NULL;
+	threadtab_insert_helper(thread_table, data, data->length);
 
 	return 0;
 }

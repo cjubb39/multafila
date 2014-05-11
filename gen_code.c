@@ -617,6 +617,10 @@ void print_ast(ast *a){
 			print_lock(a);
 			break;
 
+		case AST_NODE_PFOR:
+			assert(1); /* should be restructered earlier */
+			break;
+
 		default:
 			assert(0 == 1);
 			break;

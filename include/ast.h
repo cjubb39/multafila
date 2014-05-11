@@ -27,7 +27,8 @@ typedef enum {
 	AST_NODE_UNARY,
 	AST_NODE_NATIVE_CODE,
 	AST_NODE_RETURN,
-	AST_NODE_LOCK
+	AST_NODE_LOCK,
+	AST_NODE_PFOR
 } ast_node_type;
 
 typedef struct ast_s {
@@ -105,6 +106,8 @@ ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope
  *	AST_NODE_NATIVE_CODE:	CODE
  *	AST_NODE_RETURN:			IGNORED
  *	AST_NODE_LOCK:			IGNORED
+ *  AST_NODE_FOR:			IGNORED
+ *  AST_NODE_PFOR:			count max
  *	
  *	
  *	CHILDREN:
@@ -122,6 +125,8 @@ ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope
  *	AST_NODE_NATIVE_CODE: IGNORED
  *	AST_NODE_RETURN:			value of return (identifier)
  *	AST_NODE_LOCK:			body, params
+ *  AST_NODE_FOR:			assignment, relexpr, unary, body
+ *  AST_NODE_PFOR:			thread array, index variable, body
  *	
  *	Returns NULL on error
  */

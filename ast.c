@@ -79,18 +79,14 @@ struct ast_spawn_var_ptr{
  }
 
  ast **ast_create_leaf_boollit (ast **a, char *value){
- 	printf("<%s>", value);
- 	char *t = "true";
- 	char *f = "false";
+ 	char *t = "TRUE";
+ 	char *f = "FALSE";
 
  	if ( strcmp( value, t) == 0 ) {
  		(*a)->data.mfbool = 1;
  	} else if ( strcmp( value, f) == 0  ) {
  		(*a)->data.mfbool = 0;
- 	} else {
- 		printf("strcmp not working");
  	}
-
  	return a;
  }
 

@@ -61,8 +61,8 @@ float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 "thread"		{ return THREAD; }
 "void"			{ return VOID; }
 
-"true"			{ return TRUE; }
-"false"			{ return FALSE; }
+"true"			{ yylval = "TRUE"; return TRUE; }
+"false"			{ yylval = "FALSE"; return FALSE; }
 
 "="             { return ASSIGN; }
 "+="			{ return PLUSASSIGN; }

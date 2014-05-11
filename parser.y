@@ -549,8 +549,6 @@ declaration
         threadtab_insert(tb, create_thread_data($2, 1));
       }
 
-      printf("I am here, type: %d |", t);
-
       ast* leaf = ast_create_leaf($2, t, st, cur_scope);
 
       ast_list *ident;
@@ -777,17 +775,11 @@ literal
   | number
   | TRUE
     {
-      printf("Entering literal->TRUE! ");
-      printf("(%s)", $1  );
       $$ = (void *) ast_create_leaf( $1, AST_BOOLEANLITERAL, st, cur_scope );
-      free($1);
     }
   | FALSE
     {
-            printf("Entering literal->FALSE! ");
-
       $$ = (void *) ast_create_leaf( $1, AST_BOOLEANLITERAL, st, cur_scope );
-      free($1);
     }
   | STRINGLITERAL 
     { 

@@ -597,7 +597,7 @@ void print_leaf(ast *a){
 			if(a->data.convert_to_ptr == 1) printf("* ");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
 			printf( "[");
-			printf( "%s", (a->arraysize) );
+			printf( "%d", (a->arraysize) );
 			printf( "]");
 			break;
 
@@ -605,7 +605,7 @@ void print_leaf(ast *a){
 			if(a->data.convert_to_ptr == 1) printf("* ");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
 			printf( "[");
-			printf( "%s", (a->arraysize) );
+			printf( "%d", (a->arraysize) );
 			printf( "]");
 			break;		
 			

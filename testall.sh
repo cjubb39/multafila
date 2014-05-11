@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MULTAFILA="./small-parser "
+MULTAFILA= "./parser"
 
 # Set time limit for all operations
 ulimit -t 30

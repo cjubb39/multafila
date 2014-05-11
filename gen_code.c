@@ -63,6 +63,9 @@ void print_headers(ast *a){
 	
 	/* standard headers */
 	printf( "#include <stdio.h>\n#include <pthread.h>\n" \
+		"typedef int mf_bool;\n" \
+		"#define mf_true 1; \n"  \
+		"#define mf_false 0; \n" \
 		"void printOut(char *m){printf(\"%%s\\n\", m);}\n" \
 		"void printInt(int m){printf(\"%%d\\n\", m);}\n\n");
 
@@ -275,6 +278,14 @@ char* get_ast_type(ast_type at){
 
 		case AST_INTARRAY:
 			return "int ";
+			break;
+
+		case AST_BOOLEAN:
+			return "mf_bool ";
+			break;
+
+		case AST_BOOLEANLITERAL:
+			return "";
 			break;
 
 		default:
@@ -596,6 +607,17 @@ void print_leaf(ast *a){
 			printf( "]");
 			break;		
 			
+		case AST_BOOLEAN:
+			if(a->data.convert_to_ptr == 1) printf("* ");
+			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));		
+			break;
+
+		case AST_BOOLEANLITERAL:
+			if(a->data.convert_to_ptr == 1) printf("* ");
+			if ( a->data.mfbool == 1 ) printf("mf_true");
+			else if ( a->data.mfbool == 0 ) printf("mf_false");
+			break;
+
 		default:
 			assert(1);
 			break;

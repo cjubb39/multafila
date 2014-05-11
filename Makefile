@@ -15,7 +15,7 @@ SRC	= ast.c							\
 			symtab.c					\
 			threadtab.c				\
 			lex.yy.c					\
-			y.tab.c
+			y.tab.c					\
 
 HEADERS = $(wildcard include/*.h)
 

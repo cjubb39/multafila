@@ -1,10 +1,19 @@
 /* thread and spawn test */
 int main(){
 	thread t;
-	
-	spawn(t){
+	int x = 0;
 		
+	spawn(t){
+		int i = 0;
+		while(i < 10){
+			printOut(i);
+			x = x + i ;
+			i++;
 	}
 	barrier;
+
+	printOut(x);
+	return x;
+	
 
 }

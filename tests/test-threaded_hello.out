@@ -1,0 +1,66 @@
+
+/*==========OUTPUT CODE BELOW==========*/
+#include <stdio.h>
+#include <pthread.h>
+void printOut(char *m){printf("%s\n", m);}
+void printInt(int m){printf("%d\n", m);}
+
+int main (  );
+
+pthread_mutex_t global_lock;
+
+pthread_cond_t global_cond;
+
+struct global_lock_struct_s{
+} global_lock_struct;
+
+pthread_t global_threads [2];
+struct spawn_struct_args_thread_0{
+};
+
+void * main_func_spawn_thread_0 (  void * args_main_func_spawn_thread_0 )
+{
+struct spawn_struct_args_thread_0* args_t0 = (struct spawn_struct_args_thread_0*) args_main_func_spawn_thread_0;
+ ;
+{
+char *  var1 ;
+var1 = "Hello World!" ;
+printOut( var1 ) ;
+}
+
+}
+struct spawn_struct_args_thread_1{
+};
+
+void * main_func_spawn_thread_1 (  void * args_main_func_spawn_thread_1 )
+{
+struct spawn_struct_args_thread_1* args_t1 = (struct spawn_struct_args_thread_1*) args_main_func_spawn_thread_1;
+ ;
+{
+char *  var2 ;
+var2 = "Hey Dude!" ;
+printOut( var2 ) ;
+}
+
+}
+int main (  )
+{
+
+{
+pthread_mutex_init( & global_lock , NULL);
+pthread_cond_init( & global_cond , NULL);
+}
+ ;
+   ;
+   ;
+struct spawn_struct_args_thread_0 args_t0_struct;
+pthread_create(&global_threads[0], NULL, main_func_spawn_thread_0, & args_t0_struct);
+ ;
+struct spawn_struct_args_thread_1 args_t1_struct;
+pthread_create(&global_threads[1], NULL, main_func_spawn_thread_1, & args_t1_struct);
+ ;
+pthread_join(global_threads[0], NULL);
+pthread_join(global_threads[1], NULL);
+ ;
+}
+

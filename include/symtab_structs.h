@@ -26,6 +26,7 @@
 struct symtab_entry_s {
 	char name[MAX_IDENT_LENGTH + 1];
 	ast_type type;
+	void *ptr;
 	/* gives us bit flags */
 	unsigned initialized	:1;
 	unsigned thread				:1;

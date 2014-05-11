@@ -47,7 +47,6 @@ typedef struct ast_s {
 	unsigned int flag;
 	int arraysize;
 
-
 	union {
 		/* for literal values */
 		int integer;
@@ -138,7 +137,7 @@ ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope
  *	AST_NODE_UNARY:			operand
  *	AST_NODE_NATIVE_CODE: IGNORED
  *	AST_NODE_RETURN:			value of return (identifier)
- *	AST_NODE_LOCK:			body, params
+<<<<<<< HEAD
  *  AST_NODE_FOR:			assignment, relexpr, unary, body
  *  AST_NODE_PFOR:			thread array, index variable, body
  *	

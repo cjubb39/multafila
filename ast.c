@@ -647,6 +647,9 @@ struct ast_spawn_var_ptr{
 	ast **ast_create_node_func_call(ast **a, ast_list *children, char *name,
 		symtab *symbol_table, scope *cur_scope){
 		(*a)->data.func_call.arguments = children;
+		
+		strncpy((*a)->data.func_call.name, name, MAX_IDENT_LENGTH);
+		(*a)->data.func_call.name[MAX_IDENT_LENGTH] = '\0';
 		//(*a)->data.func_call.func_symtab = symtab_lookup(symbol_table, name, cur_scope);
 
 		//(*a)->type = symtab_entry_get_type((*a)->data.func_call.func_symtab);

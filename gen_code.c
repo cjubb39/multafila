@@ -23,6 +23,7 @@
 
 #define THREADS_NAME "global_threads"
 #define MAIN_LOCK_NAME "global_lock"
+#define MAIN_COND_NAME "global_cond"
 #define MAIN_LOCK_STRUCT_NAME "global_lock_struct"
 #define MAIN_LOCK_STRUCT_TYPE "global_lock_struct_s"
 
@@ -68,6 +69,7 @@ void print_headers(ast *a){
 void print_locktab(locktab *lt, ast *a){
 	/* define struct and global lock */
 	printf("pthread_mutex_t %s;\n\n", MAIN_LOCK_NAME);
+	printf("pthread_cond_t %s;\n\n", MAIN_COND_NAME);
 	printf("struct " MAIN_LOCK_STRUCT_TYPE "{\n");
 
 	struct locktab_data *tmp = lt->head;
@@ -88,6 +90,13 @@ void print_locktab(locktab *lt, ast *a){
 	memset(buffer2, 0, sizeof buffer2);
 
 	strcat(buffer, "\n{\n");
+
+	snprintf(buffer2, sizeof buffer2, "pthread_mutex_init( & %s , NULL);\n", MAIN_LOCK_NAME);
+	strncat(buffer, buffer2, large_buff_size);
+
+	/* global cond variable */
+	snprintf(buffer2, sizeof buffer2, "pthread_cond_init( & %s , NULL);\n", MAIN_COND_NAME);
+	strncat(buffer, buffer2, large_buff_size);
 
 	tmp = lt->head;
 	while(tmp != NULL){
@@ -171,7 +180,7 @@ void print_threadtab_func(ast *a){
 			get_ast_type(symtab_entry_get_type(se)),
 			(tmp->data.convert_to_ptr == 1) ? '*' : ' ',
 			symtab_entry_get_name(se),
-			(tmp->data.convert_to_ptr == 1) ? '&' : ' ',
+			(tmp->data.convert_to_ptr == 0) ? ' ' : ' ',
 			t_index,
 			t_index,
 			symtab_entry_get_name(se)
@@ -450,8 +459,10 @@ void print_lock(ast *a){
 	printf("pthread_mutex_lock( &" MAIN_LOCK_NAME " );\n");
 	/* get locks on individual threads */
 	while (tmp != NULL){
-		printf("pthread_mutex_lock( &" MAIN_LOCK_STRUCT_NAME ".mutex_%p );\n",
+		printf("while (pthread_mutex_trylock( &" MAIN_LOCK_STRUCT_NAME ".mutex_%p ) != 0){\n",
 			tmp->data->data.symtab_ptr);
+		printf("\tpthread_cond_wait(& %s, & %s);\n}\n", MAIN_COND_NAME, MAIN_LOCK_NAME);
+		printf("pthread_cond_signal(& %s);\n", MAIN_COND_NAME);
 		tmp = tmp->next;
 	}
 
@@ -469,6 +480,7 @@ void print_lock(ast *a){
 	while (tmp != NULL){
 		printf("pthread_mutex_unlock( &" MAIN_LOCK_STRUCT_NAME ".mutex_%p );\n",
 			tmp->data->data.symtab_ptr);
+		printf("pthread_cond_signal(& %s);\n", MAIN_COND_NAME);
 		tmp = tmp->next;
 	}
 
@@ -711,7 +723,6 @@ void gen_code(ast *a, symtab *st, threadtab *tb, locktab *lt){
 	  /*  if (dup2(pipeFileDescriptors[1], STDERR_FILENO) != STDERR_FILENO)
 	        die("dup2 error: ls to pipe stderr");*/
 	    close(pipeFileDescriptors[1]);
-
 			printf("\n/*==========OUTPUT CODE BELOW==========*/\n");
 			print_headers(a);
 			print_locktab(lt, a);

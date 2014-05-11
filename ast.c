@@ -113,6 +113,13 @@ struct ast_spawn_var_ptr{
  		ast_create_leaf_thread(&new_leaf, value, symbol_table, cur_scope );
  		break;
 
+		case AST_CHARARRAY:
+		case AST_INTARRAY:
+		case AST_THREADARRAY:
+ 		free(new_leaf);
+ 		new_leaf = ast_create_array_leaf(value, -1, type, symbol_table, cur_scope);
+ 		break;
+
  		default:
  		break;
  	}
@@ -227,10 +234,11 @@ struct ast_spawn_var_ptr{
  	}
 	if(tmp->data != NULL) return; /* a match */
 
-	if (a->data.symtab_ptr != spawn->data.spawn.vars.counter->data.symtab_ptr){
-		a->data.convert_to_ptr = 0; /* counter variable (for pfor) */
-	} else {
+	if (spawn->data.spawn.vars.counter != NULL && 
+			a->data.symtab_ptr != spawn->data.spawn.vars.counter->data.symtab_ptr){
 		a->data.convert_to_ptr = 1; /* inside spawn */
+	} else {
+		a->data.convert_to_ptr = 0; /* counter variable (for pfor) */
 	}
 
 	/* check if already in old list */
@@ -302,7 +310,7 @@ struct ast_spawn_var_ptr{
  }
 
  ast **ast_create_node_spawn( ast **a, ast_list *children,
- 	struct thread_data *thread, symtab *st, scope *cur_scope ) {
+ 	ast *counter, symtab *st, scope *cur_scope ) {
  	(*a)->data.spawn.body = NULL;//children->data;
  	(*a)->data.spawn.arguments = children->next->data;
  	(*a)->data.spawn.native_spawn = 1;
@@ -352,6 +360,7 @@ struct ast_spawn_var_ptr{
 
  	(*a)->data.spawn.vars.old_vars = old_vars;
  	(*a)->data.spawn.vars.new_vars = new_vars;
+ 	(*a)->data.spawn.vars.counter = counter;
 
 	/* initialize */
  	old_vars->data = NULL;
@@ -370,7 +379,7 @@ struct ast_spawn_var_ptr{
  	svp->new_vars_top = new_vars;
  	svp->old_vars_top = old_vars;
 
- 	ast_walker(new_func, svp, a,
+ 	ast_walker(new_func, svp, *a,
  		(void (*)(struct ast_s *, void*, void*)) &ast_spawn_var_check,
 		//(void (*)(struct ast_s *, void*)) &blank_func,
  		(void (*)(struct ast_list_s *, void*, void*)) &blank_func,
@@ -406,72 +415,6 @@ struct ast_spawn_var_ptr{
 
 	/* we essentially create a for loop of spawns */
 	ast **ast_create_node_pfor(ast **a, ast_list *children, char *value, symtab *st, scope *cur_scope){
-		/* create for loop */
-		/* assignment node */
-		/*ast *assign_index = children->next->data; 
-		ast *assign_zero = ast_create_leaf("0", AST_INTLITERAL, st, cur_scope);
-
-		ast_list *assign_l, *assign_r;
-		heap_list_malloc(hList, assign_l);
-		heap_list_malloc(hList, assign_r);
-		assign_l->data = assign_index;
-		assign_l->next = assign_r;
-		assign_r->data = assign_zero;
-		assign_r->next = NULL;
-		ast *assignment = ast_add_internal_node("=", assign_l, AST_NODE_BINARY, st, cur_scope);*/
-
-
-		/* conditional */
-/*		ast *rel_index = assign_index;
-		char count_buf[32];
-		snprintf(count_buf, sizeof count_buf, "%ld", count);
-		ast *rel_count = ast_create_leaf(count_buf, AST_INTLITERAL, st, cur_scope);
-		
-		ast_list *rel_l;
-    ast_list *rel_r;
-    heap_list_malloc(hList, rel_l);
-    heap_list_malloc(hList, rel_r);
-
-    rel_l->data = rel_index;
-    rel_l->next = rel_r;
-    rel_r->data = rel_count;
-    rel_r->next = NULL;
-    ast *relexpr = (void *) ast_add_internal_node( "<", rel_l, AST_NODE_BINARY, st, cur_scope );*/
-
-
-    /* increment */
-		/*ast *unary_index = unary_index;
-		
-		ast_list *unary_operand;
-    heap_list_malloc(hList, unary_operand);
-    unary_operand->data = unary_index;
-    unary_operand->next = NULL;
-
-    ast *unary = (void *) ast_add_internal_node( "++", unary_operand, AST_NODE_UNARY, st, cur_scope );
-*/
-    /* assemble for loop */
-    /*ast_list *for_assign, *for_relexpr, *for_unary, *for_body;
-    heap_list_malloc(hList, for_assign);
-    heap_list_malloc(hList, for_relexpr);
-    heap_list_malloc(hList, for_unary);
-    heap_list_malloc(hList, for_body);
-
-    for_assign->data = assignment;
-    for_assign->next = for_relexpr;
-    for_relexpr->data = relexpr;
-    for_relexpr->next = for_unary;
-    for_unary->data = unary;
-    for_unary->next = for_body;
-    for_body->data = children->next->next->data;
-    for_body->next = NULL;
-		ast *for_loop = ast_add_internal_node(NULL, for_assign, AST_NODE_FOR, st, cur_scope);
-*/
-		/*(*a)->data.pfor.count = count;
-		
-		(*a)->data.pfor.t_ident = children->data;
-		(*a)->data.pfor.i_ident = children->next->data;
-		(*a)->data.pfor.body = children->next->next->data;*/
-
 		/* braced statement list of spawns followed by a barrier */
 		ast *t_ident = children->data;
 		ast *i_ident = children->next->data;
@@ -486,21 +429,7 @@ struct ast_spawn_var_ptr{
 		ast *top_spawn_stmt = NULL;
 		long i;
 		for (i = 0; i < iterations; ++i){
-			/* body is body of statement; args is thread ident */
-			ast_list *body;
-      ast_list *args;
-      heap_list_malloc(hList, body);
-      heap_list_malloc(hList, args);
-
-      body->data = children->next->next->data;
-      body->next = args;
-      args->data = t_ident;
-      args->next = (ast_list *) td;
-      ast* spawn = ast_add_internal_node(NULL, body, AST_NODE_SPAWN, st, cur_scope);
-      spawn->data.spawn.vars.counter = i_ident;
-
-
-      /* increment counter */
+			/* increment counter */
       ast *increment_ident;
       malloc_checked(increment_ident);
       memcpy(increment_ident, i_ident, sizeof(*increment_ident));
@@ -523,6 +452,20 @@ struct ast_spawn_var_ptr{
       u_stmt_n->next = NULL;
       
       ast *unary_stmt = ast_add_internal_node(NULL, u_stmt, AST_NODE_STATEMENT, st, cur_scope);
+
+
+			/* body is body of statement; args is thread ident */
+			ast_list *body;
+      ast_list *args;
+      heap_list_malloc(hList, body);
+      heap_list_malloc(hList, args);
+
+      body->data = children->next->next->data;
+      body->next = args;
+      args->data = t_ident;
+      args->next = (ast_list *) td;
+      ast* spawn = ast_add_internal_node((char *) increment_ident, body, AST_NODE_SPAWN, st, cur_scope);
+      //spawn->data.spawn.vars.counter = increment_ident;
 
 	    /* combine statements */
       ast_list *stmt;
@@ -746,7 +689,7 @@ struct ast_spawn_var_ptr{
  *	AST_NODE_FUNCTION_LIST:		IGNORED
  *	AST_NODE_CONDITIONAL:		IGNORED
  *  AST_NODE_WHILE:				IGNORED
- *	AST_NODE_SPAWN:				ptr to struct thread_Data created by create_thread_data
+ *	AST_NODE_SPAWN:				ptr to ast of counter / NULL
  *	AST_NODE_BARRIER:			IGNORED
  *	AST_NODE_UNARY:				1-2 character unary op
  *	AST_NODE_NATIVE_CODE:	CODE
@@ -827,7 +770,7 @@ struct ast_spawn_var_ptr{
  		break;
 
  		case AST_NODE_SPAWN:
- 		ast_create_node_spawn(&new_node, children, (struct thread_data*) value,
+ 		ast_create_node_spawn(&new_node, children, (ast*) value,
  			symbol_table, cur_scope);
  		break;
 
@@ -940,7 +883,7 @@ struct ast_spawn_var_ptr{
  			free(tree->data.spawn.body->data.func_def.body);
  			ast_destroy_helper_ast_list(tree->data.spawn.body->data.func_def.arguments);
  			free(tree->data.spawn.body);
- 			free(tree->data.spawn.arguments);
+ 			//free(tree->data.spawn.arguments);
  			break;
  		}
  		ast_destroy_helper(tree->data.spawn.arguments);

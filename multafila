@@ -1,0 +1,15 @@
+#!/bin/sh
+COMP_NAME=./small-parser
+
+if [ $# -eq 0 ]; then
+	echo "use as ./multafila <source_file> [<output_file>]"
+	return
+fi
+
+if [ $# -eq 1 ]; then
+	$COMP_NAME "$1" | gcc -g -pthread -x c - -o a.out
+else
+	$COMP_NAME "$1" | gcc -g -pthread -x c - -o "$2"
+fi
+
+

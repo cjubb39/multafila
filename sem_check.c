@@ -6,6 +6,7 @@
 
 #include "include/global_config.h"
 #include "include/error_handling.h"
+#include "include/mem_manage.h"
 #include "include/ast.h"
 #include "include/symtab.h"
 
@@ -77,7 +78,7 @@ int are_equivalent(ast_type i, ast_type j){
 }
 
 /* returns 0 if arg lists are not of the same size or have different types */
-int arglist_compare(struct ast_list_s* a, struct ast_list_s* b) {
+int arglist_compare(heap_list* a, struct ast_list_s* b) {
 
 	ast* a_node = a->data;
 	ast* b_node = b->data;
@@ -144,10 +145,10 @@ void check_func_call(ast *a, symtab *st){
 
 		//get the function's node
 		//ast* function_node = getfunction(name);
-		struct ast_list_s *declaredargs = symtab_entry_get_ptr(lookup);// function_node->data.func_def.arguments;
+		heap_list_head *declaredargs = symtab_entry_get_ptr(lookup);// function_node->data.func_def.arguments;
 		struct ast_list_s *args = a->data.func_call.arguments;
 
-		if (arglist_compare(declaredargs, args) != 1) {
+		if (arglist_compare(declaredargs->head, args) != 1) {
 			printf("argument types do not match function declaration\n");
 			errorcount++;
 		}

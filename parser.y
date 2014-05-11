@@ -134,7 +134,8 @@ function_def
       while(tmp != NULL){
         heap_list *new_arg;
         malloc_checked(new_arg);
-        new_arg->data = (void *) tmp->data->type;
+        new_arg->data = tmp->data;//ast_create_leaf(NULL, tmp->data->type, st, cur_scope);
+        //heap_list_add(hList, new_arg->data);
 
         if (arg_lh->head == NULL){
           arg_lh->head = new_arg;
@@ -174,7 +175,8 @@ function_def
       while(tmp->data != NULL){
         heap_list *new_arg;
         malloc_checked(new_arg);
-        new_arg->data = (void *) tmp->data->type;
+        new_arg->data = ast_create_leaf(NULL, tmp->data->type, st, cur_scope);
+        heap_list_add(hList, new_arg->data);
 
         if (arg_lh->head == NULL){
           arg_lh->head = new_arg;
@@ -866,15 +868,25 @@ int main( int argc, char *argv[] )
   /* pre-install printOut */
   /* create linked list of argument types */
   heap_list_head *po_arg_lh;
-  malloc_checked(po_arg_lh);
+  heap_list_malloc(hList, po_arg_lh);
+  heap_list *po_hl;
+  heap_list_malloc(hList, po_hl);
   ast *po_ast_type = ast_create_leaf(NULL, AST_STRING, st, cur_scope);
+  po_hl->data = po_ast_type;
+  po_hl->next = NULL;
+  po_arg_lh->head = po_hl;
   heap_list_add(hList, po_ast_type);
   symtab_insert( st, "printOut", AST_VOID, ST_STATIC_DEC, po_arg_lh);
 
   /* create linked list of argument types */
   heap_list_head *pi_arg_lh;
-  malloc_checked(pi_arg_lh);
-  ast *pi_ast_type = ast_create_leaf(NULL, AST_INT, st, cur_scope);
+  heap_list_malloc(hList, pi_arg_lh);
+  heap_list *pi_hl;
+  heap_list_malloc(hList, pi_hl);
+  ast *pi_ast_type = ast_create_leaf(NULL, AST_STRING, st, cur_scope);
+  pi_hl->data = pi_ast_type;
+  pi_hl->next = NULL;
+  pi_arg_lh->head = pi_hl;
   heap_list_add(hList, pi_ast_type);
   symtab_insert( st, "printInt", AST_VOID, ST_STATIC_DEC, pi_arg_lh);
 

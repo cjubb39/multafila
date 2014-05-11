@@ -252,11 +252,11 @@ ast_type check_bin(ast *a, symtab *st){
 	if(t2 == AST_NULL){
 		t2 =right_side_evaled_type;
 	}
-		if (are_equivalent(t1, t2) == 0){
-			printf("binary node error, type mismatch\n");
-			errorcount++;
-		}
-
+	if (are_equivalent(t1, t2) == 0){
+		printf("binary node error, type mismatch\n");
+		errorcount++;
+	}
+		
 	return right_side_evaled_type;
 }
 
@@ -328,6 +328,7 @@ void check_stmt_level(ast *a, symtab *st){
 	//ast_type t = ast_get_type(body);
 	// if (t == AST_NULL){
 	 	ast_node_type t2n = ast_get_node_type(body);
+	 	printf("{%d}\n", t2n);
 		switch(t2n){
 
 		case AST_NODE_BINARY:

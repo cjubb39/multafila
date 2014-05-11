@@ -615,7 +615,7 @@ declaration
   | type IDENTIFIER LBRACK INTEGER RBRACK
     {
       ast_type t = AST_NULL;
-      int size = (int) atoi($4);
+      char *size = $4;
 
       if ( (ast_type) $1 == AST_CHAR ) {
         t = (ast_type) AST_CHARARRAY;
@@ -676,7 +676,11 @@ lvalue
     }
   | array
     {
-      $$ = $1;
+      symtab_entry *se = symtab_lookup(st, $1, cur_scope);
+      ast_type t = symtab_entry_get_type(se);
+      char *size = $3;
+
+      $$ = (void *) ast_create_array_leaf( $1, size, t, st, cur_scope, yylineno );
     }
   ;
 
@@ -842,12 +846,19 @@ array
     {
       symtab_entry *se = symtab_lookup(st, $1, cur_scope);
       ast_type t = symtab_entry_get_type(se);
-      int size = (int) atoi($3);
+      char *size = $3;
+
+      $$ = (void *) ast_create_array_leaf( $1, size, t, st, cur_scope, yylineno );
+    }
+  | IDENTIFIER LBRACK IDENTIFIER RBRACK
+    {
+      symtab_entry *se = symtab_lookup(st, $1, cur_scope);
+      ast_type t = symtab_entry_get_type(se);
+      char *size = $3,
 
       $$ = (void *) ast_create_array_leaf( $1, size, t, st, cur_scope, yylineno );
       ((ast *) $$)->type = ast_strip_array(((ast *) $$)->type);
     }
-  | ident LBRACK ident RBRACK
   ;
 
 type

@@ -171,7 +171,7 @@ void print_threadtab_func(ast *a){
 			get_ast_type(symtab_entry_get_type(se)),
 			(tmp->data.convert_to_ptr == 1) ? '*' : ' ',
 			symtab_entry_get_name(se),
-			(tmp->data.convert_to_ptr == 1) ? '&' : ' ',
+			(tmp->data.convert_to_ptr == 0) ? ' ' : ' ',
 			t_index,
 			t_index,
 			symtab_entry_get_name(se)

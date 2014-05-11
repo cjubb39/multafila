@@ -27,14 +27,11 @@ number			[-]?{non-zero}{digit}*|[0]
 float 			[-]?{non-zero}{digit}*\.{digit}+|[-]?[0\.{digit}+]
 
 
-%x C_COMMENT
-
 %%
 
 {ws}			{  }
-"/*"            { BEGIN(C_COMMENT); }
-<C_COMMENT>"*/" { BEGIN(INITIAL); }
-<C_COMMENT>.    { }
+
+"/*"((("*"[^/])?)|[^*])*"*/" { } /* comments */
 "//"[^\n]*\n 	{  }
 
 "if"            { return IF; }

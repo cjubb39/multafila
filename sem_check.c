@@ -204,15 +204,23 @@ void check_lock(ast *a, symtab *st){
 }
 
 /* binary node checker */
-void check_bin(ast *a, symtab *st){
+ast_type check_bin(ast *a, symtab *st){
 	ast *a_right = a->data.bin.right;
-	check_stmt_level(a_right, st);
+	ast_node_type a_right_type = ast_get_node_type(a_right);
 
-	symtab_entry *s1 = a->data.bin.left->data.symtab_ptr;
-	ast_type t1 = symtab_entry_get_type(s1);
 
-	ast_node_type t2n = ast_get_node_type(a_right);
-	if (t2n == AST_NODE_FUNCTION_CALL){
+	ast_type right_side_evaled_type;
+	if(a_right_type == AST_NODE_BINARY){
+
+		right_side_evaled_type = check_bin(a_right, st);
+
+	}else{
+		right_side_evaled_type = a_right->type; 
+	}
+
+	ast_type t1 = a->data.bin.left->type;
+
+	if (a_right_type == AST_NODE_FUNCTION_CALL){
 		symtab_entry *s = a_right->data.func_call.func_symtab;
 		/* check func return type, see if it matches lvalue */
 		ast_type t3 = symtab_entry_get_type(s);
@@ -239,11 +247,17 @@ void check_bin(ast *a, symtab *st){
 	// 	}
 	// }
 
-	ast_type t2 = symtab_entry_get_type(a_right->data.symtab_ptr);
+	ast_type t2 = a_right->type;
+
+	if(t2 == AST_NULL){
+		t2 =right_side_evaled_type;
+	}
 		if (are_equivalent(t1, t2) == 0){
 			printf("binary node error, type mismatch\n");
 			errorcount++;
 		}
+
+	return right_side_evaled_type;
 }
 
 /* unary node checker */
@@ -314,7 +328,6 @@ void check_stmt_level(ast *a, symtab *st){
 	//ast_type t = ast_get_type(body);
 	// if (t == AST_NULL){
 	 	ast_node_type t2n = ast_get_node_type(body);
-	 	printf("{%d}\n", t2n);
 		switch(t2n){
 
 		case AST_NODE_BINARY:

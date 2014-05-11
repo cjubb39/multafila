@@ -105,7 +105,7 @@ ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope
  *	AST_NODE_FUNCTION_LIST:		IGNORED
  *	AST_NODE_CONDITIONAL:		IGNORED
  *  AST_NODE_WHILE:				IGNORED
- *	AST_NODE_SPAWN:				ptr to struct thread_Data created by create_thread_data
+ *	AST_NODE_SPAWN:				ptr to ast of counter / NULL
  *	AST_NODE_BARRIER:			IGNORED
  *	AST_NODE_UNARY:				1-2 character unary op
  *	AST_NODE_NATIVE_CODE:	CODE

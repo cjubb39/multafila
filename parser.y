@@ -66,6 +66,7 @@ start_point
     {
       ast *root = (ast *) $1;
 			gen_code( root, st, tb, lt );
+      fflush(stdout);
       ast_destroy(root);
     }
   ;

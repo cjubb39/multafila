@@ -113,6 +113,13 @@ struct ast_spawn_var_ptr{
  		ast_create_leaf_thread(&new_leaf, value, symbol_table, cur_scope );
  		break;
 
+		case AST_CHARARRAY:
+		case AST_INTARRAY:
+		case AST_THREADARRAY:
+ 		free(new_leaf);
+ 		new_leaf = ast_create_array_leaf(value, -1, type, symbol_table, cur_scope);
+ 		break;
+
  		default:
  		break;
  	}

@@ -166,7 +166,11 @@ func_call
     }
   | IDENTIFIER LPAREN RPAREN
     {
-      fprintf(stderr, "FUNC_CALL 2: NOT YET IMPLEMENTED\n");
+      ast_list *children;
+      heap_list_malloc(hList, children);
+
+      children->data = NULL;
+      $$ = (void *) ast_add_internal_node( $1, children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
   ;
 

@@ -826,7 +826,7 @@ int main( int argc, char *argv[] )
   /* get output file name */
   exe_out_name = malloc_checked_string(64);
   strncpy(exe_out_name, argv[1], 64);
-  char *extension_ptr = strstr(exe_out_name, ".mf");
+  char *extension_ptr = strstr(exe_out_name, ".mulf");
 
   if (extension_ptr == NULL){
     strncpy(exe_out_name, "a.out", 6);

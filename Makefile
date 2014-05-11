@@ -4,7 +4,7 @@ CFLAGS	= -g3 -O0 -std=gnu89 -Wall $(INCLUDES)
 LDFLAGS	= -lm
 
 .PHONY: default
-default: small-parser
+default: parser
 
 SRC	= ast.c							\
 			error_handling.c	\
@@ -20,8 +20,8 @@ SRC	= ast.c							\
 HEADERS = $(wildcard include/*.h)
 
 # header dependency
-small-parser: $(SRC) $(HEADERS)
-	$(CC) $(CFLAGS) $(SRC) $(LDFLAGS) -o small-parser
+parser: $(SRC) $(HEADERS)
+	$(CC) $(CFLAGS) $(SRC) $(LDFLAGS) -o parser
 
 y.tab.c: parser.y
 	yacc --defines=include/y.tab.h $<
@@ -29,9 +29,13 @@ y.tab.c: parser.y
 lex.yy.c: lexer.l
 	lex $<
 
+.PHONY: test
+test:
+	./testall.sh
+
 .PHONY: clean
 clean:
-	rm -f *.o *~ a.out core small-parser lex.yy.c y.tab.c include/y.tab.h
+	rm -f *.o *~ a.out core parser lex.yy.c y.tab.c include/y.tab.h
 
 .PHONY: all
 all: clean default

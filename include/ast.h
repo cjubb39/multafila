@@ -4,7 +4,7 @@
  *	language focusing on making multithreading easy and intuitive.
  *	
  *	Chae Jubb
- *	
+ *	Alessandra Poblador
  */
 
 #ifndef AST_H
@@ -49,7 +49,7 @@ typedef struct ast_s {
 	ast_node_type node_type; /* kind of node */
 	scope *containing_scope;
 	unsigned int flag;
-	int arraysize;
+	char *arraysize;
 	int lineno;
 
 	union {
@@ -104,7 +104,7 @@ typedef struct ast_list_s ast_list;
  */
 ast *ast_create_leaf (char *value, ast_type type, symtab*, scope* cur_scope, int lineno);
 
-ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope* cur_scope, int lineno);
+ast *ast_create_array_leaf (char *value, char *size, ast_type type, symtab*, scope* cur_scope, int lineno);
 
 /*
  *	Add internal (non-leaf) node to ast

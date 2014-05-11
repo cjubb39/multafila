@@ -83,9 +83,7 @@ start_point
 
       fflush(stdout);
      
-      if (sem_check( root, st ) == 0){
         gen_code( root, st, tb, lt );
-      }
 
       ast_destroy(root);
     }
@@ -618,7 +616,7 @@ declaration
   | type IDENTIFIER LBRACK INTEGER RBRACK
     {
       ast_type t = AST_NULL;
-      int size = atoi($4);
+      char *size = $4;
 
       if ( (ast_type) $1 == AST_CHAR ) {
         t = (ast_type) AST_CHARARRAY;
@@ -629,7 +627,7 @@ declaration
         #ifdef PARSER_DEBUG
         fprintf(stderr, "thread declaration\n");
         #endif
-        threadtab_insert(tb, create_thread_data($2, size));
+        threadtab_insert(tb, create_thread_data($2, atoi(size) ) ) ;
       }
 
       symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
@@ -648,6 +646,8 @@ declaration
 assignment
   : lvalue assignop rvalue 
     { 
+      printf("entering assignemnt");
+
       ast_list *lh;
       ast_list *rh;
       heap_list_malloc(hList, lh);
@@ -668,6 +668,7 @@ assignment
 lvalue 
   : type IDENTIFIER 
     { 
+      printf("entering lvalue 1");
       ast_type t = (ast_type) $1;
       symtab_insert( st, $2, t, ST_NONSTATIC_DEC, NULL);
       $$ = (void *) ast_create_leaf( $2, t, st, cur_scope, yylineno );
@@ -675,12 +676,69 @@ lvalue
     }
   | ident
     {
+      printf("entering lvalue 2");
       $$ = $1;
     }
-  | array
+  | IDENTIFIER LBRACK INTEGER RBRACK
     {
-      $$ = $1;
+      printf("entering lvalue 3");
+
+      char *size = $4;
+      symtab_entry *se = symtab_lookup(st, $1, cur_scope);
+     
+      if(se == NULL){
+        snprintf(errmsg, sizeof errmsg, 
+          "identifier %s not found: line %d", (char *) $1, yylineno);
+        yyerror(errmsg);
+        memset(errmsg, 0, sizeof errmsg);
+        exit(1);
+      }
+      
+      ast_type it = symtab_entry_get_type(se);
+      if ( it == AST_CHAR ) {
+        t = (ast_type) AST_CHARARRAY;
+      } else if ( it == AST_INT  ) {
+        t = (ast_type) AST_INTARRAY;
+      } else if ( it == AST_THREAD ) {
+        t = (ast_type) AST_THREADARRAY;
+        #ifdef PARSER_DEBUG
+        fprintf(stderr, "thread declaration\n");
+        #endif
+        threadtab_insert(tb, create_thread_data($2, size));
+      }
+
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
+      $$ = (void *) ast_create_array_leaf($2, size, t, st, cur_scope, yylineno );
     }
+  | IDENTIFIER LBRACK IDENTIFIER RBRACK
+    {
+      char *size = $4;
+      symtab_entry *se = symtab_lookup(st, $1, cur_scope);
+     
+      if(se == NULL){
+        snprintf(errmsg, sizeof errmsg, 
+          "identifier %s not found: line %d", (char *) $1, yylineno);
+        yyerror(errmsg);
+        memset(errmsg, 0, sizeof errmsg);
+        exit(1);
+      }
+      
+      ast_type it = symtab_entry_get_type(se);
+      if ( it == AST_CHAR ) {
+        t = (ast_type) AST_CHARARRAY;
+      } else if ( it == AST_INT  ) {
+        t = (ast_type) AST_INTARRAY;
+      } else if ( it == AST_THREAD ) {
+        t = (ast_type) AST_THREADARRAY;
+        #ifdef PARSER_DEBUG
+        fprintf(stderr, "thread declaration\n");
+        #endif
+        threadtab_insert(tb, create_thread_data($2, size));
+      }
+
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
+      $$ = (void *) ast_create_array_leaf($2, size, t, st, cur_scope, yylineno );
+    }  
   ;
 
 rvalue
@@ -712,9 +770,6 @@ expr
       $$ = $1;
     }
   | array
-    {
-      fprintf(stderr, "EXPR 7: NOT YET IMPLEMENTED\n");
-    }
   | LPAREN expr RPAREN 
     {
       $$ = $1;
@@ -843,12 +898,62 @@ number
 array
   : IDENTIFIER LBRACK INTEGER RBRACK
     {
+      char *size = $4;
       symtab_entry *se = symtab_lookup(st, $1, cur_scope);
-      ast_type t = symtab_entry_get_type(se);
-      int size = atoi($3);
+     
+      if(se == NULL){
+        snprintf(errmsg, sizeof errmsg, 
+          "identifier %s not found: line %d", (char *) $1, yylineno);
+        yyerror(errmsg);
+        memset(errmsg, 0, sizeof errmsg);
+        exit(1);
+      }
+      
+      ast_type it = symtab_entry_get_type(se);
+      if ( it == AST_CHAR ) {
+        t = (ast_type) AST_CHARARRAY;
+      } else if ( it == AST_INT  ) {
+        t = (ast_type) AST_INTARRAY;
+      } else if ( it == AST_THREAD ) {
+        t = (ast_type) AST_THREADARRAY;
+        #ifdef PARSER_DEBUG
+        fprintf(stderr, "thread declaration\n");
+        #endif
+        threadtab_insert(tb, create_thread_data($2, size));
+      }
 
-      $$ = (void *) ast_create_array_leaf( $1, size, t, st, cur_scope, yylineno );
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
+      $$ = (void *) ast_create_array_leaf($2, size, t, st, cur_scope, yylineno );
     }
+  | IDENTIFIER LBRACK IDENTIFIER RBRACK
+    {
+      char *size = $4;
+      symtab_entry *se = symtab_lookup(st, $1, cur_scope);
+     
+      if(se == NULL){
+        snprintf(errmsg, sizeof errmsg, 
+          "identifier %s not found: line %d", (char *) $1, yylineno);
+        yyerror(errmsg);
+        memset(errmsg, 0, sizeof errmsg);
+        exit(1);
+      }
+      
+      ast_type it = symtab_entry_get_type(se);
+      if ( it == AST_CHAR ) {
+        t = (ast_type) AST_CHARARRAY;
+      } else if ( it == AST_INT  ) {
+        t = (ast_type) AST_INTARRAY;
+      } else if ( it == AST_THREAD ) {
+        t = (ast_type) AST_THREADARRAY;
+        #ifdef PARSER_DEBUG
+        fprintf(stderr, "thread declaration\n");
+        #endif
+        threadtab_insert(tb, create_thread_data($2, size));
+      }
+
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
+      $$ = (void *) ast_create_array_leaf($2, size, t, st, cur_scope, yylineno );
+    }  
   ;
 
 type

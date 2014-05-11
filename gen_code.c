@@ -469,6 +469,21 @@ void print_while(ast *a){
 	printf( "\n");
 }
 
+void print_for(ast *a){
+	#ifdef GEN_TEST_DEBUG
+	printf("<printing WHILE>");
+	#endif
+	printf("for (");
+	print_ast(a->data.for_statement.assignment);
+	printf("; ");
+	print_ast(a->data.for_statement.relexpr);
+	printf("; ");
+	print_ast(a->data.for_statement.unary);
+	printf(") \n");
+	print_ast(a->data.for_statement.body);
+	printf("\n");
+}
+
 void print_con(ast *a){
 	#ifdef GEN_TEST_DEBUG
 	printf("<printing IF>");
@@ -573,6 +588,10 @@ void print_ast(ast *a){
 
 		case AST_NODE_WHILE:
 			print_while(a);
+			break;
+
+		case AST_NODE_FOR:
+			print_for(a);
 			break;
 
 		case AST_NODE_SPAWN:

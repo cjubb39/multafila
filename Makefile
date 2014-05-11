@@ -9,6 +9,7 @@ default: small-parser
 SRC	= ast.c							\
 			error_handling.c	\
 			gen_code.c				\
+			locktab.c					\
 			mem_manage.c			\
 			symtab.c					\
 			threadtab.c				\

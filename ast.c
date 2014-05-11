@@ -7,10 +7,12 @@
 #include "include/mem_manage.h"
 #include "include/ast.h"
 #include "include/symtab.h"
+#include "include/locktab.h"
 
 //#define AST_DEBUG
 
 extern heap_list_head *hList;
+extern locktab *lt;
 
 void blank_func(void *a, void *b){return;};
 
@@ -377,6 +379,21 @@ ast **ast_create_node_native_code( ast **a, char *value){
 	return a;
 }
 
+ast **ast_create_node_lock(ast **a, ast_list *children){
+	(*a)->data.lock.body = children->data;
+	(*a)->data.lock.params = children->next;
+
+	/* insert params into locktab */
+	ast_list *tmp = children->next;
+	while (tmp != NULL){
+		assert(tmp->data->node_type == AST_NODE_LEAF);
+		locktab_insert(lt, tmp->data->data.symtab_ptr);
+		tmp = tmp->next;
+	}
+
+	return a;
+}
+
 ast **ast_create_node_return(ast **a, ast_list *children){
 	(*a)->data.ret.value = children->data;
 
@@ -493,6 +510,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children, void *value){
  *	AST_NODE_UNARY:				1-2 character unary op
  *	AST_NODE_NATIVE_CODE:	CODE
  *	AST_NODE_RETURN:			IGNORED
+ *	AST_NODE_LOCK:			IGNORED
  *	
  *	
  *	CHILDREN:
@@ -509,6 +527,7 @@ ast **ast_create_node_stmt(ast **a, ast_list *children, void *value){
  *	AST_NODE_UNARY:			operand
  *	AST_NODE_NATIVE_CODE: IGNORED
  *	AST_NODE_RETURN:			value of return (identifier)
+ *	AST_NODE_LOCK:			body, params
  *	
  *	Returns NULL on error
  */
@@ -582,6 +601,10 @@ ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
 
 		case AST_NODE_RETURN:
 			ast_create_node_return(&new_node, children);
+			break;
+
+		case AST_NODE_LOCK:
+			ast_create_node_lock(&new_node, children);
 			break;
 
 		default:
@@ -675,6 +698,12 @@ void ast_destroy_helper(struct ast_s *tree){
 
 		case AST_NODE_RETURN:
 			ast_destroy_helper(tree->data.ret.value);
+			break;
+
+		case AST_NODE_LOCK:
+			ast_destroy_helper(tree->data.lock.body);
+			ast_destroy_helper_ast_list(tree->data.lock.params);
+			break;
 
 		default:
 			assert(1);
@@ -763,11 +792,11 @@ void ast_walker(struct ast_s *ast_to_walk, void * ptr,
 			break;
 
 		case AST_NODE_FUNCTION_CALL:
-			//ast_list_func(ast_to_walk->data.func_call.arguments, ptr);
-			//ast_walker_ast_list_helper(ast_to_walk->data.func_call.arguments, ptr, ast_func, ast_list_func, leaf_func);
+			ast_list_func(ast_to_walk->data.func_call.arguments, ptr);
+			ast_walker_ast_list_helper(ast_to_walk->data.func_call.arguments, ptr, ast_func, ast_list_func, leaf_func);
 			/////////////////////////////////////////////////////////
-			ast_func(ast_to_walk->data.func_call.arguments->data, ptr);
-			ast_walker(ast_to_walk->data.func_call.arguments->data, ptr, ast_func, ast_list_func, leaf_func);
+			//ast_func(ast_to_walk->data.func_call.arguments->data, ptr);
+			//ast_walker(ast_to_walk->data.func_call.arguments->data, ptr, ast_func, ast_list_func, leaf_func);
 
 			break;
 
@@ -819,6 +848,14 @@ void ast_walker(struct ast_s *ast_to_walk, void * ptr,
 			ast_walker(ast_to_walk->data.unary.operand, ptr, ast_func, ast_list_func, leaf_func);
 			break;
 
+		case AST_NODE_LOCK:
+			ast_func(ast_to_walk->data.lock.body, ptr);
+			ast_walker(ast_to_walk->data.lock.body, ptr, ast_func, ast_list_func, leaf_func);
+
+			ast_list_func(ast_to_walk->data.lock.params, ptr);
+			ast_walker_ast_list_helper(ast_to_walk->data.lock.params, ptr, ast_func, ast_list_func, leaf_func);
+			break;
+
 		case AST_NODE_NATIVE_CODE:
 			/* no action */
 			break;
@@ -836,6 +873,7 @@ ast *ast_insert_native_code(ast *cur, ast *new){
 
 	ast_list *new_body = NULL;
 	ast_list *new_next = NULL;
+	ast *new_statement;
 
 	switch(cur->node_type){
 		case(AST_NODE_FUNCTION_DEF):
@@ -847,12 +885,27 @@ ast *ast_insert_native_code(ast *cur, ast *new){
 			new_next->data = cur->data.func_def.body;
 			new_next->next = NULL;
 
-			ast *new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
+			new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
 			cur->data.func_def.body = new_statement;
 			to_ret = cur;
 			break;
 
+		case AST_NODE_STATEMENT:
+			heap_list_malloc(hList, new_body);
+			heap_list_malloc(hList, new_next);
+
+			new_body->data = new;
+			new_body->next = new_next;
+			new_next->data = cur->data.stmt.body;
+			new_next->next = NULL;
+
+			new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
+			cur->data.stmt.body = new_statement;
+			to_ret = cur;
+			break;
+
 		default:
+			assert(1);
 			break;
 	}
 

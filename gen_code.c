@@ -117,7 +117,7 @@ void print_locktab(locktab *lt, ast *a){
 	}
 	strcat(buffer, "}\n");
 
-	ast *native = ast_add_internal_node(buffer, NULL, AST_NODE_NATIVE_CODE, NULL, NULL);
+	ast *native = ast_add_internal_node(buffer, NULL, AST_NODE_NATIVE_CODE, NULL, NULL, 0);
 
 	/* insert native code into main */
 	assert(a->node_type == AST_NODE_FUNCTION_LIST);
@@ -202,7 +202,7 @@ void print_threadtab_func(ast *a){
 		args_struct = args_struct->next;
 	}
 
-	ast *native = ast_add_internal_node(buffer, NULL, AST_NODE_NATIVE_CODE, NULL, NULL);
+	ast *native = ast_add_internal_node(buffer, NULL, AST_NODE_NATIVE_CODE, NULL, NULL, 0);
 
 	ast_insert_native_code(a, native);
 

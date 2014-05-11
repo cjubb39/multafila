@@ -46,6 +46,7 @@ typedef struct ast_s {
 	scope *containing_scope;
 	unsigned int flag;
 	int arraysize;
+	int lineno;
 
 	union {
 		/* for literal values */
@@ -96,9 +97,9 @@ typedef struct ast_list_s ast_list;
  *	Create leaft note with value and type given in the given scope
  *	Returns NULL on error
  */
-ast *ast_create_leaf (char *value, ast_type type, symtab*, scope* cur_scope);
+ast *ast_create_leaf (char *value, ast_type type, symtab*, scope* cur_scope, int lineno);
 
-ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope* cur_scope);
+ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope* cur_scope, int lineno);
 
 /*
  *	Add internal (non-leaf) node to ast
@@ -143,7 +144,7 @@ ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab*, scope
  *	
  *	Returns NULL on error
  */
-ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type, symtab *, scope* cur_scope);
+ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type, symtab *, scope* cur_scope, int lineno);
 
 /*
  *	Return ast_type of node

@@ -77,7 +77,8 @@ struct ast_spawn_var_ptr{
  	return a;
  }
 
- ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *cur_scope) {
+ ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table,
+ 		scope *cur_scope, int lineno) {
  	//assert(value != NULL);
  	assert(type != AST_NULL);
  	assert(symbol_table != NULL);
@@ -90,6 +91,7 @@ struct ast_spawn_var_ptr{
  	new_leaf->flag = 0;
  	new_leaf->node_type = AST_NODE_LEAF;
  	new_leaf->type = type;
+ 	new_leaf->lineno = lineno;
  	new_leaf->containing_scope = cur_scope;
 	new_leaf->data.convert_to_ptr = 0; /* default no change */
 
@@ -130,7 +132,7 @@ struct ast_spawn_var_ptr{
 		case AST_INTARRAY:
 		case AST_THREADARRAY:
 	 		free(new_leaf);
-	 		new_leaf = ast_create_array_leaf(value, -1, type, symbol_table, cur_scope);
+	 		new_leaf = ast_create_array_leaf(value, -1, type, symbol_table, cur_scope, lineno);
 	 		break;
 
  		default:
@@ -166,7 +168,8 @@ struct ast_spawn_var_ptr{
  	return a;
  }
 
- ast *ast_create_array_leaf (char *value, int size, ast_type type, symtab *symbol_table, scope *cur_scope) {
+ ast *ast_create_array_leaf (char *value, int size, ast_type type, 
+ 		symtab *symbol_table, scope *cur_scope, int lineno) {
  	assert(value != NULL);
 	//assert(size != 0);
  	assert(type != AST_NULL);
@@ -180,6 +183,7 @@ struct ast_spawn_var_ptr{
 	new_leaf->flag=0;
  	new_leaf->node_type = AST_NODE_LEAF;
  	new_leaf->type = type;
+ 	new_leaf->lineno = lineno;
  	new_leaf->containing_scope = cur_scope;
  	new_leaf->data.convert_to_ptr=0;
 
@@ -357,7 +361,7 @@ struct ast_spawn_var_ptr{
  	arguments->next = NULL;
 
  	ast *new_func = ast_add_internal_node(func_name, body, AST_NODE_FUNCTION_DEF,
- 		st, cur_scope);
+ 		st, cur_scope, (*a)->lineno);
 
  	new_func->data.func_def.thread_generated = 1;
  	new_func->data.func_def.convert_to_ptr = 1;
@@ -452,7 +456,7 @@ struct ast_spawn_var_ptr{
 	    unary_operand->data = increment_ident;
 	    unary_operand->next = NULL;
 
-	    ast *unary = ast_add_internal_node("++", unary_operand, AST_NODE_UNARY, st, cur_scope );
+	    ast *unary = ast_add_internal_node("++", unary_operand, AST_NODE_UNARY, st, cur_scope, (*a)->lineno );
 
 	    ast_list *u_stmt;
       ast_list *u_stmt_n;
@@ -464,7 +468,7 @@ struct ast_spawn_var_ptr{
       u_stmt_n->data = NULL;
       u_stmt_n->next = NULL;
       
-      ast *unary_stmt = ast_add_internal_node(NULL, u_stmt, AST_NODE_STATEMENT, st, cur_scope);
+      ast *unary_stmt = ast_add_internal_node(NULL, u_stmt, AST_NODE_STATEMENT, st, cur_scope, (*a)->lineno);
 
 
 			/* body is body of statement; args is thread ident */
@@ -477,7 +481,7 @@ struct ast_spawn_var_ptr{
       body->next = args;
       args->data = t_ident;
       args->next = (ast_list *) td;
-      ast* spawn = ast_add_internal_node((char *) increment_ident, body, AST_NODE_SPAWN, st, cur_scope);
+      ast* spawn = ast_add_internal_node((char *) increment_ident, body, AST_NODE_SPAWN, st, cur_scope, (*a)->lineno);
       //spawn->data.spawn.vars.counter = increment_ident;
 
 	    /* combine statements */
@@ -491,7 +495,7 @@ struct ast_spawn_var_ptr{
       stmt_n->data = unary_stmt;
       stmt_n->next = NULL;
       
-      ast *stmt_ast = ast_add_internal_node(NULL, stmt, AST_NODE_STATEMENT, st, cur_scope);
+      ast *stmt_ast = ast_add_internal_node(NULL, stmt, AST_NODE_STATEMENT, st, cur_scope, (*a)->lineno);
 
       ast_list *wrapper_stmt;
       ast_list *wrapper_stmt_n;
@@ -504,7 +508,7 @@ struct ast_spawn_var_ptr{
       wrapper_stmt_n->next = NULL;
       
       ast *wrapper_stmt_ast = 
-      	ast_add_internal_node(NULL, wrapper_stmt, AST_NODE_STATEMENT, st, cur_scope);
+      	ast_add_internal_node(NULL, wrapper_stmt, AST_NODE_STATEMENT, st, cur_scope, (*a)->lineno);
 
       if (hold_stmt != NULL) {
       	hold_stmt->data.stmt.next = wrapper_stmt_ast;
@@ -518,7 +522,7 @@ struct ast_spawn_var_ptr{
 		}
 
 		/* add barrier node to end of statement list */
-		ast *barrier_node = ast_add_internal_node(NULL, NULL, AST_NODE_BARRIER, st, cur_scope);
+		ast *barrier_node = ast_add_internal_node(NULL, NULL, AST_NODE_BARRIER, st, cur_scope, (*a)->lineno);
 
 		ast_list *b_stmt;
     ast_list *b_stmt_n;
@@ -530,13 +534,13 @@ struct ast_spawn_var_ptr{
     b_stmt_n->data = NULL;
     b_stmt_n->next = NULL;
     
-    ast *barrier_stmt = ast_add_internal_node(NULL, b_stmt, AST_NODE_STATEMENT, st, cur_scope);
+    ast *barrier_stmt = ast_add_internal_node(NULL, b_stmt, AST_NODE_STATEMENT, st, cur_scope, (*a)->lineno);
 
     hold_stmt->data.stmt.next = barrier_stmt;
 
     /* add assignment of counter to top of statement list */
     ast *assign_index = i_ident; 
-		ast *assign_init_count = ast_create_leaf(value, AST_INTLITERAL, st, cur_scope);
+		ast *assign_init_count = ast_create_leaf(value, AST_INTLITERAL, st, cur_scope, (*a)->lineno);
 
 		ast_list *assign_l, *assign_r;
 		heap_list_malloc(hList, assign_l);
@@ -545,7 +549,7 @@ struct ast_spawn_var_ptr{
 		assign_l->next = assign_r;
 		assign_r->data = assign_init_count;
 		assign_r->next = NULL;
-		ast *assignment = ast_add_internal_node("=", assign_l, AST_NODE_BINARY, st, cur_scope);
+		ast *assignment = ast_add_internal_node("=", assign_l, AST_NODE_BINARY, st, cur_scope, (*a)->lineno);
 
 		ast_list *a_stmt;
     ast_list *a_stmt_n;
@@ -557,7 +561,7 @@ struct ast_spawn_var_ptr{
     a_stmt_n->data = top_spawn_stmt;
     a_stmt_n->next = NULL;
     
-    ast *assign_stmt = ast_add_internal_node(NULL, a_stmt, AST_NODE_STATEMENT, st, cur_scope);
+    ast *assign_stmt = ast_add_internal_node(NULL, a_stmt, AST_NODE_STATEMENT, st, cur_scope, (*a)->lineno);
 
     /* put whole thing inside braces */
     (*a)->data.stmt.body = assign_stmt;
@@ -736,7 +740,7 @@ struct ast_spawn_var_ptr{
  *	Returns NULL on error
  */
  ast *ast_add_internal_node (char *value, ast_list *children, ast_node_type type,
- 	symtab *symbol_table, scope *cur_scope){
+ 	symtab *symbol_table, scope *cur_scope, int lineno){
  	assert(children != NULL || type == AST_NODE_BARRIER || type == AST_NODE_NATIVE_CODE);
  	ast *new_node;
  	malloc_checked(new_node);
@@ -750,6 +754,7 @@ struct ast_spawn_var_ptr{
  	new_node->type = AST_NULL;
  	new_node->node_type = type;
  	new_node->containing_scope = cur_scope;
+ 	new_node->lineno = lineno;
 
  	switch(type){
  		case AST_NODE_BINARY:
@@ -1124,7 +1129,7 @@ struct ast_spawn_var_ptr{
 	 		new_next->data = cur->data.func_def.body;
 	 		new_next->next = NULL;
 
-	 		new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
+	 		new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL, new->lineno);
 	 		cur->data.func_def.body = new_statement;
 	 		to_ret = cur;
 	 		break;
@@ -1138,7 +1143,7 @@ struct ast_spawn_var_ptr{
 	 		new_next->data = cur->data.stmt.body;
 	 		new_next->next = NULL;
 
-	 		new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
+	 		new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL, new->lineno);
 	 		cur->data.stmt.body = new_statement;
 	 		to_ret = cur;
 	 		break;

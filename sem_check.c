@@ -128,8 +128,7 @@ void check_func_def(ast *a, symtab *st){
 void check_func_call(ast *a, symtab *st){
 	// check that function exists in the symbol table 
 	// get symbol name
-	symtab_entry *s = a->data.func_call.func_symtab;
-	char *name = symtab_entry_get_name(s);
+	char *name = a->data.func_call.name;
 	symtab_entry *lookup = symtab_lookup(st, name, a->containing_scope);
 
 	// check the return type matches the declaration type

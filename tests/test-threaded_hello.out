@@ -2,6 +2,9 @@
 /*==========OUTPUT CODE BELOW==========*/
 #include <stdio.h>
 #include <pthread.h>
+typedef int mf_bool;
+#define mf_true 1; 
+#define mf_false 0; 
 void printOut(char *m){printf("%s\n", m);}
 void printInt(int m){printf("%d\n", m);}
 

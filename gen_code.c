@@ -348,7 +348,7 @@ void print_func_call(ast *a){
 	printf("<printing FUNC_CALL>");
 	#endif
 
-	printf( "%s( ", a->data.func_call.func_symtab->name);
+	printf( "%s( ", a->data.func_call.name);
 
 	struct ast_list_s *tmp = a->data.func_call.arguments;
 	while (tmp != NULL){

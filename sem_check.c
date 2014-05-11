@@ -143,7 +143,7 @@ void check_func_call(ast *a, symtab *st){
 
 	// check the return type matches the declaration type
 	if (lookup == NULL) {
-		printf("function used without being declared\n");
+		fprintf(stderr, "function used without being declared\n");
 		errorcount++;
 	}
 	// check that the arguments in the function call match the declared function
@@ -158,7 +158,7 @@ void check_func_call(ast *a, symtab *st){
 		struct ast_list_s *args = a->data.func_call.arguments;
 
 		if (arglist_compare(declaredargs->head, args) != 1) {
-			printf("argument types do not match function declaration\n");
+			fprintf(stderr, "argument types do not match function declaration\n");
 			errorcount++;
 		}
 	}
@@ -172,7 +172,7 @@ void check_return(ast* a){
 		ast_type function_type = symtab_entry_get_type(function_def_node->data.func_def.func_symtab);
 
 		if(!are_equivalent(return_type, function_type)){
-			printf("return type does not match with function type\n");
+			fprintf(stderr, "return type does not match with function type\n");
 			errorcount++;
 		}
 }
@@ -182,7 +182,7 @@ void check_spawn(ast *a, symtab *st){
 	symtab_entry *s = param->data.symtab_ptr;
 	char *name = s->name;
 	if (symtab_lookup(st, name, a->containing_scope) == NULL) {
-		printf("cannot spawn an undeclared thread\n");
+		fprintf(stderr,"cannot spawn an undeclared thread\n");
 		errorcount++;
 	}
 	ast *spawnbody = a->data.spawn.body;
@@ -196,7 +196,7 @@ void check_lock(ast *a, symtab *st){
 	symtab_entry *s = curparam->data.symtab_ptr;
 	char *name = s->name;
 	if(symtab_lookup(st, name, curparam->containing_scope) == NULL){
-		printf("cannot lock an undeclared variable\n");
+		fprintf(stderr,"cannot lock an undeclared variable\n");
 		errorcount++;		
 	}
 
@@ -206,7 +206,7 @@ void check_lock(ast *a, symtab *st){
 		symtab_entry *s = nextparam->data->data.symtab_ptr;
 		char *name = s->name;
 		if(symtab_lookup(st, name, nextparam->data->containing_scope) == NULL){
-			printf("cannot lock an undeclared variable\n");
+			fprintf(stderr,"cannot lock an undeclared variable\n");
 			errorcount++;		
 		}
 		nextparam = nextparam->next;
@@ -235,7 +235,7 @@ ast_type check_bin(ast *a, symtab *st){
 		/* check func return type, see if it matches lvalue */
 		ast_type t3 = symtab_entry_get_type(s);
 		if (are_equivalent(t1, t3) != 0){
-			printf("return type does not match declaration\n");
+			fprintf(stderr, "return type does not match declaration\n");
 			errorcount++;
 		}
 	}
@@ -263,7 +263,7 @@ ast_type check_bin(ast *a, symtab *st){
 		t2 =right_side_evaled_type;
 	}
 	if (are_equivalent(t1, t2) == 0){
-		printf("binary node error, type mismatch\n");
+		fprintf(stderr, "binary node error, type mismatch\n");
 		errorcount++;
 	}
 		
@@ -276,7 +276,7 @@ void check_unary(ast *a){
 	ast_type t = symtab_entry_get_type(s);
 
 	if( t != AST_INT){
-		printf("unary operator error, not an integer\n");
+		fprintf(stderr, "unary operator error, not an integer\n");
 		errorcount++;
 	}
 }
@@ -338,7 +338,6 @@ void check_stmt_level(ast *a, symtab *st){
 	//ast_type t = ast_get_type(body);
 	// if (t == AST_NULL){
 	 	ast_node_type t2n = ast_get_node_type(body);
-	 	printf("{%d}\n", t2n);
 		switch(t2n){
 
 		case AST_NODE_BINARY:
@@ -431,9 +430,9 @@ int sem_check(ast *a, symtab *st){
 	check_ast(a, st);
 
 	if(errorcount == 0){
-		printf("clean of semantic error \n");
+		fprintf(stderr,"clean of semantic error \n");
 	}else{
-		printf("%d semantic error found \n", errorcount);
+		fprintf(stderr,"%d semantic error found \n", errorcount);
 	}
 
 	return errorcount;

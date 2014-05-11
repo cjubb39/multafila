@@ -18,7 +18,7 @@
 #include "include/y.tab.h"
 
 #define MAX_MSG_LEN 50
-#define YYDEBUG 1
+#define YYDEBUG 0
 
 //#define PARSER_DEBUG
 
@@ -32,7 +32,7 @@ extern char *yytext;
 extern FILE *yyin;
 extern FILE *yyout;
 extern int yyparse();
-extern int lineno;
+extern int yylineno;
 
 int t;
 symtab *st;
@@ -300,7 +300,7 @@ statement
     }
   | conditional_statement
     {
-      fprintf(stderr, "STATEMENT 3: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | declaration SEMI
     {
@@ -355,7 +355,7 @@ loop_statement
     }
   | for_statement
     {
-      fprintf(stderr, "LOOP STATEMENT 2: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | pfor_statement
     {
@@ -752,7 +752,15 @@ type
 ident
   : IDENTIFIER
     {
-      ast_type t = symtab_entry_get_type(symtab_lookup(st, $1, cur_scope));
+      symtab_entry *se = symtab_lookup(st, $1, cur_scope);
+     
+      if(se == NULL){
+        snprintf(errmsg, sizeof errmsg, 
+          "identifier %s not found: line %d\n", (char *) $1, yylineno);
+        yyerror(errmsg);
+      }
+      
+      ast_type t = symtab_entry_get_type(se);
       $$ = (void *) ast_create_leaf( $1, t, st, cur_scope );
     }
   ;

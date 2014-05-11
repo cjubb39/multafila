@@ -1,94 +1,112 @@
-# bash
-obj="./mulf -t"
-log="test-log.log"
+#!/bin/bash
+
+MULTAFILA="./small-parser "
+
+# Set time limit for all operations
+ulimit -t 30
+
+globallog=testall.log
+rm -f $globallog
 error=0
+globalerror=0
 
-rm -f $log
+keep=0
 
-Usage(){
-    echo "Usage: testall.sh [options] [.mulf files]"      
-        echo "-h    Print this help"
-        exit 1
+Usage() {
+    echo "Usage: testall.sh [options] [.mulf files]"
+    echo "-k    Keep intermediate files"
+    echo "-h    Print this help"
+    exit 1
 }
 
+SignalError() {
+    if [ $error -eq 0 ] ; then
+	echo "FAILED"
+	error=1
+    fi
+    echo "  $1"
+}
+
+# Compare <outfile> <reffile> <difffile>
+# Compares the outfile with reffile.  Differences, if any, written to difffile
 Compare() {
-    
-    diff -b $1 $2  1>&2
-    diff -b "$1" "$2" > "$3" 2>&1 || {  
-    error=1
-    echo "FAILED $1 differs from $2" 1>&2
+    generatedfiles="$generatedfiles $3"
+    echo diff -b $1 $2 ">" $3 1>&2
+    diff -b "$1" "$2" > "$3" 2>&1 || {
+	SignalError "$1 differs"
+	echo "FAILED $1 differs from $2" 1>&2
     }
 }
 
-Run(){
+# Run <args>
+# Report the command, run it, and report any errors
+Run() {
     echo $* 1>&2
-        eval $* || {
-        echo "Test case failed on $*" 1>&2
-        
-        if [ $error -eq 0 ]  
-            then error=1
-        fi
-        return 1
-        }
+    eval $* || {
+	SignalError "$1 failed on $*"
+	return 1
+    }
 }
 
-Check(){
-    casename=`echo $1 | sed 's/.*\///
+Check() {
+    error=0
+    basename=`echo $1 | sed 's/.*\\///
                              s/.mulf//'`
-     reffile=`echo $1 | sed 's/.mulf$/.out/'`
+    reffile=`echo $1 | sed 's/.mulf$//'`
+    basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
+
+    echo -n "$basename..."
+
+    echo 1>&2
+    echo "###### Testing $basename" 1>&2
+
+    generatedfiles=""
+
+    generatedfiles="$generatedfiles ${basename}.out" &&
+    Run "$MULTAFILA" $@ ">" ${basename}.out &&
+    Compare ${basename}.out ${reffile}.out ${basename}.diff
+
     
+    # Report the status and clean up the generated files
 
-
-    echo 1>&2   
-    echo "========= Test Case $casename===========================================" 1>&2
-
-
-    outfile=$casename.out
-    
-    Run $obj $1 1>&2
-
-    if [ $error -eq 0 ]
-    then
-        echo "PASSED!" 1>&2
-        echo "$casename PASSED =============>Expected to Pass"
-        else
-        echo "FAILED!" 1>&2
-        echo "$casename FAILED =============>Expected to Pass"
-    
-        fi
-    rm -f $outfile $casename.out.diff
+    if [ $error -eq 0 ] ; then
+	if [ $keep -eq 0 ] ; then
+	    rm -f $generatedfiles
+	fi
+	echo "OK"
+	echo "###### SUCCESS" 1>&2
+    else
+	echo "###### FAILED" 1>&2
+	globalerror=$error
+    fi
 }
 
-while getopts h opt
-do
-    case $opt in
-     h) # print usage
-        Usage;;
+while getopts kdpsh c; do
+    case $c in
+	k) # Keep intermediate files
+	    keep=1
+	    ;;
+	h) # Help
+	    Usage
+	    ;;
     esac
 done
 
-# digest options
 shift `expr $OPTIND - 1`
 
+files="tests/test-*.mulf"
 
-if [ $# -ge 1 ]
-then    files=$@
-else 
-    files="tests/*.mulf"
-fi
-
-date>>$log
-echo >>$log
-    
 for file in $files
 do
-     case $file in
-    *test-*)
-        Check $file 2>>$log;;
-    *)
-        echo "$file =============>NOT CHECKED";;
-     esac
-    error=0;        
+    case $file in
+	*test-*)
+	    Check $file $@ 2>> $globallog
+	    ;;
+	*)
+	    echo "unknown file type $file"
+	    globalerror=1
+	    ;;
+    esac
 done
 
-exit 0 
+exit $globalerror

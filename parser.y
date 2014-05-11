@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "include/global_config.h"
 #include "include/error_handling.h"
 #include "include/mem_manage.h"
@@ -148,8 +149,7 @@ func_call
       ast_list *children;
       heap_list_malloc(hList, children);
 
-      children->data = (ast *) $3;
-      children->next = NULL;
+      children = (ast_list *) $3;
       $$ = (void *) ast_add_internal_node( $1, children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
   | IDENTIFIER LPAREN RPAREN
@@ -192,15 +192,22 @@ arg_list
 param_list
   : ident
     {
-      $$ = $1;
-    }
-  | param_list COMMA param_list
-    {
       ast_list *firstparam;
       heap_list_malloc(hList, firstparam);
-
       firstparam->data = (ast *) $1;
+      firstparam->next = NULL;
+
+      $$ = (void *) firstparam;
+    }
+  | ident COMMA param_list
+    {
+      ast *leaf = (ast *) $1;
+
+      ast_list *firstparam;
+      heap_list_malloc(hList, firstparam);
+      firstparam->data = leaf;
       firstparam->next = (ast_list *) $3;
+
       $$ = (void *) firstparam;
     }
   | array
@@ -209,7 +216,12 @@ param_list
     }
   | literal
     {
-      $$ = $1;
+      ast_list *firstparam;
+      heap_list_malloc(hList, firstparam);
+      firstparam->data = (ast *) $1;
+      firstparam->next = NULL;
+
+      $$ = (void *) firstparam;
     }
   ;
 

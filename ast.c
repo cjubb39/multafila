@@ -96,7 +96,7 @@ struct ast_spawn_var_ptr{
  }
 
  ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *cur_scope) {
- 	assert(value != NULL);
+ 	//assert(value != NULL);
  	assert(type != AST_NULL);
  	assert(symbol_table != NULL);
  	assert(cur_scope != NULL);
@@ -111,34 +111,38 @@ struct ast_spawn_var_ptr{
  	new_leaf->containing_scope = cur_scope;
 	new_leaf->data.convert_to_ptr = 0; /* default no change */
 
+ 	if (value == NULL){
+ 		return new_leaf;
+ 	}
+
  	switch(type){
  		case AST_STRINGLITERAL:
- 		ast_create_leaf_sl(&new_leaf, value);
- 		break;
+	 		ast_create_leaf_sl(&new_leaf, value);
+	 		break;
 
  		case AST_STRING:
- 		ast_create_leaf_string(&new_leaf, value, symbol_table, cur_scope);
- 		break;
+	 		ast_create_leaf_string(&new_leaf, value, symbol_table, cur_scope);
+	 		break;
 
  		case AST_INT:
- 		ast_create_leaf_int(&new_leaf, value, symbol_table, cur_scope );
- 		break;
+	 		ast_create_leaf_int(&new_leaf, value, symbol_table, cur_scope );
+	 		break;
 
  		case AST_INTLITERAL:
- 		ast_create_leaf_il(&new_leaf, value);
- 		break;
+	 		ast_create_leaf_il(&new_leaf, value);
+	 		break;
 
  		case AST_CHAR:
- 		ast_create_leaf_char(&new_leaf, value, symbol_table, cur_scope );
- 		break;
+	 		ast_create_leaf_char(&new_leaf, value, symbol_table, cur_scope );
+	 		break;
 
  		case AST_CHARLITERAL:
- 		ast_create_leaf_cl(&new_leaf, value);
- 		break;
+	 		ast_create_leaf_cl(&new_leaf, value);
+	 		break;
 
  		case AST_THREAD:
- 		ast_create_leaf_thread(&new_leaf, value, symbol_table, cur_scope );
- 		break;
+	 		ast_create_leaf_thread(&new_leaf, value, symbol_table, cur_scope );
+	 		break;
 
  		case AST_BOOLEAN:
  		ast_create_leaf_bool(&new_leaf, value, symbol_table, cur_scope );
@@ -151,12 +155,12 @@ struct ast_spawn_var_ptr{
 		case AST_CHARARRAY:
 		case AST_INTARRAY:
 		case AST_THREADARRAY:
- 		free(new_leaf);
- 		new_leaf = ast_create_array_leaf(value, -1, type, symbol_table, cur_scope);
- 		break;
+	 		free(new_leaf);
+	 		new_leaf = ast_create_array_leaf(value, -1, type, symbol_table, cur_scope);
+	 		break;
 
  		default:
- 		break;
+ 			break;
  	}
 
 	#ifdef AST_DEBUG
@@ -328,19 +332,19 @@ struct ast_spawn_var_ptr{
  	switch(a->node_type){
  		case AST_NODE_BINARY:
 			//ast_spawn_add_old_var(a->data.bin.left, vars);
- 		break;
+ 			break;
 
  		case AST_NODE_DECLARATION:
- 		ast_spawn_add_new_var(a->data.dec.var, vars);
- 		break;
+	 		ast_spawn_add_new_var(a->data.dec.var, vars);
+	 		break;
 
  		case AST_NODE_LEAF:
- 		ast_spawn_add_old_var(a, vars, spawn);
- 		break;
+	 		ast_spawn_add_old_var(a, vars, spawn);
+	 		break;
 
 
  		default:
- 		break;
+ 			break;
  	}
  }
 
@@ -366,7 +370,7 @@ struct ast_spawn_var_ptr{
 	/* prepare function call */
  	char func_name[MAX_IDENT_LENGTH + 1];
  	snprintf(func_name, sizeof func_name, SPAWN_FUNC_FORMAT, td->offset);
- 	symtab_insert(st, func_name, AST_VOID_STAR, ST_STATIC_DEC);
+ 	symtab_insert(st, func_name, AST_VOID_STAR, ST_STATIC_DEC, NULL);
 
  	ast_list *body;
  	ast_list *arguments;
@@ -682,9 +686,12 @@ struct ast_spawn_var_ptr{
 	ast **ast_create_node_func_call(ast **a, ast_list *children, char *name,
 		symtab *symbol_table, scope *cur_scope){
 		(*a)->data.func_call.arguments = children;
-		(*a)->data.func_call.func_symtab = symtab_lookup(symbol_table, name, cur_scope);
 
-		(*a)->type = symtab_entry_get_type((*a)->data.func_call.func_symtab);
+		strncpy((*a)->data.func_call.name, name, MAX_IDENT_LENGTH);
+		(*a)->data.func_call.name[MAX_IDENT_LENGTH] = '\0';
+		//(*a)->data.func_call.func_symtab = symtab_lookup(symbol_table, name, cur_scope);
+
+		//(*a)->type = symtab_entry_get_type((*a)->data.func_call.func_symtab);
 
 	#ifdef AST_DEBUG
 		fprintf(stderr, "created func call node with child %p address\n",
@@ -772,74 +779,74 @@ struct ast_spawn_var_ptr{
 
  	switch(type){
  		case AST_NODE_BINARY:
- 		assert(strlen(value) < 3);
- 		ast_create_node_binary(&new_node, value, children);
- 		break;
+	 		assert(strlen(value) < 3);
+	 		ast_create_node_binary(&new_node, value, children);
+	 		break;
 
  		case AST_NODE_DECLARATION:
- 		ast_create_node_dec(&new_node, children);
- 		break;
+	 		ast_create_node_dec(&new_node, children);
+	 		break;
 
  		case AST_NODE_FUNCTION_DEF:
- 		ast_create_node_func_def(&new_node, children, value, symbol_table, cur_scope);
- 		break;
+	 		ast_create_node_func_def(&new_node, children, value, symbol_table, cur_scope);
+	 		break;
 
  		case AST_NODE_FUNCTION_CALL:
- 		ast_create_node_func_call(&new_node, children, value, symbol_table, cur_scope);
- 		break;
+	 		ast_create_node_func_call(&new_node, children, value, symbol_table, cur_scope);
+	 		break;
 
  		case AST_NODE_STATEMENT:
- 		ast_create_node_stmt(&new_node, children, value);
- 		break;
+	 		ast_create_node_stmt(&new_node, children, value);
+	 		break;
 
  		case AST_NODE_FUNCTION_LIST:
- 		ast_create_node_func_list(&new_node, children);
- 		break;
+	 		ast_create_node_func_list(&new_node, children);
+	 		break;
 
  		case AST_NODE_CONDITIONAL:
- 		ast_create_node_conditional(&new_node, children);
- 		break;
+	 		ast_create_node_conditional(&new_node, children);
+	 		break;
 
  		case AST_NODE_WHILE:
- 		ast_create_node_while(&new_node, children );
- 		break;
+	 		ast_create_node_while(&new_node, children );
+	 		break;
 
  		case AST_NODE_SPAWN:
- 		ast_create_node_spawn(&new_node, children, (ast*) value,
- 			symbol_table, cur_scope);
- 		break;
+	 		ast_create_node_spawn(&new_node, children, (ast*) value,
+	 			symbol_table, cur_scope);
+	 		break;
 
  		case AST_NODE_BARRIER:
- 		ast_create_node_barrier(&new_node, symbol_table);
- 		break;
+	 		ast_create_node_barrier(&new_node, symbol_table);
+	 		break;
 
  		case AST_NODE_UNARY:
- 		assert(strlen(value) < 3);
- 		ast_create_node_unary(&new_node, value, children );
- 		break;
+	 		assert(strlen(value) < 3);
+	 		ast_create_node_unary(&new_node, value, children );
+	 		break;
 
  		case AST_NODE_NATIVE_CODE:
- 		ast_create_node_native_code(&new_node, value);
- 		break;
+	 		ast_create_node_native_code(&new_node, value);
+	 		break;
 
  		case AST_NODE_RETURN:
- 		ast_create_node_return(&new_node, children);
- 		break;
+	 		ast_create_node_return(&new_node, children);
+	 		break;
 
  		case AST_NODE_LOCK:
- 		ast_create_node_lock(&new_node, children);
- 		break;
+	 		ast_create_node_lock(&new_node, children);
+	 		break;
 
  		case AST_NODE_FOR:
- 		ast_create_node_for(&new_node, children);
- 		break;
+	 		ast_create_node_for(&new_node, children);
+	 		break;
 
  		case AST_NODE_PFOR:
- 		ast_create_node_pfor(&new_node, children, value, symbol_table, cur_scope);
- 		break;
+	 		ast_create_node_pfor(&new_node, children, value, symbol_table, cur_scope);
+	 		break;
 
  		default:
- 		break;
+ 			break;
  	}
 
  	return new_node;
@@ -874,87 +881,88 @@ struct ast_spawn_var_ptr{
 
 
  		case AST_NODE_BINARY:
- 		ast_destroy_helper(tree->data.bin.left);
- 		ast_destroy_helper(tree->data.bin.right);
- 		break;
+	 		ast_destroy_helper(tree->data.bin.left);
+	 		ast_destroy_helper(tree->data.bin.right);
+	 		break;
 
  		case AST_NODE_DECLARATION:
- 		ast_destroy_helper(tree->data.dec.var);
- 		break;
+	 		ast_destroy_helper(tree->data.dec.var);
+	 		break;
 
  		case AST_NODE_FUNCTION_DEF:
- 		ast_destroy_helper_func_def(tree);
- 		break;
+	 		ast_destroy_helper_func_def(tree);
+	 		break;
 
  		case AST_NODE_FUNCTION_CALL:
- 		ast_destroy_helper_ast_list(tree->data.func_call.arguments);
- 		break;
+	 		ast_destroy_helper_ast_list(tree->data.func_call.arguments);
+	 		break;
 
  		case AST_NODE_STATEMENT:
- 		ast_destroy_helper(tree->data.stmt.body);
- 		ast_destroy_helper(tree->data.stmt.next);
- 		break;
+	 		ast_destroy_helper(tree->data.stmt.body);
+	 		ast_destroy_helper(tree->data.stmt.next);
+	 		break;
 
  		case AST_NODE_FUNCTION_LIST:
- 		ast_destroy_helper(tree->data.func_list.cur_func);
- 		ast_destroy_helper(tree->data.func_list.next_func);
- 		break;
+	 		ast_destroy_helper(tree->data.func_list.cur_func);
+	 		ast_destroy_helper(tree->data.func_list.next_func);
+	 		break;
 
  		case AST_NODE_CONDITIONAL:
- 		ast_destroy_helper(tree->data.conditional_statement.conditional_statement);
- 		ast_destroy_helper(tree->data.conditional_statement.if_statement);
- 		ast_destroy_helper(tree->data.conditional_statement.else_statement);
- 		break;
+	 		ast_destroy_helper(tree->data.conditional_statement.conditional_statement);
+	 		ast_destroy_helper(tree->data.conditional_statement.if_statement);
+	 		ast_destroy_helper(tree->data.conditional_statement.else_statement);
+	 		break;
 
  		case AST_NODE_WHILE:
- 		ast_destroy_helper(tree->data.while_statement.conditional_statement);
- 		ast_destroy_helper(tree->data.while_statement.body);
- 		break;
+	 		ast_destroy_helper(tree->data.while_statement.conditional_statement);
+	 		ast_destroy_helper(tree->data.while_statement.body);
+	 		break;
 
  		case AST_NODE_SPAWN:
- 		if(tree->data.spawn.native_spawn == 0){
- 			/* this is magic.  please do not change.  */
- 			ast_destroy_helper(tree->data.spawn.body->data.func_def.body->data.stmt.body);
- 			free(tree->data.spawn.body->data.func_def.body);
- 			ast_destroy_helper_ast_list(tree->data.spawn.body->data.func_def.arguments);
- 			free(tree->data.spawn.body);
- 			//free(tree->data.spawn.arguments);
- 			break;
- 		}
- 		ast_destroy_helper(tree->data.spawn.arguments);
- 		ast_destroy_helper(tree->data.spawn.body);
- 		break;
+	 		if(tree->data.spawn.native_spawn == 0){
+	 			/* this is magic.  please do not change.  */
+	 			ast_destroy_helper(tree->data.spawn.body->data.func_def.body->data.stmt.body);
+	 			free(tree->data.spawn.body->data.func_def.body);
+	 			ast_destroy_helper_ast_list(tree->data.spawn.body->data.func_def.arguments);
+	 			free(tree->data.spawn.body);
+	 			//free(tree->data.spawn.arguments);
+	 			break;
+	 		}
+	 		ast_destroy_helper(tree->data.spawn.arguments);
+	 		ast_destroy_helper(tree->data.spawn.body);
+	 		break;
 
  		case AST_NODE_UNARY:
- 		ast_destroy_helper(tree->data.unary.operand);
- 		break;
+	 		ast_destroy_helper(tree->data.unary.operand);
+	 		break;
 
  		case AST_NODE_NATIVE_CODE:
- 		free(tree->data.string);
- 		break;
+	 		free(tree->data.string);
+	 		break;
 
  		case AST_NODE_RETURN:
- 		ast_destroy_helper(tree->data.ret.value);
- 		break;
+	 		ast_destroy_helper(tree->data.ret.value);
+	 		break;
 
  		case AST_NODE_LOCK:
- 		ast_destroy_helper(tree->data.lock.body);
- 		ast_destroy_helper_ast_list(tree->data.lock.params);
- 		break;
+	 		ast_destroy_helper(tree->data.lock.body);
+	 		ast_destroy_helper_ast_list(tree->data.lock.params);
+	 		break;
 
  		case AST_NODE_FOR:
- 		ast_destroy_helper(tree->data.for_statement.assignment);
- 		ast_destroy_helper(tree->data.for_statement.relexpr);
- 		ast_destroy_helper(tree->data.for_statement.unary);
- 		ast_destroy_helper(tree->data.for_statement.body);
- 		break;
+	 		ast_destroy_helper(tree->data.for_statement.assignment);
+	 		ast_destroy_helper(tree->data.for_statement.relexpr);
+	 		ast_destroy_helper(tree->data.for_statement.unary);
+	 		ast_destroy_helper(tree->data.for_statement.body);
+	 		break;
 
  		case AST_NODE_PFOR:
- 		assert(1); /* should be filtered by this point */
- 		break;
+	 		assert(1); /* should be filtered by this point */
+	 		break;
 
  		default:
- 		assert(1);
+ 			assert(1);
+ 			break;
  	}
 
  	free(tree);
@@ -1017,109 +1025,108 @@ struct ast_spawn_var_ptr{
 
  	switch(ast_to_walk->node_type){
  		case AST_NODE_LEAF:
- 		leaf_func(ast_to_walk, ptr, ptr2);
- 		break;
-
+	 		leaf_func(ast_to_walk, ptr, ptr2);
+	 		break;
 
  		case AST_NODE_BINARY:
- 		ast_func(ast_to_walk->data.bin.left, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.bin.left, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		ast_func(ast_to_walk->data.bin.left, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.bin.left, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.bin.right, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.bin.right, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.bin.right, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.bin.right, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_DECLARATION:
- 		ast_func(ast_to_walk->data.dec.var, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.dec.var, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.dec.var, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.dec.var, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_FUNCTION_DEF:
- 		ast_func(ast_to_walk->data.func_def.body, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.func_def.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.func_def.body, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.func_def.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_FUNCTION_CALL:
- 		ast_list_func(ast_to_walk->data.func_call.arguments, ptr, ptr2);
- 		ast_walker_ast_list_helper(ast_to_walk->data.func_call.arguments, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_list_func(ast_to_walk->data.func_call.arguments, ptr, ptr2);
+	 		ast_walker_ast_list_helper(ast_to_walk->data.func_call.arguments, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_STATEMENT:
- 		ast_func(ast_to_walk->data.stmt.body, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.stmt.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		ast_func(ast_to_walk->data.stmt.body, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.stmt.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.stmt.next, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.stmt.next, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.stmt.next, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.stmt.next, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_FUNCTION_LIST:
- 		ast_func(ast_to_walk->data.func_list.cur_func, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.func_list.cur_func, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		ast_func(ast_to_walk->data.func_list.cur_func, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.func_list.cur_func, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.func_list.next_func, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.func_list.next_func, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.func_list.next_func, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.func_list.next_func, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_CONDITIONAL:
- 		ast_func(ast_to_walk->data.conditional_statement.conditional_statement, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.conditional_statement.conditional_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		ast_func(ast_to_walk->data.conditional_statement.conditional_statement, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.conditional_statement.conditional_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.conditional_statement.if_statement, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.conditional_statement.if_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		ast_func(ast_to_walk->data.conditional_statement.if_statement, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.conditional_statement.if_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.conditional_statement.else_statement, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.conditional_statement.else_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.conditional_statement.else_statement, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.conditional_statement.else_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_WHILE:
- 		ast_func(ast_to_walk->data.while_statement.conditional_statement, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.while_statement.conditional_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		ast_func(ast_to_walk->data.while_statement.conditional_statement, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.while_statement.conditional_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.while_statement.body, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.while_statement.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.while_statement.body, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.while_statement.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_SPAWN:
- 		ast_func(ast_to_walk->data.spawn.arguments, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.spawn.arguments, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		ast_func(ast_to_walk->data.spawn.arguments, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.spawn.arguments, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.spawn.body, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.spawn.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.spawn.body, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.spawn.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_UNARY:
- 		ast_func(ast_to_walk->data.unary.operand, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.unary.operand, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.unary.operand, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.unary.operand, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
- 		case AST_NODE_LOCK:
- 		ast_func(ast_to_walk->data.lock.body, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.lock.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		case AST_NODE_LOCK:
+	 		ast_func(ast_to_walk->data.lock.body, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.lock.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_list_func(ast_to_walk->data.lock.params, ptr, ptr2);
- 		ast_walker_ast_list_helper(ast_to_walk->data.lock.params, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_list_func(ast_to_walk->data.lock.params, ptr, ptr2);
+	 		ast_walker_ast_list_helper(ast_to_walk->data.lock.params, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_FOR:
- 		ast_func(ast_to_walk->data.for_statement.assignment, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.for_statement.assignment, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		ast_func(ast_to_walk->data.for_statement.assignment, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.for_statement.assignment, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.for_statement.relexpr, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.for_statement.relexpr, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		ast_func(ast_to_walk->data.for_statement.relexpr, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.for_statement.relexpr, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.for_statement.unary, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.for_statement.unary, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		
- 		ast_func(ast_to_walk->data.for_statement.body, ptr, ptr2);
- 		ast_walker(ast_to_walk->data.for_statement.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
- 		break;
+	 		ast_func(ast_to_walk->data.for_statement.unary, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.for_statement.unary, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		
+	 		ast_func(ast_to_walk->data.for_statement.body, ptr, ptr2);
+	 		ast_walker(ast_to_walk->data.for_statement.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
+	 		break;
 
  		case AST_NODE_NATIVE_CODE:
 			/* no action */
- 		break;
+ 			break;
 
  		default:
- 		assert(1);
+ 			assert(1);
  	}
  }
 
@@ -1135,36 +1142,36 @@ struct ast_spawn_var_ptr{
 
  	switch(cur->node_type){
  		case(AST_NODE_FUNCTION_DEF):
- 		heap_list_malloc(hList, new_body);
- 		heap_list_malloc(hList, new_next);
+	 		heap_list_malloc(hList, new_body);
+	 		heap_list_malloc(hList, new_next);
 
- 		new_body->data = new;
- 		new_body->next = new_next;
- 		new_next->data = cur->data.func_def.body;
- 		new_next->next = NULL;
+	 		new_body->data = new;
+	 		new_body->next = new_next;
+	 		new_next->data = cur->data.func_def.body;
+	 		new_next->next = NULL;
 
- 		new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
- 		cur->data.func_def.body = new_statement;
- 		to_ret = cur;
- 		break;
+	 		new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
+	 		cur->data.func_def.body = new_statement;
+	 		to_ret = cur;
+	 		break;
 
  		case AST_NODE_STATEMENT:
- 		heap_list_malloc(hList, new_body);
- 		heap_list_malloc(hList, new_next);
+	 		heap_list_malloc(hList, new_body);
+	 		heap_list_malloc(hList, new_next);
 
- 		new_body->data = new;
- 		new_body->next = new_next;
- 		new_next->data = cur->data.stmt.body;
- 		new_next->next = NULL;
+	 		new_body->data = new;
+	 		new_body->next = new_next;
+	 		new_next->data = cur->data.stmt.body;
+	 		new_next->next = NULL;
 
- 		new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
- 		cur->data.stmt.body = new_statement;
- 		to_ret = cur;
- 		break;
+	 		new_statement = ast_add_internal_node(NULL, new_body, AST_NODE_STATEMENT, NULL, NULL);
+	 		cur->data.stmt.body = new_statement;
+	 		to_ret = cur;
+	 		break;
 
  		default:
- 		assert(1);
- 		break;
+	 		assert(1);
+	 		break;
  	}
 
  	return to_ret;

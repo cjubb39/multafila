@@ -81,10 +81,9 @@ start_point
       function_list = (ast *) $1;
 
       fflush(stdout);
-//      if ( sem_check( root, st ) == 0 ) {
+      if ( sem_check( root, st ) == 0 ) {
         gen_code( root, st, tb, lt );
-//      }
-			
+      }
       ast_destroy(root);
     }
   ;
@@ -135,7 +134,29 @@ function_def
       /*arguments->data = (ast *) $4;
       arguments->next = NULL;*/
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_STATIC_DEC);
+
+      /* create linked list of argument types */
+      heap_list_head *arg_lh;
+      malloc_checked(arg_lh);
+      ast_list* tmp = arguments;
+      while(tmp != NULL){
+        heap_list *new_arg;
+        malloc_checked(new_arg);
+        new_arg->data = tmp->data;//ast_create_leaf(NULL, tmp->data->type, st, cur_scope);
+        //heap_list_add(hList, new_arg->data);
+
+        if (arg_lh->head == NULL){
+          arg_lh->head = new_arg;
+        } else {
+          arg_lh->tail->next = new_arg;
+        }
+
+        arg_lh->tail = new_arg;
+
+        tmp = tmp->next;
+      }
+
+      symtab_insert(st, $2, t, ST_STATIC_DEC, arg_lh);
       $$ = (void *) ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
@@ -154,7 +175,29 @@ function_def
       arguments->data = NULL;
       arguments->next = NULL;
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_STATIC_DEC);
+
+      /* create linked list of argument types */
+      heap_list_head *arg_lh;
+      malloc_checked(arg_lh);
+      ast_list* tmp = arguments;
+      while(tmp->data != NULL){
+        heap_list *new_arg;
+        malloc_checked(new_arg);
+        new_arg->data = ast_create_leaf(NULL, tmp->data->type, st, cur_scope);
+        heap_list_add(hList, new_arg->data);
+
+        if (arg_lh->head == NULL){
+          arg_lh->head = new_arg;
+        } else {
+          arg_lh->tail->next = new_arg;
+        }
+
+        arg_lh->tail = new_arg;
+
+        tmp = tmp->next;
+      }
+
+      symtab_insert(st, $2, t, ST_STATIC_DEC, arg_lh);
       $$ = (void *) ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
@@ -175,7 +218,11 @@ func_call
     }
   | IDENTIFIER LPAREN RPAREN
     {
-      fprintf(stderr, "FUNC_CALL 2: NOT YET IMPLEMENTED\n");
+      ast_list *children;
+      heap_list_malloc(hList, children);
+
+      children->data = NULL;
+      $$ = (void *) ast_add_internal_node( $1, children, AST_NODE_FUNCTION_CALL, st, cur_scope );
     }
   ;
 
@@ -183,7 +230,7 @@ arg_list
   : type IDENTIFIER
     {
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
       ast *leaf = ast_create_leaf($2, t, st, cur_scope);
       leaf->flag = 1;
 
@@ -197,7 +244,7 @@ arg_list
   | type IDENTIFIER COMMA arg_list
     {
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
       ast *leaf = ast_create_leaf($2, t, st, cur_scope);
       leaf->flag = 1;
 
@@ -338,10 +385,6 @@ statement
   | return_statement SEMI
     {
       $$ = $1;
-    }
-  | SEMI
-    {
-      fprintf(stderr, "STATEMENT 5: NOT YET IMPLEMENTED\n");
     }
   | statement_list
     {
@@ -539,7 +582,7 @@ declaration
     {
       /* add to symtab and then create node */
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
 
       /* add to threadtab if necessary */
       if ((ast_type) $$ == AST_THREAD){
@@ -560,7 +603,7 @@ declaration
     }
   | type IDENTIFIER LBRACK INTEGER RBRACK
     {
-      ast_type t;
+      ast_type t = AST_NULL;
       int size = (int) atoi($4);
 
       if ( (ast_type) $1 == AST_CHAR ) {
@@ -575,7 +618,7 @@ declaration
         threadtab_insert(tb, create_thread_data($2, size));
       }
 
-      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
       ast *leaf = ast_create_array_leaf($2, size, t, st, cur_scope );
 
       ast_list *ident;
@@ -612,7 +655,7 @@ lvalue
   : type IDENTIFIER 
     { 
       ast_type t = (ast_type) $1;
-      symtab_insert( st, $2, t, ST_NONSTATIC_DEC );
+      symtab_insert( st, $2, t, ST_NONSTATIC_DEC, NULL);
       $$ = (void *) ast_create_leaf( $2, t, st, cur_scope );
       free($2);
     }
@@ -644,32 +687,27 @@ expr
     }
   | math_expr
     {
-      fprintf(stderr, "EXPR 2: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | unary_math
     {
       $$ = $1;
     }
   | func_call
-  | braced_expr
     {
-      fprintf(stderr, "EXPR 5: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | literal
+    {
+      $$ = $1;
+    }
   | array
     {
       fprintf(stderr, "EXPR 7: NOT YET IMPLEMENTED\n");
     }
   | LPAREN expr RPAREN 
     {
-      fprintf(stderr, "EXPR 8: NOT YET IMPLEMENTED\n");
-    }
-  ;
-
-braced_expr
-  : LBRACE literal_list RBRACE
-    {
-      fprintf(stderr, "BRACED_EXPR 1: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   ;
 
@@ -761,11 +799,6 @@ unary_math_op
   | DEC { $$ = "--"; }
   ;
 
-literal_list
-  : literal
-  | literal COMMA literal_list
-  ;
-
 literal
   : CHARLITERAL
     { 
@@ -803,8 +836,6 @@ array
 
     }
   | ident LBRACK ident RBRACK
-  | ident LBRACK INTEGER RBRACK LBRACK INTEGER RBRACK
-  | ident LBRACK ident RBRACK LBRACK ident RBRACK
   ;
 
 type
@@ -846,11 +877,33 @@ int main( int argc, char *argv[] )
   lt = locktab_init();
   symtab_set_threadtab(st, tb);
 
-  /* pre-install printOut */
-  symtab_insert( st, "printOut", AST_VOID, ST_STATIC_DEC);
-  symtab_insert( st, "printInt", AST_VOID, ST_STATIC_DEC);
-
   cur_scope = symtab_open_scope(st, SCOPE_GLOBAL);
+  
+  /* pre-install printOut */
+  /* create linked list of argument types */
+  heap_list_head *po_arg_lh;
+  heap_list_malloc(hList, po_arg_lh);
+  heap_list *po_hl;
+  heap_list_malloc(hList, po_hl);
+  ast *po_ast_type = ast_create_leaf(NULL, AST_STRING, st, cur_scope);
+  po_hl->data = po_ast_type;
+  po_hl->next = NULL;
+  po_arg_lh->head = po_hl;
+  heap_list_add(hList, po_ast_type);
+  symtab_insert( st, "printOut", AST_VOID, ST_STATIC_DEC, po_arg_lh);
+
+  /* create linked list of argument types */
+  heap_list_head *pi_arg_lh;
+  heap_list_malloc(hList, pi_arg_lh);
+  heap_list *pi_hl;
+  heap_list_malloc(hList, pi_hl);
+  ast *pi_ast_type = ast_create_leaf(NULL, AST_STRING, st, cur_scope);
+  pi_hl->data = pi_ast_type;
+  pi_hl->next = NULL;
+  pi_arg_lh->head = pi_hl;
+  heap_list_add(hList, pi_ast_type);
+  symtab_insert( st, "printInt", AST_VOID, ST_STATIC_DEC, pi_arg_lh);
+
 
   strcpy(errmsg,"type error\n");
 

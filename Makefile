@@ -11,6 +11,7 @@ SRC	= ast.c							\
 			gen_code.c				\
 			locktab.c					\
 			mem_manage.c			\
+			sem_check.c 			\
 			symtab.c					\
 			threadtab.c				\
 			lex.yy.c					\

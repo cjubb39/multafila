@@ -34,6 +34,7 @@ struct ast_function_def_node {
 struct ast_function_call_node {
 	symtab_entry *func_symtab;
 	struct ast_list_s *arguments;
+	char name[MAX_IDENT_LENGTH + 1];
 };
 
 struct ast_declaration_node {

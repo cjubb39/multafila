@@ -151,9 +151,11 @@ struct ast_spawn_var_ptr{
  	malloc_checked(new_leaf);
 
 	/* fill out leaf */
+	new_leaf->flag=0;
  	new_leaf->node_type = AST_NODE_LEAF;
  	new_leaf->type = type;
  	new_leaf->containing_scope = cur_scope;
+ 	new_leaf->data.convert_to_ptr=0;
 
  	switch(type){
  		case AST_CHARARRAY:

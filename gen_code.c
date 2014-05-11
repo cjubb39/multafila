@@ -547,7 +547,6 @@ void print_leaf(ast *a){
 
 		case AST_CHARARRAY:
 			if(a->data.convert_to_ptr == 1) printf("* ");
-			      printf("1hello");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
 			printf( "[");
 			printf( "%d", (a->data.arraysize) );

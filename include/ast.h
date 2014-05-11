@@ -4,7 +4,7 @@
  *	language focusing on making multithreading easy and intuitive.
  *	
  *	Chae Jubb
- *	
+ *	Alessandra Poblador
  */
 
 #ifndef AST_H

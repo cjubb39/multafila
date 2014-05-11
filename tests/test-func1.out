@@ -1,0 +1,39 @@
+
+/*==========OUTPUT CODE BELOW==========*/
+#include <stdio.h>
+#include <pthread.h>
+void printOut(char *m){printf("%s\n", m);}
+void printInt(int m){printf("%d\n", m);}
+
+int mul_helper (  int x,  int y );
+int main (  );
+
+pthread_mutex_t global_lock;
+
+pthread_cond_t global_cond;
+
+struct global_lock_struct_s{
+} global_lock_struct;
+
+pthread_t global_threads [0];
+int mul_helper (  int x,  int y )
+{
+result = x * y ;
+return result ;
+}
+
+int main (  )
+{
+
+{
+pthread_mutex_init( & global_lock , NULL);
+pthread_cond_init( & global_cond , NULL);
+}
+ ;
+i = 4 ;
+j = 7 ;
+mul = mul_helper( i, j ) ;
+printOut( mul ) ;
+return 1 ;
+}
+

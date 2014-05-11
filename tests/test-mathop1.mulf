@@ -5,6 +5,7 @@ int main (){
 	int j = 5;
 	
 	j = (i + j) * i;
+	
 	printOut("should return 36");
 
 	return j; /* should return 36 */

@@ -1,0 +1,10 @@
+/* thread and spawn test */
+int main(){
+	thread t;
+	
+	spawn(t){
+		
+	}
+	barrier;
+
+}

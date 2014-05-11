@@ -144,8 +144,6 @@ func_call
       fprintf(stderr, "FUNCTION CALL IDENT: %s\n", (char *)$1);
       #endif
 
-
-
       ast_list *children;
       heap_list_malloc(hList, children);
 
@@ -216,7 +214,12 @@ param_list
     }
   | literal
     {
-      $$ = $1;
+      ast_list *firstparam;
+      heap_list_malloc(hList, firstparam);
+      firstparam->data = (ast *) $1;
+      firstparam->next = NULL;
+
+      $$ = (void *) firstparam;
     }
   ;
 

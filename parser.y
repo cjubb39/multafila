@@ -469,9 +469,9 @@ pfor_statement
       body->data = (ast *) $9;
       body->next = NULL;
 
-      long count = (long) $7 ;//((ast *) $7)->data.integer;
+      char* count = $7 ;//((ast *) $7)->data.integer;
 
-      $$ = (void *) ast_add_internal_node((char *) count, t_ident, AST_NODE_PFOR, st, cur_scope);
+      $$ = (void *) ast_add_internal_node(count, t_ident, AST_NODE_PFOR, st, cur_scope);
     }
   ;
 

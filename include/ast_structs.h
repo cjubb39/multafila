@@ -67,7 +67,7 @@ struct ast_spawn_node {
 	struct ast_spawn_vars{
 		struct ast_list_s *old_vars;
 		struct ast_list_s *new_vars;
-		symtab_entry *counter;
+		struct ast_s *counter;
 	} vars;
 	unsigned int native_spawn	:1;
 	unsigned int							:7;

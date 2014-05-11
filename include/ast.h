@@ -158,10 +158,10 @@ uint64_t ast_getValue(ast *ast_to_value);
  */
 int ast_destroy(ast*);
 
-void ast_walker(struct ast_s *, void*, void(*)(struct ast_s *, void*),
-	void(*)(struct ast_list_s *, void*), void(*)(struct ast_s *, void*));
+void ast_walker(struct ast_s *, void*, void*, void(*)(struct ast_s *, void*, void*),
+	void(*)(struct ast_list_s *, void*, void*), void(*)(struct ast_s *, void*, void*));
 
-void blank_func(void *, void *);
+void blank_func(void *, void *, void *);
 
 ast *ast_insert_native_code(ast*, ast*);
 

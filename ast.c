@@ -15,7 +15,7 @@ extern heap_list_head *hList;
 extern locktab *lt;
 
 void ast_destroy_helper(struct ast_s *tree);
-void blank_func(void *a, void *b){return;};
+void blank_func(void *a, void *b, void *c){return;};
 
 struct ast_spawn_var_ptr{
 	struct ast_list_s *old_vars;
@@ -202,7 +202,7 @@ struct ast_spawn_var_ptr{
  	return a;
  }
 
- void ast_spawn_add_old_var(ast *a, struct ast_spawn_var_ptr *vars){
+ void ast_spawn_add_old_var(ast *a, struct ast_spawn_var_ptr *vars, ast *spawn){
  	if (a->node_type != AST_NODE_LEAF || a == NULL) return;
 
  	if (a->type == AST_STRINGLITERAL || a->type == AST_CHARLITERAL || a->type == AST_INTLITERAL)
@@ -215,7 +215,11 @@ struct ast_spawn_var_ptr{
  	}
 	if(tmp->data != NULL) return; /* a match */
 
-	a->data.convert_to_ptr = 1; /* inside spawn */
+	if (a->data.symtab_ptr != spawn->data.spawn.vars.counter->data.symtab_ptr){
+		a->data.convert_to_ptr = 0; /* counter variable (for pfor) */
+	} else {
+		a->data.convert_to_ptr = 1; /* inside spawn */
+	}
 
 	/* check if already in old list */
  	tmp = vars->old_vars_top;
@@ -263,7 +267,7 @@ struct ast_spawn_var_ptr{
  	vars->new_vars = new_entry;
  }
 
- void ast_spawn_var_check(ast *a, struct ast_spawn_var_ptr *vars){
+ void ast_spawn_var_check(ast *a, struct ast_spawn_var_ptr *vars, ast* spawn){
  	if (a == NULL) return;
 
  	switch(a->node_type){
@@ -276,7 +280,7 @@ struct ast_spawn_var_ptr{
  		break;
 
  		case AST_NODE_LEAF:
- 		ast_spawn_add_old_var(a, vars);
+ 		ast_spawn_add_old_var(a, vars, spawn);
  		break;
 
 
@@ -354,11 +358,11 @@ struct ast_spawn_var_ptr{
  	svp->new_vars_top = new_vars;
  	svp->old_vars_top = old_vars;
 
- 	ast_walker(new_func, svp,
- 		(void (*)(struct ast_s *, void*)) &ast_spawn_var_check,
+ 	ast_walker(new_func, svp, a,
+ 		(void (*)(struct ast_s *, void*, void*)) &ast_spawn_var_check,
 		//(void (*)(struct ast_s *, void*)) &blank_func,
- 		(void (*)(struct ast_list_s *, void*)) &blank_func,
- 		(void (*)(struct ast_s *, void*)) &ast_spawn_var_check
+ 		(void (*)(struct ast_list_s *, void*, void*)) &blank_func,
+ 		(void (*)(struct ast_s *, void*, void*)) &ast_spawn_var_check
 		//(void (*)(struct ast_s *, void*)) &blank_func
  		);
 
@@ -389,7 +393,7 @@ struct ast_spawn_var_ptr{
 	}
 
 	/* we essentially create a for loop of spawns */
-	ast **ast_create_node_pfor(ast **a, ast_list *children, long count, symtab *st, scope *cur_scope){
+	ast **ast_create_node_pfor(ast **a, ast_list *children, char *value, symtab *st, scope *cur_scope){
 		/* create for loop */
 		/* assignment node */
 		/*ast *assign_index = children->next->data; 
@@ -458,6 +462,7 @@ struct ast_spawn_var_ptr{
 
 		/* braced statement list of spawns followed by a barrier */
 		ast *t_ident = children->data;
+		ast *i_ident = children->next->data;
 
 		/* get pointer in thread table */
 		struct thread_data *td = threadtab_lookup(symtab_get_threadtab(st),
@@ -480,7 +485,34 @@ struct ast_spawn_var_ptr{
       args->data = t_ident;
       args->next = (ast_list *) td;
       ast* spawn = ast_add_internal_node(NULL, body, AST_NODE_SPAWN, st, cur_scope);
+      spawn->data.spawn.vars.counter = i_ident;
 
+
+      /* increment counter */
+      ast *increment_ident;
+      malloc_checked(increment_ident);
+      memcpy(increment_ident, i_ident, sizeof(*increment_ident));
+		
+			ast_list *unary_operand;
+	    heap_list_malloc(hList, unary_operand);
+	    unary_operand->data = increment_ident;
+	    unary_operand->next = NULL;
+
+	    ast *unary = ast_add_internal_node("++", unary_operand, AST_NODE_UNARY, st, cur_scope );
+
+	    ast_list *u_stmt;
+      ast_list *u_stmt_n;
+      heap_list_malloc(hList, u_stmt);
+      heap_list_malloc(hList, u_stmt_n);
+
+      u_stmt->data = unary;
+      u_stmt->next = u_stmt_n;
+      u_stmt_n->data = NULL;
+      u_stmt_n->next = NULL;
+      
+      ast *unary_stmt = ast_add_internal_node(NULL, u_stmt, AST_NODE_STATEMENT, st, cur_scope);
+
+	    /* combine statements */
       ast_list *stmt;
       ast_list *stmt_n;
       heap_list_malloc(hList, stmt);
@@ -488,19 +520,32 @@ struct ast_spawn_var_ptr{
 
       stmt->data = spawn;
       stmt->next = stmt_n;
-      stmt_n->data = NULL;
+      stmt_n->data = unary_stmt;
       stmt_n->next = NULL;
       
       ast *stmt_ast = ast_add_internal_node(NULL, stmt, AST_NODE_STATEMENT, st, cur_scope);
 
+      ast_list *wrapper_stmt;
+      ast_list *wrapper_stmt_n;
+      heap_list_malloc(hList, wrapper_stmt);
+      heap_list_malloc(hList, wrapper_stmt_n);
+
+      wrapper_stmt->data = stmt_ast;
+      wrapper_stmt->next = wrapper_stmt_n;
+      wrapper_stmt_n->data = NULL;
+      wrapper_stmt_n->next = NULL;
+      
+      ast *wrapper_stmt_ast = 
+      	ast_add_internal_node(NULL, wrapper_stmt, AST_NODE_STATEMENT, st, cur_scope);
+
       if (hold_stmt != NULL) {
-      	hold_stmt->data.stmt.next = stmt_ast;
+      	hold_stmt->data.stmt.next = wrapper_stmt_ast;
       	spawn->data.spawn.native_spawn = 0;
       } else {
-      	top_spawn_stmt = stmt_ast;
+      	top_spawn_stmt = wrapper_stmt_ast;
       }
 
-      hold_stmt = stmt_ast;
+      hold_stmt = wrapper_stmt_ast;
       td = td->next;
 		}
 
@@ -521,13 +566,38 @@ struct ast_spawn_var_ptr{
 
     hold_stmt->data.stmt.next = barrier_stmt;
 
+    /* add assignment of counter to top of statement list */
+    ast *assign_index = i_ident; 
+		ast *assign_init_count = ast_create_leaf(value, AST_INTLITERAL, st, cur_scope);
+
+		ast_list *assign_l, *assign_r;
+		heap_list_malloc(hList, assign_l);
+		heap_list_malloc(hList, assign_r);
+		assign_l->data = assign_index;
+		assign_l->next = assign_r;
+		assign_r->data = assign_init_count;
+		assign_r->next = NULL;
+		ast *assignment = ast_add_internal_node("=", assign_l, AST_NODE_BINARY, st, cur_scope);
+
+		ast_list *a_stmt;
+    ast_list *a_stmt_n;
+    heap_list_malloc(hList, a_stmt);
+    heap_list_malloc(hList, a_stmt_n);
+
+    a_stmt->data = assignment;
+    a_stmt->next = a_stmt_n;
+    a_stmt_n->data = top_spawn_stmt;
+    a_stmt_n->next = NULL;
+    
+    ast *assign_stmt = ast_add_internal_node(NULL, a_stmt, AST_NODE_STATEMENT, st, cur_scope);
+
     /* put whole thing inside braces */
-    (*a)->data.stmt.body = top_spawn_stmt;
+    (*a)->data.stmt.body = assign_stmt;
     (*a)->data.stmt.next = NULL;
     (*a)->data.stmt.braced = 1;
     (*a)->node_type = AST_NODE_STATEMENT;
 
-    ast_destroy_helper(children->next->data); /* hopefully temporary */
+    //ast_destroy_helper(children->next->data); /* hopefully temporary */
 
 		return a;
 	}
@@ -775,7 +845,7 @@ struct ast_spawn_var_ptr{
  		break;
 
  		case AST_NODE_PFOR:
- 		ast_create_node_pfor(&new_node, children, (long) value, symbol_table, cur_scope);
+ 		ast_create_node_pfor(&new_node, children, value, symbol_table, cur_scope);
  		break;
 
  		default:
@@ -929,24 +999,24 @@ struct ast_spawn_var_ptr{
  	return ast_to_type->node_type;
  }
 
- void ast_walker_ast_list_helper(struct ast_list_s *ast_list_to_walk, void * ptr,
- 	void(*ast_func)(struct ast_s *, void*), 
- 	void(*ast_list_func)(struct ast_list_s *, void*),
- 	void(*leaf_func)(struct ast_s *, void*)){
+ void ast_walker_ast_list_helper(struct ast_list_s *ast_list_to_walk, void * ptr, void *ptr2,
+ 	void(*ast_func)(struct ast_s *, void*, void*), 
+ 	void(*ast_list_func)(struct ast_list_s *, void*, void*),
+ 	void(*leaf_func)(struct ast_s *, void*, void*)){
  	if (ast_list_to_walk == NULL || ast_list_to_walk->data == NULL) return;
 
  	struct ast_list_s *old = ast_list_to_walk, *new;
  	while(old != NULL){
  		new = old->next;
- 		ast_walker(old->data, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_walker(old->data, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		old = new;
  	}
  }
 
- void ast_walker(struct ast_s *ast_to_walk, void * ptr, 
- 	void(*ast_func)(struct ast_s *, void*),
- 	void(*ast_list_func)(struct ast_list_s *, void*),
- 	void(*leaf_func)(struct ast_s *, void*)
+ void ast_walker(struct ast_s *ast_to_walk, void * ptr, void *ptr2,
+ 	void(*ast_func)(struct ast_s *, void*, void*),
+ 	void(*ast_list_func)(struct ast_list_s *, void*, void*),
+ 	void(*leaf_func)(struct ast_s *, void*, void*)
  	){
  	assert(ast_func != NULL);
  	assert(ast_list_func != NULL);
@@ -957,101 +1027,101 @@ struct ast_spawn_var_ptr{
 
  	switch(ast_to_walk->node_type){
  		case AST_NODE_LEAF:
- 		leaf_func(ast_to_walk, ptr);
+ 		leaf_func(ast_to_walk, ptr, ptr2);
  		break;
 
 
  		case AST_NODE_BINARY:
- 		ast_func(ast_to_walk->data.bin.left, ptr);
- 		ast_walker(ast_to_walk->data.bin.left, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.bin.left, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.bin.left, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.bin.right, ptr);
- 		ast_walker(ast_to_walk->data.bin.right, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.bin.right, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.bin.right, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_DECLARATION:
- 		ast_func(ast_to_walk->data.dec.var, ptr);
- 		ast_walker(ast_to_walk->data.dec.var, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.dec.var, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.dec.var, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_FUNCTION_DEF:
- 		ast_func(ast_to_walk->data.func_def.body, ptr);
- 		ast_walker(ast_to_walk->data.func_def.body, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.func_def.body, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.func_def.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_FUNCTION_CALL:
- 		ast_list_func(ast_to_walk->data.func_call.arguments, ptr);
- 		ast_walker_ast_list_helper(ast_to_walk->data.func_call.arguments, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_list_func(ast_to_walk->data.func_call.arguments, ptr, ptr2);
+ 		ast_walker_ast_list_helper(ast_to_walk->data.func_call.arguments, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_STATEMENT:
- 		ast_func(ast_to_walk->data.stmt.body, ptr);
- 		ast_walker(ast_to_walk->data.stmt.body, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.stmt.body, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.stmt.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.stmt.next, ptr);
- 		ast_walker(ast_to_walk->data.stmt.next, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.stmt.next, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.stmt.next, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_FUNCTION_LIST:
- 		ast_func(ast_to_walk->data.func_list.cur_func, ptr);
- 		ast_walker(ast_to_walk->data.func_list.cur_func, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.func_list.cur_func, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.func_list.cur_func, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.func_list.next_func, ptr);
- 		ast_walker(ast_to_walk->data.func_list.next_func, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.func_list.next_func, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.func_list.next_func, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_CONDITIONAL:
- 		ast_func(ast_to_walk->data.conditional_statement.conditional_statement, ptr);
- 		ast_walker(ast_to_walk->data.conditional_statement.conditional_statement, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.conditional_statement.conditional_statement, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.conditional_statement.conditional_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.conditional_statement.if_statement, ptr);
- 		ast_walker(ast_to_walk->data.conditional_statement.if_statement, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.conditional_statement.if_statement, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.conditional_statement.if_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.conditional_statement.else_statement, ptr);
- 		ast_walker(ast_to_walk->data.conditional_statement.else_statement, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.conditional_statement.else_statement, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.conditional_statement.else_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_WHILE:
- 		ast_func(ast_to_walk->data.while_statement.conditional_statement, ptr);
- 		ast_walker(ast_to_walk->data.while_statement.conditional_statement, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.while_statement.conditional_statement, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.while_statement.conditional_statement, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.while_statement.body, ptr);
- 		ast_walker(ast_to_walk->data.while_statement.body, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.while_statement.body, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.while_statement.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_SPAWN:
- 		ast_func(ast_to_walk->data.spawn.arguments, ptr);
- 		ast_walker(ast_to_walk->data.spawn.arguments, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.spawn.arguments, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.spawn.arguments, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.spawn.body, ptr);
- 		ast_walker(ast_to_walk->data.spawn.body, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.spawn.body, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.spawn.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_UNARY:
- 		ast_func(ast_to_walk->data.unary.operand, ptr);
- 		ast_walker(ast_to_walk->data.unary.operand, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.unary.operand, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.unary.operand, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_LOCK:
- 		ast_func(ast_to_walk->data.lock.body, ptr);
- 		ast_walker(ast_to_walk->data.lock.body, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.lock.body, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.lock.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_list_func(ast_to_walk->data.lock.params, ptr);
- 		ast_walker_ast_list_helper(ast_to_walk->data.lock.params, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_list_func(ast_to_walk->data.lock.params, ptr, ptr2);
+ 		ast_walker_ast_list_helper(ast_to_walk->data.lock.params, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_FOR:
- 		ast_func(ast_to_walk->data.for_statement.assignment, ptr);
- 		ast_walker(ast_to_walk->data.for_statement.assignment, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.for_statement.assignment, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.for_statement.assignment, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.for_statement.relexpr, ptr);
- 		ast_walker(ast_to_walk->data.for_statement.relexpr, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.for_statement.relexpr, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.for_statement.relexpr, ptr, ptr2, ast_func, ast_list_func, leaf_func);
 
- 		ast_func(ast_to_walk->data.for_statement.unary, ptr);
- 		ast_walker(ast_to_walk->data.for_statement.unary, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.for_statement.unary, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.for_statement.unary, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		
- 		ast_func(ast_to_walk->data.for_statement.body, ptr);
- 		ast_walker(ast_to_walk->data.for_statement.body, ptr, ast_func, ast_list_func, leaf_func);
+ 		ast_func(ast_to_walk->data.for_statement.body, ptr, ptr2);
+ 		ast_walker(ast_to_walk->data.for_statement.body, ptr, ptr2, ast_func, ast_list_func, leaf_func);
  		break;
 
  		case AST_NODE_NATIVE_CODE:

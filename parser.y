@@ -334,10 +334,6 @@ statement
     {
       $$ = $1;
     }
-  | SEMI
-    {
-      fprintf(stderr, "STATEMENT 5: NOT YET IMPLEMENTED\n");
-    }
   | statement_list
     {
       $$ = $1;
@@ -639,32 +635,27 @@ expr
     }
   | math_expr
     {
-      fprintf(stderr, "EXPR 2: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | unary_math
     {
       $$ = $1;
     }
   | func_call
-  | braced_expr
     {
-      fprintf(stderr, "EXPR 5: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   | literal
+    {
+      $$ = $1;
+    }
   | array
     {
       fprintf(stderr, "EXPR 7: NOT YET IMPLEMENTED\n");
     }
   | LPAREN expr RPAREN 
     {
-      fprintf(stderr, "EXPR 8: NOT YET IMPLEMENTED\n");
-    }
-  ;
-
-braced_expr
-  : LBRACE literal_list RBRACE
-    {
-      fprintf(stderr, "BRACED_EXPR 1: NOT YET IMPLEMENTED\n");
+      $$ = $1;
     }
   ;
 
@@ -756,11 +747,6 @@ unary_math_op
   | DEC { $$ = "--"; }
   ;
 
-literal_list
-  : literal
-  | literal COMMA literal_list
-  ;
-
 literal
   : CHARLITERAL
     { 
@@ -792,8 +778,6 @@ array
 
     }
   | ident LBRACK ident RBRACK
-  | ident LBRACK INTEGER RBRACK LBRACK INTEGER RBRACK
-  | ident LBRACK ident RBRACK LBRACK ident RBRACK
   ;
 
 type

@@ -11,6 +11,7 @@
 
 #include "include/ast_structs.h"
 #include "include/symtab_structs.h"
+#include "include/sem_check.h"
 
 extern symtab *st;
 extern int errorcount = 0;
@@ -28,10 +29,11 @@ int are_equivalent(ast_type i, ast_type j){
 }
 
 /* returns 0 if arg lists are not of the same size or have different types */
-int arglist_compare(ast_list a, ast_list b) {
+int arglist_compare(struct ast_list_s* a, struct ast_list_s* b) {
 	while (1) {
-		symtab_entry *s = a->data.symtab_ptr;
-		symtab_entry *s1 = b->data.symtab_ptr;
+		symtab_entry *s = a->data->data.symtab_ptr;
+		symtab_entry *s1 = b->data->data.symtab_ptr;
+
 		if(s == NULL && s1 == NULL)     
 		{  
 			return 1; 
@@ -72,39 +74,37 @@ void check_func_call(ast *a){
 	// get symbol name
 	symtab_entry *s = a->data.func_call.func_symtab;
 	char *name = s->name;
-	char temp[] = "return";
 	symtab_entry *lookup = symtab_lookup(st, name, a->containing_scope);
 
-	//if this is a return function call, check the return type matches the fuction return type
-	if(strncmp (name, temp, sizeof(name))){
-		ast_type return_type = symtab_entry_get_type(a->arguments.data.symtab_ptr);
+	// check the return type matches the declaration type
+	if (lookup == NULL) {
+		printf("function used without being declared");
+		errorcount++;
+	}
+	// check that the arguments in the function call match the declared function
+	else {
+		struct ast_list_s *declaredargs = lookup->data.func_call.arguments;
+		struct ast_list_s *args = a->data.func_call.arguments;
+
+		if (arglist_compare(declaredargs, args) != 1) {
+			printf("argument types do not match function declaration");
+			errorcount++;
+		}
+	}
+
+}
+
+void check_return(ast* a){
+	symtab_entry *s = a->value.symtab_ptr;
+	//check the return type matches the fuction return type
+		ast_type return_type = symtab_entry_get_type(s);
 		ast_type fuction_type = symtab_entry_get_type(fuction_def_node->func_symtab);
 
 		if(!are_equivalent(return_type, fuction_type)){
 			printf("return type does not match with fuction type");
 			errorcount++;
 		}
-
-	//if this not a return function call
-	}else{
-		// check the return type matches the declaration type
-		if (lookup == NULL) {
-			printf("function used without being declared");
-			errorcount++;
-		}
-		// check that the arguments in the function call match the declared function
-		else {
-			ast_list *declaredargs = lookup->data.func_call.arguments;
-			ast_list *args = a->data.func_call.arguments;
-
-			if (arglist_compare(declaredargs, args) != 1) {
-				printf("argument types do not match function declaration");
-				errorcount++;
-			}
-		}
-	}
 }
-
 
 void check_spawn(ast *a){
 	ast *param = a->data.spawn.arguments
@@ -115,7 +115,7 @@ void check_spawn(ast *a){
 		errorcount++;
 	}
 	
-	check_ast(a->data.spawn.body);
+	check_stmt(a->data.spawn.body);
 }
 
 /* binary node checker */
@@ -218,6 +218,10 @@ void check_stmt(ast *a){
 
 		case AST_NODE_WHILE:
 			check_while(body);
+			break;
+
+		case AST_NODE_RETURN:
+			check_return(body);
 			break;
 
 		 // spawn statement will be added 

@@ -12,7 +12,8 @@ SRC	= ast.c							\
 			mem_manage.c			\
 			symtab.c					\
 			lex.yy.c					\
-			y.tab.c						
+			y.tab.c				\
+			sem_check.c
 
 HEADERS = $(wildcard include/*.h)
 

@@ -36,6 +36,8 @@ typedef struct ast_s {
 	ast_node_type node_type; /* kind of node */
 	scope *containing_scope;
 	unsigned int flag;
+	int arraysize;
+
 
 	union {
 		/* for literal values */
@@ -43,9 +45,12 @@ typedef struct ast_s {
 		char *string;
 		char *character;
 		double doub;
+
+		/* for arrays*/
 		int *intarray;
 		char *chararray;
 		char **stringarray;
+
 		/* for variable names */
 		struct{
 			symtab_entry *symtab_ptr;

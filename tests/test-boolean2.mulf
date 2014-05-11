@@ -1,0 +1,35 @@
+/* more relops in conditional statements, should print hello! cool */
+
+int main(){
+
+	if (1 > 0){
+		printOut("gt pass");
+	}
+	else {
+		printOut("gt failed");
+	}
+
+	if (0 < 1){
+		printOut("lt pass");
+	}
+	else {
+		printOut("lt fail");
+	}
+	
+	if (1 >= 0){
+		printOut("geq pass");
+	}
+	else {
+		printOut("geq fail");
+	}
+	
+	if (0 <= 1){
+		printOut("leq pass");
+	}
+	else {
+		printOut("leq fail");
+	}
+	
+	return 1;
+	
+}

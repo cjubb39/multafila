@@ -1,0 +1,13 @@
+/* return statement, should return 11 */
+
+int main(){
+	int x = 5;
+	int y = 6;
+	int result = x+y;
+	
+	printOut(result);
+	printOut("Should return 11");
+	
+	return result;
+
+}

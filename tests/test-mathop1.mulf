@@ -1,0 +1,13 @@
+/* math operation 1 */
+
+int main (){
+	int i = 4;
+	int j = 5;
+	
+	j = (i + j) * i;
+	
+	printOut("should return 36");
+
+	return j; /* should return 36 */
+
+}

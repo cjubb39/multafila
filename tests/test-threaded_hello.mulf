@@ -1,0 +1,12 @@
+/*threaded hello world program */
+int main(){
+	thread t1;
+	thread t2;
+	spawn(t1){
+		string var1; var1 = "Hello World!"; printOut(var1);
+		}
+	spawn(t2){
+		string var2; var2 = "Hey Dude!"; printOut(var2);
+		}
+	barrier;
+}

@@ -1,0 +1,21 @@
+/* a more complex while loop */
+
+int main(){
+
+	int i = 0;
+	int x = 0;
+	
+	while (i < 10){
+		x = i + 1;
+		if(x <5){
+			printOut(i);
+		} else{
+				printOut("x is greater than 5");
+			}
+		
+		i++;
+	}
+	
+	return 1;
+	
+}

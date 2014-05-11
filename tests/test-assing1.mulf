@@ -1,0 +1,10 @@
+/* assignment 1 */
+
+int main (){
+	int i = 4;
+	int j = i * 5;
+	
+	printOut("should return 20");
+	return j; /*should return 20 */
+
+}

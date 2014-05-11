@@ -1,0 +1,27 @@
+/* thread and spawn test, int operations and printOut */
+
+int main(){
+	thread t1;
+	thread t2;
+		
+	spawn(t1){
+		int i = 0;
+		while(i < 5){
+			printOut(i);
+			i++;
+		}
+	}
+	
+	spawn(t2){
+		int j = 5;
+		while (j < 10){
+			printOut(j);
+			j++;
+		}
+	}
+	
+	barrier;
+	return 1;
+	
+
+}

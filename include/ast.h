@@ -20,6 +20,10 @@
 
 #define BRACED_STATEMENT_MARKER ((void*)0x06081993)
 
+typedef int mf_bool;
+#define mf_true 1;
+#define mf_false 0;
+
 typedef enum {
 	AST_NODE_FUNCTION_LIST,
 	AST_NODE_FUNCTION_DEF,
@@ -53,6 +57,7 @@ typedef struct ast_s {
 		char *string;
 		char *character;
 		double doub;
+		mf_bool mfbool;
 
 		/* for arrays*/
 		int *intarray;

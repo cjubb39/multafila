@@ -807,7 +807,13 @@ literal
     }
   | number
   | TRUE
+    {
+      $$ = (void *) ast_create_leaf( $1, AST_BOOLEANLITERAL, st, cur_scope );
+    }
   | FALSE
+    {
+      $$ = (void *) ast_create_leaf( $1, AST_BOOLEANLITERAL, st, cur_scope );
+    }
   | STRINGLITERAL 
     { 
       $$ = (void *) ast_create_leaf( $1, AST_STRINGLITERAL, st, cur_scope ); 
@@ -836,7 +842,7 @@ type
   : INT { $$ = (void *) AST_INT; }
   | DOUBLE
   | CHAR { $$ = (void *) AST_CHAR; }
-  | BOOLEAN
+  | BOOLEAN { $$ = (void *) AST_BOOLEAN; }
   | STRING { $$ = (void *) AST_STRING; }
   | THREAD { $$ = (void *) AST_THREAD; }
   ;

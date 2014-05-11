@@ -20,6 +20,28 @@ extern ast* function_list = NULL;
 
 void check_ast (ast *a);
 
+
+ast* getfunction(char *name){
+	ast* func = function_list->data.func_list.cur_func;
+	symtab_entry *s = func->data.func_def.func_symtab;
+	char *function_name = symtab_entry_get_name(s);
+	if(strcmp(name,function_name)){
+		return func;
+	}
+
+	func = function_list->data.func_list.next_func;
+	while(func->data.func_list.cur_func != NULL){
+		s = func->data.func_list.cur_func->data.func_def.func_symtab;
+		function_name = symtab_entry_get_name(s);
+	
+		if(strcmp(name,function_name)){
+			return func->data.func_list.cur_func;
+		}
+		func = func->data.func_list.next_func;
+	}
+	return NULL;
+}
+
 /* helper func that checks if two node are of the same type */
 int are_equivalent(ast_type i, ast_type j){
 	if (i == j){
@@ -61,7 +83,7 @@ int arglist_compare(struct ast_list_s* a, struct ast_list_s* b) {
 void check_func_list(ast *a){
 	check_ast(a->data.func_list.cur_func);
 	check_ast(a->data.func_list.next_func);
-	fuction_list = a;
+	function_list = a;
 }
 
 void check_func_def(ast *a){
@@ -75,7 +97,8 @@ void check_func_call(ast *a){
 	// check that function exists in the symbol table 
 	// get symbol name
 	symtab_entry *s = a->data.func_call.func_symtab;
-	char *name = s->name;
+	char *name = symtab_entry_get_name(s);
+	symtab_entry *lookup = symtab_search_scope(st, name, a->containing_scope);
 
 	// check the return type matches the declaration type
 	if (lookup == NULL) {
@@ -96,35 +119,13 @@ void check_func_call(ast *a){
 			errorcount++;
 		}
 	}
-
-}
-
-ast* getfunction(char *name){
-	ast* func = function_list->cur_func;
-	symtab_entry *s = func->data.func_def.func_symtab;
-	char *function_name = symtab_entry_get_name(s);
-	if(strcmp(name.function_name)){
-		return func;
-	}
-
-	func = function_list->next_func;
-	while(func->cur_func != NULL){
-		*s = func->cur_func.data.func_def.func_symtab;
-		function_name = symtab_entry_get_name(s);
-	
-		if(strcmp(name.function_name)){
-			return func->cur_func;
-		}
-		func = func->next_func;
-	}
-	return NULL;
 }
 
 void check_return(ast* a){
-	symtab_entry *s = a->value.symtab_ptr;
+	symtab_entry *s = a->data.ret.value->data.symtab_ptr;
 	//check the return type matches the fuction return type
 		ast_type return_type = symtab_entry_get_type(s);
-		ast_type fuction_type = symtab_entry_get_type(fuction_def_node->func_symtab);
+		ast_type fuction_type = symtab_entry_get_type(fuction_def_node->data.func_def.func_symtab);
 
 		if(!are_equivalent(return_type, fuction_type)){
 			printf("return type does not match with fuction type");
@@ -133,10 +134,10 @@ void check_return(ast* a){
 }
 
 void check_spawn(ast *a){
-	ast *param = a->data.spawn.arguments
+	ast *param = a->data.spawn.arguments;
 	symtab_entry *s = param->data.symtab_ptr;
 	char *name = s->name;
-	if (symtab_lookup(st, name, a->containing_scope) == null) {
+	if (symtab_lookup(st, name, a->containing_scope) == NULL) {
 		printf("cannot spawn an undeclared thread");
 		errorcount++;
 	}
@@ -146,19 +147,19 @@ void check_spawn(ast *a){
 
 /* binary node checker */
 void check_bin(ast *a){
-	ast *a left = a->data.bin.left;
-	ast *a right = a->data.bin.right;
-	symtab_entry *s1 = a->data.bin.left.symtab_ptr;
+	ast *a_left = a->data.bin.left;
+	ast *a_right = a->data.bin.right;
+	symtab_entry *s1 = a->data.bin.left->data.symtab_ptr;
 	ast_type t1 = symtab_entry_get_type(s1);
 
-	symtab_entry *s2 = a->data.bin.right.symtab_ptr;
+	symtab_entry *s2 = a->data.bin.right->data.symtab_ptr;
 	ast_type t2 = symtab_entry_get_type(s2);
 
 	/* if t2 is a AST_NULL type, check to see if it's another bin_node or func_call */
 	if( t2 == AST_NULL){
 		ast_node_type t2n = symtab_entry_get_node_type(s2);
-		if (t2n == AST_NODE_BIN){
-			check_bin(right);
+		if (t2n == AST_NODE_BINARY){
+			check_bin(a_right);
 		} else if (t2n == AST_NODE_FUNCTION_CALL){
 			symtab_entry *s = a->data.func_call.func_symtab;
 			/* check func return type, see if it matches lvalue */
@@ -178,8 +179,8 @@ void check_bin(ast *a){
 
 /* unary node checker */
 void check_unary(ast *a){
-	symtab_entry *s = a->data.unary.operand.symtab_ptr;
-	ast_type t = symbtab_entry_get_type(s);
+	symtab_entry *s = a->data.unary.operand->data.symtab_ptr;
+	ast_type t = symtab_entry_get_type(s);
 
 	if( t != AST_INT){
 		printf("unary operator error, not an integer");
@@ -189,30 +190,45 @@ void check_unary(ast *a){
 
 /* while loop checker */
 void check_while(ast *a){
-	/* should also check for funcs that return boolean?? */
-	char *c = a->data.while_statement.conditional_statement.bin.op;
-	ast *a while_body = a->data.while_statement.body; /* get while symt body */
 
-	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
+	char eq[] = "==";
+	char neq[] = "!=";
+	char gt[] = ">";
+	char lt [] = "<";
+	char geq [] = ">=";
+	char leq [] = "<=";
+
+	/* should also check for funcs that return boolean?? */
+	char *c = a->data.while_statement.conditional_statement->data.bin.op;
+	ast *a_while_body = a->data.while_statement.body; /* get while symt body */
+
+	if( strcmp(c, eq) == 0 || strcmp(c, neq) == 0 ||strcmp(c, gt) == 0 || strcmp(c, lt) == 0 || strcmp(c, geq) == 0 || strcmp(c, leq) == 0){
 		printf("condition in while loop is not a boolean expression");
 		errorcount++;
 	} 
-	check_stmt(while_body);
+	check_stmt(a_while_body);
 }
 
 /* if statement checker */
 void check_conditional(ast *a){
 	/* should also check for funcs that return boolean??*/
-	char *c = a->data.conditional_statement.conditional_statement.bin.op;
-	ast *a cond_stmt = a->data.conditional_statement.if_statement; /* get if stmt body */
-	ast *a else_stmt = a->data.conditional_statement.else_statement; /* get else stmt body */
-	check_stmt(cond_stmt); /* check the validity of if statement body */	
-
-	if( c != "==" || c != "!=" || c != ">" || c != "<" || c != ">=" || c != "<="){
+	char *c = a->data.conditional_statement.conditional_statement->data.bin.op;
+	ast *a_cond_stmt = a->data.conditional_statement.if_statement; /* get if stmt body */
+	ast *a_else_stmt = a->data.conditional_statement.else_statement; /* get else stmt body */
+	check_stmt(a_cond_stmt); /* check the validity of if statement body */	
+	
+	char eq[] = "==";
+	char neq[] = "!=";
+	char gt[] = ">";
+	char lt [] = "<";
+	char geq [] = ">=";
+	char leq [] = "<=";
+	
+	if( strcmp(c, eq) == 0 || strcmp(c, neq) == 0 ||strcmp(c, gt) == 0 || strcmp(c, lt) == 0 || strcmp(c, geq) == 0 || strcmp(c, leq)== 0){
 		printf("condition in if statement is not a boolean expression");
 		errorcount++;
 	}
-	check_stmt(else_stmt);
+	check_stmt(a_else_stmt);
 }
 
 /* checks if a stmt node is valid */
@@ -270,7 +286,6 @@ void check_stmt(ast *a){
 		// 	break;
 
 		default:
-			return;
 			break;		
 		}
 	}
@@ -286,7 +301,7 @@ void check_ast(ast *a){
 	ast_type t = ast_get_type(a);
 	if (t == AST_NULL){
 		ast_node_type t2n = ast_get_node_type(a);
-		switch(ast_get_node_type(t2n)){
+		switch(t2n){
 
 		case AST_NODE_FUNCTION_LIST:
 			check_func_list(a);
@@ -298,6 +313,8 @@ void check_ast(ast *a){
 
 		case AST_NODE_STATEMENT:
 			check_stmt(a);
+			break;
+		default:
 			break;
 	}
 }

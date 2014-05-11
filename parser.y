@@ -54,6 +54,7 @@ start_point
   : function_list
     {
       ast *root = (ast *) $1;
+      		sem_check(root);
 			gen_test( root );
       ast_destroy(root);
     }

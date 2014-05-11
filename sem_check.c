@@ -146,7 +146,7 @@ void check_func_call(ast *a, symtab *st){
 		//ast* function_node = getfunction(name);
 		struct ast_list_s *declaredargs = symtab_entry_get_ptr(lookup);// function_node->data.func_def.arguments;
 		struct ast_list_s *args = a->data.func_call.arguments;
-
+		
 		if (arglist_compare(declaredargs, args) != 1) {
 			printf("argument types do not match function declaration\n");
 			errorcount++;
@@ -295,22 +295,22 @@ void check_while(ast *a, symtab *st){
 /* if statement checker */
 void check_conditional(ast *a, symtab *st){
 	/* should also check for funcs that return boolean??*/
-	char *c = a->data.conditional_statement.conditional_statement->data.bin.op;
+	// char *c = a->data.conditional_statement.conditional_statement->data.bin.op;
 	ast *a_cond_stmt = a->data.conditional_statement.if_statement; /* get if stmt body */
 	ast *a_else_stmt = a->data.conditional_statement.else_statement; /* get else stmt body */
 	check_stmt_level(a_cond_stmt, st); /* check the validity of if statement body */	
 	
-	char eq[] = "==";
-	char neq[] = "!=";
-	char gt[] = ">";
-	char lt [] = "<";
-	char geq [] = ">=";
-	char leq [] = "<=";
+	// char eq[] = "==";
+	// char neq[] = "!=";
+	// char gt[] = ">";
+	// char lt [] = "<";
+	// char geq [] = ">=";
+	// char leq [] = "<=";
 	
-	if( strcmp(c, eq) == 0 || strcmp(c, neq) == 0 ||strcmp(c, gt) == 0 || strcmp(c, lt) == 0 || strcmp(c, geq) == 0 || strcmp(c, leq)== 0){
-		printf("condition in if statement is not a boolean expression\n");
-		errorcount++;
-	}
+	// if( strcmp(c, eq) == 0 || strcmp(c, neq) == 0 ||strcmp(c, gt) == 0 || strcmp(c, lt) == 0 || strcmp(c, geq) == 0 || strcmp(c, leq)== 0){
+	// 	printf("condition in if statement is not a boolean expression\n");
+	// 	errorcount++;
+	// }
 	check_stmt_level(a_else_stmt, st);
 }
 

@@ -1,5 +1,6 @@
 #ifndef SEM_CHECK_H
 #define SEM_CHECK_H
-void check_ast(ast *a);
+int sem_check(ast*, symtab*);
+
 
 #endif

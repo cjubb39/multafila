@@ -7,12 +7,14 @@
 #include <assert.h>
 #include "include/global_config.h"
 #include "include/error_handling.h"
+
 #include "include/mem_manage.h"
 #include "include/ast.h"
 #include "include/symtab.h"
 #include "include/threadtab.h"
 #include "include/locktab.h"
 #include "include/gen_code.h"
+#include "include/sem_check.h"
 #include "include/yacc_compatability.h"
 
 #include "include/y.tab.h"
@@ -41,6 +43,8 @@ locktab *lt;
 scope *cur_scope;
 heap_list_head *hList;
 char *exe_out_name;
+ast *function_def_node;
+ast *function_list;
 
 %}
 
@@ -65,7 +69,14 @@ start_point
   : function_list
     {
       ast *root = (ast *) $1;
-			gen_code( root, st, tb, lt );
+
+      function_list = (ast *) $1;
+
+      fflush(stdout);
+      if ( sem_check( root, st ) == 0 ) {
+        gen_code( root, st, tb, lt );
+      }
+			
       ast_destroy(root);
     }
   ;
@@ -94,6 +105,8 @@ function_list
       next_function->data = NULL;
       next_function->next = NULL;
       $$ = (void *) ast_add_internal_node( NULL, current_function, AST_NODE_FUNCTION_LIST, st, cur_scope );
+      function_def_node = (ast *) $1;
+
     }
   ;
 

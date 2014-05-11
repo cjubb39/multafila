@@ -67,9 +67,13 @@ int are_equivalent(ast_type i, ast_type j){
 	else if(j == AST_STRING && i == AST_STRINGLITERAL){
 		return 1;
 	}	
+	else if(i == AST_THREAD && j == AST_THREAD){
+		return 1;
+	}
 	else if(j == AST_THREAD && i == AST_THREAD){
-		return 0;
-	}else{
+		return 1;
+	}
+	else{
 		return 0;
 	}
 }

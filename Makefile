@@ -11,11 +11,11 @@ SRC	= ast.c							\
 			gen_code.c				\
 			locktab.c					\
 			mem_manage.c			\
+			sem_check.c 			\
 			symtab.c					\
 			threadtab.c				\
 			lex.yy.c					\
 			y.tab.c					\
-			sem_check.c
 
 HEADERS = $(wildcard include/*.h)
 

@@ -72,6 +72,22 @@ struct ast_spawn_var_ptr{
  	return a;
  }
 
+
+ ast **ast_create_leaf_bool (ast **a, char *value, symtab *symbol_table, scope *cur_scope){
+ 	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
+ 	return a;
+ }
+
+ ast **ast_create_leaf_boollit (ast **a, char *value){
+ 	if ( strcmp( value, "true") == 0 ) {
+ 		(*a)->data.mfbool = 1;
+ 	} else {
+ 		(*a)->data.mfbool = 0;
+ 	}
+
+ 	return a;
+ }
+
  ast **ast_create_leaf_thread ( ast **a, char *value, symtab *symbol_table, scope *cur_scope ){
  	(*a)->data.symtab_ptr = symtab_lookup( symbol_table, value, cur_scope );
  	return a;
@@ -120,6 +136,14 @@ struct ast_spawn_var_ptr{
 
  		case AST_THREAD:
  		ast_create_leaf_thread(&new_leaf, value, symbol_table, cur_scope );
+ 		break;
+
+ 		case AST_BOOLEAN:
+ 		ast_create_leaf_bool(&new_leaf, value, symbol_table, cur_scope );
+ 		break;
+
+ 		case AST_BOOLEANLITERAL:
+ 		ast_create_leaf_boollit(&new_leaf, value );
  		break;
 
 		case AST_CHARARRAY:

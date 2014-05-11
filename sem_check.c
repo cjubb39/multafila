@@ -3,8 +3,11 @@
  *	Module for semantically checking an abstract syntax tree for multafila, 
  *	a language focusing on making multithreading easy and intuitive.
  *	
- *	<authors>
- *	
+ *	Bo Yin
+ *  Zeynep Toraman
+ *	Alessandra Castro Poblador
+ *  Aiden Yang	
+ * 
  */
  
 #include <stdio.h>

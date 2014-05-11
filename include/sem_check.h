@@ -3,8 +3,10 @@
  *	Header for module for semantically checking an abstract syntax tree for
  *	multafila, a language focusing on making multithreading easy and
  *	intuitive.
- *	
- *	<authors>
+ *
+ *	Alessandra Castro Poblador
+ *  Zeynep Toraman
+ *	Bo Yin
  *	
  */
 

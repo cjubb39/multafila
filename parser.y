@@ -15,7 +15,6 @@
 #include "include/locktab.h"
 #include "include/gen_code.h"
 #include "include/sem_check.h"
-#include "include/yacc_compatability.h"
 
 #include "include/y.tab.h"
 

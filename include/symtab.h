@@ -59,7 +59,7 @@ scope *symtab_close_scope(symtab *symbol_table);
  *	Takes symbol name and types, as integer defined in yacc
  *	Returns STI_VALID on success, non-STI_VALID otherwise.
  */
-int symtab_insert(symtab *symbol_table, char *symbol_name, ast_type type, unsigned int);
+int symtab_insert(symtab *symbol_table, char *symbol_name, ast_type type, unsigned int, void *ptr);
 
 /*
  *	Takes symbol name and returns a type, as integer defined in yacc
@@ -75,6 +75,7 @@ int symtab_declared_curr_thread_block(symtab *symbol_table, char *symbol_name);
 
 ast_type symtab_entry_get_type(symtab_entry *entry);
 char *symtab_entry_get_name(symtab_entry *entry);
+void* symtab_entry_get_ptr(symtab_entry *entry);
 
 void symtab_set_threadtab(symtab *, threadtab *);
 threadtab* symtab_get_threadtab(symtab*);

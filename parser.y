@@ -126,7 +126,28 @@ function_def
       /*arguments->data = (ast *) $4;
       arguments->next = NULL;*/
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_STATIC_DEC);
+
+      /* create linked list of argument types */
+      heap_list_head *arg_lh;
+      malloc_checked(arg_lh);
+      ast_list* tmp = arguments;
+      while(tmp != NULL){
+        heap_list *new_arg;
+        malloc_checked(new_arg);
+        new_arg->data = (void *) tmp->data->type;
+
+        if (arg_lh->head == NULL){
+          arg_lh->head = new_arg;
+        } else {
+          arg_lh->tail->next = new_arg;
+        }
+
+        arg_lh->tail = new_arg;
+
+        tmp = tmp->next;
+      }
+
+      symtab_insert(st, $2, t, ST_STATIC_DEC, arg_lh);
       $$ = (void *) ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
@@ -145,7 +166,28 @@ function_def
       arguments->data = NULL;
       arguments->next = NULL;
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_STATIC_DEC);
+
+      /* create linked list of argument types */
+      heap_list_head *arg_lh;
+      malloc_checked(arg_lh);
+      ast_list* tmp = arguments;
+      while(tmp->data != NULL){
+        heap_list *new_arg;
+        malloc_checked(new_arg);
+        new_arg->data = (void *) tmp->data->type;
+
+        if (arg_lh->head == NULL){
+          arg_lh->head = new_arg;
+        } else {
+          arg_lh->tail->next = new_arg;
+        }
+
+        arg_lh->tail = new_arg;
+
+        tmp = tmp->next;
+      }
+
+      symtab_insert(st, $2, t, ST_STATIC_DEC, arg_lh);
       $$ = (void *) ast_add_internal_node( $2, body, AST_NODE_FUNCTION_DEF, st, cur_scope );
 
     }
@@ -178,7 +220,7 @@ arg_list
   : type IDENTIFIER
     {
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
       ast *leaf = ast_create_leaf($2, t, st, cur_scope);
       leaf->flag = 1;
 
@@ -192,7 +234,7 @@ arg_list
   | type IDENTIFIER COMMA arg_list
     {
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
       ast *leaf = ast_create_leaf($2, t, st, cur_scope);
       leaf->flag = 1;
 
@@ -530,7 +572,7 @@ declaration
     {
       /* add to symtab and then create node */
       ast_type t = (ast_type) $1;
-      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
 
       /* add to threadtab if necessary */
       if ((ast_type) $$ == AST_THREAD){
@@ -566,7 +608,7 @@ declaration
         threadtab_insert(tb, create_thread_data($2, size));
       }
 
-      symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
+      symtab_insert(st, $2, t, ST_NONSTATIC_DEC, NULL);
       ast *leaf = ast_create_array_leaf($2, size, t, st, cur_scope );
 
       ast_list *ident;
@@ -603,7 +645,7 @@ lvalue
   : type IDENTIFIER 
     { 
       ast_type t = (ast_type) $1;
-      symtab_insert( st, $2, t, ST_NONSTATIC_DEC );
+      symtab_insert( st, $2, t, ST_NONSTATIC_DEC, NULL);
       $$ = (void *) ast_create_leaf( $2, t, st, cur_scope );
       free($2);
     }
@@ -819,11 +861,23 @@ int main( int argc, char *argv[] )
   lt = locktab_init();
   symtab_set_threadtab(st, tb);
 
-  /* pre-install printOut */
-  symtab_insert( st, "printOut", AST_VOID, ST_STATIC_DEC);
-  symtab_insert( st, "printInt", AST_VOID, ST_STATIC_DEC);
-
   cur_scope = symtab_open_scope(st, SCOPE_GLOBAL);
+  
+  /* pre-install printOut */
+  /* create linked list of argument types */
+  heap_list_head *po_arg_lh;
+  malloc_checked(po_arg_lh);
+  ast *po_ast_type = ast_create_leaf(NULL, AST_STRING, st, cur_scope);
+  heap_list_add(hList, po_ast_type);
+  symtab_insert( st, "printOut", AST_VOID, ST_STATIC_DEC, po_arg_lh);
+
+  /* create linked list of argument types */
+  heap_list_head *pi_arg_lh;
+  malloc_checked(pi_arg_lh);
+  ast *pi_ast_type = ast_create_leaf(NULL, AST_INT, st, cur_scope);
+  heap_list_add(hList, pi_ast_type);
+  symtab_insert( st, "printInt", AST_VOID, ST_STATIC_DEC, pi_arg_lh);
+
 
   strcpy(errmsg,"type error\n");
 

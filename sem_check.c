@@ -143,8 +143,8 @@ void check_func_call(ast *a, symtab *st){
 		a->type = symtab_entry_get_type(lookup);
 
 		//get the function's node
-		ast* function_node = getfunction(name);
-		struct ast_list_s *declaredargs = function_node->data.func_def.arguments;
+		//ast* function_node = getfunction(name);
+		struct ast_list_s *declaredargs = symtab_entry_get_ptr(lookup);// function_node->data.func_def.arguments;
 		struct ast_list_s *args = a->data.func_call.arguments;
 
 		if (arglist_compare(declaredargs, args) != 1) {

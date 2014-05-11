@@ -69,7 +69,7 @@ struct ast_spawn_var_ptr{
  }
 
  ast *ast_create_leaf (char *value, ast_type type, symtab *symbol_table, scope *cur_scope) {
- 	assert(value != NULL);
+ 	//assert(value != NULL);
  	assert(type != AST_NULL);
  	assert(symbol_table != NULL);
  	assert(cur_scope != NULL);
@@ -83,6 +83,10 @@ struct ast_spawn_var_ptr{
  	new_leaf->type = type;
  	new_leaf->containing_scope = cur_scope;
 	new_leaf->data.convert_to_ptr = 0; /* default no change */
+
+ 	if (value == NULL){
+ 		return new_leaf;
+ 	}
 
  	switch(type){
  		case AST_STRINGLITERAL:
@@ -331,7 +335,7 @@ struct ast_spawn_var_ptr{
 	/* prepare function call */
  	char func_name[MAX_IDENT_LENGTH + 1];
  	snprintf(func_name, sizeof func_name, SPAWN_FUNC_FORMAT, td->offset);
- 	symtab_insert(st, func_name, AST_VOID_STAR, ST_STATIC_DEC);
+ 	symtab_insert(st, func_name, AST_VOID_STAR, ST_STATIC_DEC, NULL);
 
  	ast_list *body;
  	ast_list *arguments;
@@ -647,7 +651,7 @@ struct ast_spawn_var_ptr{
 	ast **ast_create_node_func_call(ast **a, ast_list *children, char *name,
 		symtab *symbol_table, scope *cur_scope){
 		(*a)->data.func_call.arguments = children;
-		
+
 		strncpy((*a)->data.func_call.name, name, MAX_IDENT_LENGTH);
 		(*a)->data.func_call.name[MAX_IDENT_LENGTH] = '\0';
 		//(*a)->data.func_call.func_symtab = symtab_lookup(symbol_table, name, cur_scope);

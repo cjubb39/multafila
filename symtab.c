@@ -150,7 +150,7 @@ uint16_t symtab_entry_hash(char *symbol_name){
 	return (hash % SYMTAB_SCOPE_ARRAY_SIZE);
 }
 
-struct symtab_entry_s *symtab_create_entry(char *symbol_name, ast_type type){
+struct symtab_entry_s *symtab_create_entry(char *symbol_name, ast_type type, void *ptr){
 	struct symtab_entry_s *new_entry;
 	malloc_checked(new_entry);
 
@@ -158,6 +158,7 @@ struct symtab_entry_s *symtab_create_entry(char *symbol_name, ast_type type){
 	memset(new_entry, 0, sizeof(*new_entry));
 	strncpy(new_entry->name, symbol_name, MAX_IDENT_LENGTH);
 	new_entry->type = type;
+	new_entry->ptr = ptr;
 
 	return new_entry;
 }
@@ -167,7 +168,7 @@ struct symtab_entry_s *symtab_create_entry(char *symbol_name, ast_type type){
  *	Returns negative on error
  */
 int symtab_insert(symtab *symbol_table, char *symbol_name_in, ast_type type,
-		unsigned int static_dec){
+		unsigned int static_dec, void *ptr){
 	assert(symbol_name_in != NULL);
 	assert(*symbol_name_in != '\0');
 	assert(symbol_table != NULL);
@@ -181,7 +182,7 @@ int symtab_insert(symtab *symbol_table, char *symbol_name_in, ast_type type,
 	struct symtab_scope *cur_scope = (static_dec) ?
 		symbol_table->head : symbol_table->cur_scope;
 	struct symtab_entry_s **add_point = &cur_scope->data[symtab_entry_hash(symbol_name)];
-	struct symtab_entry_s *new_entry = symtab_create_entry(symbol_name, type);
+	struct symtab_entry_s *new_entry = symtab_create_entry(symbol_name, type, ptr);
 
 	if (type == AST_THREAD){
 		new_entry->thread = 1;
@@ -293,6 +294,10 @@ ast_type symtab_entry_get_type(symtab_entry *entry){
 
 char* symtab_entry_get_name(symtab_entry *entry){
 	return entry->name;
+}
+
+void* symtab_entry_get_ptr(symtab_entry *entry){
+	return entry->ptr;
 }
 
 void symtab_set_threadtab(symtab *symbol_table, threadtab *thread_table){

@@ -13,12 +13,12 @@
 #include "include/symtab_structs.h"
 #include "include/sem_check.h"
 
-extern symtab *st;
-extern int errorcount = 0;
-extern ast* fuction_def_node = NULL;
-extern ast* function_list = NULL;
-
 void check_ast (ast *a);
+void check_stmt (ast *a);
+
+int errorcount = 0;
+ast* fuction_def_node = NULL;
+ast* function_list = NULL;
 
 
 ast* getfunction(char *name){
@@ -75,8 +75,8 @@ int arglist_compare(struct ast_list_s* a, struct ast_list_s* b) {
 		{  
 			return 0; 
 		}
-		s =  a->next;
-		s1 = b->next;	
+		s =  a->next->data->data.symtab_ptr;
+		s1 = b->next->data->data.symtab_ptr;	
 	}
 }
 
@@ -98,7 +98,7 @@ void check_func_call(ast *a){
 	// get symbol name
 	symtab_entry *s = a->data.func_call.func_symtab;
 	char *name = symtab_entry_get_name(s);
-	symtab_entry *lookup = symtab_search_scope(st, name, a->containing_scope);
+	symtab_entry *lookup = symtab_lookup(st, name, a->containing_scope);
 
 	// check the return type matches the declaration type
 	if (lookup == NULL) {
@@ -141,13 +141,12 @@ void check_spawn(ast *a){
 		printf("cannot spawn an undeclared thread");
 		errorcount++;
 	}
-	
-	check_stmt(a->data.spawn.body);
+	ast *spawnbody = a->data.spawn.body;
+	check_stmt(spawnbody);
 }
 
 /* binary node checker */
 void check_bin(ast *a){
-	ast *a_left = a->data.bin.left;
 	ast *a_right = a->data.bin.right;
 	symtab_entry *s1 = a->data.bin.left->data.symtab_ptr;
 	ast_type t1 = symtab_entry_get_type(s1);
@@ -157,7 +156,7 @@ void check_bin(ast *a){
 
 	/* if t2 is a AST_NULL type, check to see if it's another bin_node or func_call */
 	if( t2 == AST_NULL){
-		ast_node_type t2n = symtab_entry_get_node_type(s2);
+		ast_node_type t2n = ast_get_node_type(a_right);
 		if (t2n == AST_NODE_BINARY){
 			check_bin(a_right);
 		} else if (t2n == AST_NODE_FUNCTION_CALL){
@@ -302,23 +301,22 @@ void check_ast(ast *a){
 	if (t == AST_NULL){
 		ast_node_type t2n = ast_get_node_type(a);
 		switch(t2n){
+			case AST_NODE_FUNCTION_LIST:
+				check_func_list(a);
+				break;
 
-		case AST_NODE_FUNCTION_LIST:
-			check_func_list(a);
-			break;
+			case AST_NODE_FUNCTION_DEF: 
+				check_func_def(a);
+				break;
 
-		case AST_NODE_FUNCTION_DEF: 
-			check_func_def(a);
-			break;
-
-		case AST_NODE_STATEMENT:
-			check_stmt(a);
-			break;
-		default:
-			break;
+			case AST_NODE_STATEMENT:
+				check_stmt(a);
+				break;
+			default:
+				break;
+		}
 	}
 }
-
 void sem_check(ast *a){
 	check_ast(a);
 	if(errorcount == 0){

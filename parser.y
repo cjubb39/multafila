@@ -555,7 +555,7 @@ declaration
     }
   | type IDENTIFIER LBRACK INTEGER RBRACK
     {
-      ast_type t;
+      ast_type t = AST_NULL;
       int size = (int) atoi($4);
 
       if ( (ast_type) $1 == AST_CHAR ) {

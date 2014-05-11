@@ -22,24 +22,22 @@ int errorcount = 0;
 ast* function_def_node = NULL;
 ast* function_list = NULL;
 
-
 ast* getfunction(char *name){
 	ast* func = function_list->data.func_list.cur_func;
 	symtab_entry *s = func->data.func_def.func_symtab;
 	char *function_name = symtab_entry_get_name(s);
-	if(strcmp(name,function_name)){
+	if(strcmp(name,function_name)==0){
 		return func;
 	}
 
-	func = function_list->data.func_list.next_func;
-	while(func->data.func_list.cur_func != NULL){
-		s = func->data.func_list.cur_func->data.func_def.func_symtab;
+	ast* func_list = function_list->data.func_list.next_func;
+	while(func_list->data.func_list.cur_func != NULL){
+		s = func_list->data.func_list.cur_func->data.func_def.func_symtab;
 		function_name = symtab_entry_get_name(s);
-	
-		if(strcmp(name,function_name)){
-			return func->data.func_list.cur_func;
+		if(strcmp(name,function_name)==0){
+			return func_list->data.func_list.cur_func;
 		}
-		func = func->data.func_list.next_func;
+		func_list = func_list->data.func_list.next_func;
 	}
 	return NULL;
 }
@@ -80,31 +78,41 @@ int are_equivalent(ast_type i, ast_type j){
 
 /* returns 0 if arg lists are not of the same size or have different types */
 int arglist_compare(struct ast_list_s* a, struct ast_list_s* b) {
-	while (1) {
-		symtab_entry *s = a->data->data.symtab_ptr;
-		symtab_entry *s1 = b->data->data.symtab_ptr;
 
-		if(s == NULL && s1 == NULL)     
-		{  
-			return 1; 
-		}
-		if(s == NULL && s1 != NULL)  
-		{  
+	ast* a_node = a->data;
+	ast* b_node = b->data;
+
+	while (a_node != NULL) {
+
+		if (b_node == NULL){  
 			return 0; 
 		}
-		if(s != NULL && s1 == NULL)  
-		{  
+
+		ast_type a_type = a_node->type;
+		ast_type b_type = b_node->type;
+
+		printf ("Fuck-AA: 0x%x\n", (unsigned int)a_type);
+		printf ("Fuck-bb: 0x%x\n", (unsigned int)b_type);
+
+		if (!are_equivalent(a_type, b_type)) {  
 			return 0; 
 		}
-		ast_type t = symtab_entry_get_type(s);
-		ast_type t1 = symtab_entry_get_type(s1);
-		if(!are_equivalent(t, t1))
-		{  
-			return 0; 
+
+		a = a->next;
+		b = b->next;
+
+		if (a != NULL && b != NULL) {
+			a_node = a->data;
+			b_node = b->data;
+		} else {
+			break;
 		}
-		s =  a->next->data->data.symtab_ptr;
-		s1 = b->next->data->data.symtab_ptr;	
 	}
+
+	if (a_node == NULL && b_node != NULL){  
+		return 0; 
+	}	
+	return 1;
 }
 
 void check_func_list(ast *a, symtab *st){
@@ -137,8 +145,7 @@ void check_func_call(ast *a, symtab *st){
 
 		//get the function's node
 		ast* function_node = getfunction(name);
-
-		struct ast_list_s *declaredargs = function_node->data.func_call.arguments;
+		struct ast_list_s *declaredargs = function_node->data.func_def.arguments;
 		struct ast_list_s *args = a->data.func_call.arguments;
 
 		if (arglist_compare(declaredargs, args) != 1) {
@@ -198,29 +205,42 @@ void check_lock(ast *a, symtab *st){
 }
 
 /* binary node checker */
-void check_bin(ast *a){
+void check_bin(ast *a, symtab *st){
 	ast *a_right = a->data.bin.right;
 	symtab_entry *s1 = a->data.bin.left->data.symtab_ptr;
 	ast_type t1 = symtab_entry_get_type(s1);
 
 	symtab_entry *s2 = a->data.bin.right->data.symtab_ptr;
 	ast_type t2 = symtab_entry_get_type(s2);
+	check_stmt_level(a_right, st);
 
-	/* if t2 is a AST_NULL type, check to see if it's another bin_node or func_call */
-	if( t2 == AST_NULL){
-		ast_node_type t2n = ast_get_node_type(a_right);
-		if (t2n == AST_NODE_BINARY){
-			check_bin(a_right);
-		} else if (t2n == AST_NODE_FUNCTION_CALL){
-			symtab_entry *s = a->data.func_call.func_symtab;
-			/* check func return type, see if it matches lvalue */
-			ast_type t3 = symtab_entry_get_type(s);
-			if (are_equivalent(t1, t3) != 0){
-				printf("return type does not match declaration\n");
-				errorcount++;
-			}
+	ast_node_type t2n = ast_get_node_type(a_right);
+	if (t2n == AST_NODE_FUNCTION_CALL){
+		symtab_entry *s = a_right->data.func_call.func_symtab;
+		/* check func return type, see if it matches lvalue */
+		ast_type t3 = symtab_entry_get_type(s);
+		if (are_equivalent(t1, t3) != 0){
+			printf("return type does not match declaration\n");
+			errorcount++;
 		}
 	}
+
+	// /* if t2 is a AST_NULL type, check to see if it's another bin_node or func_call */
+	// if( t2 == AST_NULL){
+	// 	ast_node_type t2n = ast_get_node_type(a_right);
+	// 	if (t2n == AST_NODE_BINARY){
+	// 		check_bin(a_right, st);
+	// 	} else if (t2n == AST_NODE_FUNCTION_CALL){
+	// 		check_stmt_level(a, st);
+	// 		symtab_entry *s = a->data.func_call.func_symtab;
+	// 		/* check func return type, see if it matches lvalue */
+	// 		ast_type t3 = symtab_entry_get_type(s);
+	// 		if (are_equivalent(t1, t3) != 0){
+	// 			printf("return type does not match declaration\n");
+	// 			errorcount++;
+	// 		}
+	// 	}
+	// }
 
 	if (are_equivalent(t1, t2) == 0){
 		printf("binary node error, not an integer\n");
@@ -296,11 +316,11 @@ void check_stmt_level(ast *a, symtab *st){
 	//ast_type t = ast_get_type(body);
 	// if (t == AST_NULL){
 	 	ast_node_type t2n = ast_get_node_type(body);
-
+	 	printf("{%d}\n", t2n);
 		switch(t2n){
 
 		case AST_NODE_BINARY:
-			check_bin(body);
+			check_bin(body,st);
 			break;
 
 		case AST_NODE_UNARY:

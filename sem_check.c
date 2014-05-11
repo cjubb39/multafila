@@ -16,6 +16,7 @@
 extern symtab *st;
 extern int errorcount = 0;
 extern ast* fuction_def_node = NULL;
+extern ast* function_list = NULL;
 
 void check_ast (ast *a);
 
@@ -60,6 +61,7 @@ int arglist_compare(struct ast_list_s* a, struct ast_list_s* b) {
 void check_func_list(ast *a){
 	check_ast(a->data.func_list.cur_func);
 	check_ast(a->data.func_list.next_func);
+	fuction_list = a;
 }
 
 void check_func_def(ast *a){
@@ -74,7 +76,6 @@ void check_func_call(ast *a){
 	// get symbol name
 	symtab_entry *s = a->data.func_call.func_symtab;
 	char *name = s->name;
-	symtab_entry *lookup = symtab_lookup(st, name, a->containing_scope);
 
 	// check the return type matches the declaration type
 	if (lookup == NULL) {
@@ -83,7 +84,11 @@ void check_func_call(ast *a){
 	}
 	// check that the arguments in the function call match the declared function
 	else {
-		struct ast_list_s *declaredargs = lookup->data.func_call.arguments;
+
+		//get the fuction's node
+		ast* fuction_node = getfunction(name);
+
+		struct ast_list_s *declaredargs = fuction_node->data.func_call.arguments;
 		struct ast_list_s *args = a->data.func_call.arguments;
 
 		if (arglist_compare(declaredargs, args) != 1) {
@@ -92,6 +97,27 @@ void check_func_call(ast *a){
 		}
 	}
 
+}
+
+ast* getfunction(char *name){
+	ast* func = function_list->cur_func;
+	symtab_entry *s = func->data.func_def.func_symtab;
+	char *function_name = symtab_entry_get_name(s);
+	if(strcmp(name.function_name)){
+		return func;
+	}
+
+	func = function_list->next_func;
+	while(func->cur_func != NULL){
+		*s = func->cur_func.data.func_def.func_symtab;
+		function_name = symtab_entry_get_name(s);
+	
+		if(strcmp(name.function_name)){
+			return func->cur_func;
+		}
+		func = func->next_func;
+	}
+	return NULL;
 }
 
 void check_return(ast* a){

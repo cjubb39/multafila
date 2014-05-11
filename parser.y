@@ -468,9 +468,7 @@ lock_statement
       heap_list_malloc(hList, args);
 
       body->data = (ast *) $5; 
-      body->next = args;
-      args->data = (ast *) $3;
-      args->next = NULL;
+      body->next = (ast_list *) $3;
 
       $$ = (void *) ast_add_internal_node(NULL, body, AST_NODE_LOCK, st, cur_scope);
     }

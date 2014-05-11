@@ -386,6 +386,7 @@ ast **ast_create_node_lock(ast **a, ast_list *children){
 	/* insert params into locktab */
 	ast_list *tmp = children->next;
 	while (tmp != NULL){
+		assert(tmp->data->node_type == AST_NODE_LEAF);
 		locktab_insert(lt, tmp->data->data.symtab_ptr);
 		tmp = tmp->next;
 	}

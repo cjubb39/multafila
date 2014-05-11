@@ -91,9 +91,6 @@ int arglist_compare(struct ast_list_s* a, struct ast_list_s* b) {
 		ast_type a_type = a_node->type;
 		ast_type b_type = b_node->type;
 
-		printf ("Fuck-AA: 0x%x\n", (unsigned int)a_type);
-		printf ("Fuck-bb: 0x%x\n", (unsigned int)b_type);
-
 		if (!are_equivalent(a_type, b_type)) {  
 			return 0; 
 		}
@@ -134,7 +131,6 @@ void check_func_call(ast *a, symtab *st){
 	symtab_entry *s = a->data.func_call.func_symtab;
 	char *name = symtab_entry_get_name(s);
 	symtab_entry *lookup = symtab_lookup(st, name, a->containing_scope);
-
 	// check the return type matches the declaration type
 	if (lookup == NULL) {
 		printf("function used without being declared\n");
@@ -207,12 +203,10 @@ void check_lock(ast *a, symtab *st){
 /* binary node checker */
 void check_bin(ast *a, symtab *st){
 	ast *a_right = a->data.bin.right;
+	check_stmt_level(a_right, st);
+
 	symtab_entry *s1 = a->data.bin.left->data.symtab_ptr;
 	ast_type t1 = symtab_entry_get_type(s1);
-
-	symtab_entry *s2 = a->data.bin.right->data.symtab_ptr;
-	ast_type t2 = symtab_entry_get_type(s2);
-	check_stmt_level(a_right, st);
 
 	ast_node_type t2n = ast_get_node_type(a_right);
 	if (t2n == AST_NODE_FUNCTION_CALL){
@@ -241,11 +235,11 @@ void check_bin(ast *a, symtab *st){
 	// 		}
 	// 	}
 	// }
-
-	if (are_equivalent(t1, t2) == 0){
-		printf("binary node error, not an integer\n");
-		errorcount++;
-	}
+	
+		if (are_equivalent(t1, t3) == 0){
+			printf("binary node error, type mismatch\n");
+			errorcount++;
+		}
 }
 
 /* unary node checker */

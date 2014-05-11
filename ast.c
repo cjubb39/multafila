@@ -177,25 +177,25 @@ struct ast_spawn_var_ptr{
 /* CREATING ARRAY LEAVES HERE */
 
 
- ast **ast_create_leaf_ca (ast **a, char *value, char *size, symtab *symbol_table, scope *cur_scope){
+ ast **ast_create_leaf_ca (ast **a, char *value, int size, symtab *symbol_table, scope *cur_scope){
  	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
  	(*a)->arraysize = size;
  	return a;
  }
 
- ast **ast_create_leaf_ia (ast **a, char *value, char *size, symtab *symbol_table, scope *cur_scope){
+ ast **ast_create_leaf_ia (ast **a, char *value, int size, symtab *symbol_table, scope *cur_scope){
  	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
  	(*a)->arraysize = size;
  	return a;
  }
 
- ast **ast_create_leaf_ta (ast **a, char *value, char *size, symtab *symbol_table, scope *cur_scope){
+ ast **ast_create_leaf_ta (ast **a, char *value, int size, symtab *symbol_table, scope *cur_scope){
  	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
  	(*a)->arraysize = size;
  	return a;
  }
 
- ast *ast_create_array_leaf (char *value, char *size, ast_type type, 
+ ast *ast_create_array_leaf (char *value, int size, ast_type type, 
  		symtab *symbol_table, scope *cur_scope, int lineno) {
  	assert(value != NULL);
 	//assert(size != 0);

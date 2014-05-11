@@ -21,6 +21,7 @@
 #include "include/ast.h"
 #include "include/symtab.h"
 #include "include/threadtab.h"
+#include "include/threadtab_structs.h"
 #include "include/locktab.h"
 #include "include/gen_code.h"
 #include "include/sem_check.h"
@@ -81,9 +82,11 @@ start_point
       function_list = (ast *) $1;
 
       fflush(stdout);
-      if ( sem_check( root, st ) == 0 ) {
+     
+      if (sem_check( root, st ) == 0){
         gen_code( root, st, tb, lt );
       }
+
       ast_destroy(root);
     }
   ;
@@ -615,7 +618,7 @@ declaration
   | type IDENTIFIER LBRACK INTEGER RBRACK
     {
       ast_type t = AST_NULL;
-      char *size = $4;
+      int size = atoi($4);
 
       if ( (ast_type) $1 == AST_CHAR ) {
         t = (ast_type) AST_CHARARRAY;
@@ -676,11 +679,7 @@ lvalue
     }
   | array
     {
-      symtab_entry *se = symtab_lookup(st, $1, cur_scope);
-      ast_type t = symtab_entry_get_type(se);
-      char *size = $3;
-
-      $$ = (void *) ast_create_array_leaf( $1, size, t, st, cur_scope, yylineno );
+      $$ = $1;
     }
   ;
 
@@ -846,18 +845,9 @@ array
     {
       symtab_entry *se = symtab_lookup(st, $1, cur_scope);
       ast_type t = symtab_entry_get_type(se);
-      char *size = $3;
+      int size = atoi($3);
 
       $$ = (void *) ast_create_array_leaf( $1, size, t, st, cur_scope, yylineno );
-    }
-  | IDENTIFIER LBRACK IDENTIFIER RBRACK
-    {
-      symtab_entry *se = symtab_lookup(st, $1, cur_scope);
-      ast_type t = symtab_entry_get_type(se);
-      char *size = $3,
-
-      $$ = (void *) ast_create_array_leaf( $1, size, t, st, cur_scope, yylineno );
-      ((ast *) $$)->type = ast_strip_array(((ast *) $$)->type);
     }
   ;
 

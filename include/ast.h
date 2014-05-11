@@ -183,5 +183,6 @@ void ast_walker(struct ast_s *, void*, void*, void(*)(struct ast_s *, void*, voi
 void blank_func(void *, void *, void *);
 
 ast *ast_insert_native_code(ast*, ast*);
+ast_type ast_strip_array(ast_type);
 
 #endif

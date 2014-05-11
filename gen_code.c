@@ -580,6 +580,7 @@ void print_leaf(ast *a){
 		case AST_INT:
 			if(a->data.convert_to_ptr == 1) printf("* ");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
+			if(a->arraysize != -1) printf("[%d]", a->arraysize);
 			break;
 
 		case AST_CHARLITERAL:
@@ -589,6 +590,7 @@ void print_leaf(ast *a){
 		case AST_CHAR:
 			if(a->data.convert_to_ptr == 1) printf("* ");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
+			if(a->arraysize != -1) printf("[%d]", a->arraysize);
 			break;
 
 		case AST_CHARARRAY:
@@ -610,6 +612,7 @@ void print_leaf(ast *a){
 		case AST_BOOLEAN:
 			if(a->data.convert_to_ptr == 1) printf("* ");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));		
+			if(a->arraysize != -1) printf("[%d]", a->arraysize);
 			break;
 
 		case AST_BOOLEANLITERAL:

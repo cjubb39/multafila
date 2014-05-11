@@ -800,6 +800,7 @@ ident
           "identifier %s not found: line %d", (char *) $1, yylineno);
         yyerror(errmsg);
         memset(errmsg, 0, sizeof errmsg);
+        exit(1);
       }
       
       ast_type t = symtab_entry_get_type(se);

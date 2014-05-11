@@ -883,7 +883,7 @@ struct ast_spawn_var_ptr{
  			free(tree->data.spawn.body->data.func_def.body);
  			ast_destroy_helper_ast_list(tree->data.spawn.body->data.func_def.arguments);
  			free(tree->data.spawn.body);
- 			free(tree->data.spawn.arguments);
+ 			//free(tree->data.spawn.arguments);
  			break;
  		}
  		ast_destroy_helper(tree->data.spawn.arguments);

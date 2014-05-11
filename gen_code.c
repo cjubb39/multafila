@@ -723,7 +723,6 @@ void gen_code(ast *a, symtab *st, threadtab *tb, locktab *lt){
 	  /*  if (dup2(pipeFileDescriptors[1], STDERR_FILENO) != STDERR_FILENO)
 	        die("dup2 error: ls to pipe stderr");*/
 	    close(pipeFileDescriptors[1]);
-
 			printf("\n/*==========OUTPUT CODE BELOW==========*/\n");
 			print_headers(a);
 			print_locktab(lt, a);

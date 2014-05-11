@@ -978,6 +978,6 @@ int yywrap()
 
 int yyerror(char * msg)
 { 
-  fprintf(stderr,"%s\n",msg);
+  fprintf(stderr,"%s on line %d\n",msg, yylineno);
   return 0;
 }

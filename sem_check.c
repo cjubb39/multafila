@@ -274,21 +274,21 @@ void check_unary(ast *a){
 /* while loop checker */
 void check_while(ast *a, symtab *st){
 
-	char eq[] = "==";
-	char neq[] = "!=";
-	char gt[] = ">";
-	char lt [] = "<";
-	char geq [] = ">=";
-	char leq [] = "<=";
+	// char eq[] = "==";
+	// char neq[] = "!=";
+	// char gt[] = ">";
+	// char lt [] = "<";
+	// char geq [] = ">=";
+	// char leq [] = "<=";
 
 	/* should also check for funcs that return boolean?? */
-	char *c = a->data.while_statement.conditional_statement->data.bin.op;
+	// char *c = a->data.while_statement.conditional_statement->data.bin.op;
 	ast *a_while_body = a->data.while_statement.body; /* get while symt body */
 
-	if( strcmp(c, eq) == 0 || strcmp(c, neq) == 0 ||strcmp(c, gt) == 0 || strcmp(c, lt) == 0 || strcmp(c, geq) == 0 || strcmp(c, leq) == 0){
-		printf("condition in while loop is not a boolean expression\n");
-		errorcount++;
-	} 
+	// if( strcmp(c, eq) == 0 || strcmp(c, neq) == 0 ||strcmp(c, gt) == 0 || strcmp(c, lt) == 0 || strcmp(c, geq) == 0 || strcmp(c, leq) == 0){
+	// 	printf("condition in while loop is not a boolean expression\n");
+	// 	errorcount++;
+	// } 
 	check_stmt_level(a_while_body, st);
 }
 

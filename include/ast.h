@@ -22,6 +22,7 @@ typedef enum {
 	AST_NODE_CONDITIONAL,
 	AST_NODE_WHILE,
 	AST_NODE_SPAWN,
+	AST_NODE_FOR,
 	AST_NODE_BARRIER,
 	AST_NODE_UNARY,
 	AST_NODE_NATIVE_CODE,
@@ -65,7 +66,7 @@ typedef struct ast_s {
 		struct ast_unary_math unary;
 		struct ast_return_node ret;
 		struct ast_lock_node lock;
-
+		struct ast_for_node for_statement;
 	} data;
 } ast;
 

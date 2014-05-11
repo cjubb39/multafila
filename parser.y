@@ -432,7 +432,25 @@ while_statement
 for_statement
   : FOR LPAREN assignment SEMI rel_expr SEMI unary_math RPAREN statement_list
     {
-      fprintf(stderr, "FOR STATEMENT 1: NOT YET IMPLEMENTED\n");
+      ast_list *assignment, *relexpr, *unary, *body;
+      heap_list_malloc(hList, assignment);
+      heap_list_malloc(hList, relexpr);
+      heap_list_malloc(hList, unary);
+      heap_list_malloc(hList, body);
+
+      assignment->data = (ast *) $3;
+      assignment->next = relexpr;
+
+      relexpr->data = (ast *) $5;
+      relexpr->next = unary;
+
+      unary->data = (ast *) $7;
+      unary->next = body;
+
+      body->data = (ast *) $9;
+      body->next = NULL;
+
+      $$ = (void *) ast_add_internal_node( $1, assignment, AST_NODE_FOR, st, cur_scope);
     }
   ;
 

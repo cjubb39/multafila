@@ -53,6 +53,13 @@ struct ast_while_node {
 	struct ast_s *body;
 };
 
+struct ast_for_node {
+	struct ast_s *assignment;
+	struct ast_s *relexpr;
+	struct ast_s *unary;
+	struct ast_s *body;	 
+};
+
 struct ast_spawn_node {
 	struct ast_s *arguments;
 	struct ast_s *body;

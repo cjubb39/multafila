@@ -1,3 +1,12 @@
+
+/*
+ *	Module for semantically checking an abstract syntax tree for multafila, 
+ *	a language focusing on making multithreading easy and intuitive.
+ *	
+ *	<authors>
+ *	
+ */
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

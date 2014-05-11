@@ -135,7 +135,8 @@ void print_threadtab_func(ast *a){
 	while((tmp = args_struct->data) != NULL){
 		se = tmp->data.symtab_ptr;
 		printf("\t%s", get_ast_type(symtab_entry_get_type(se)));
-		printf(" * arg_t%d_%s;\n", \
+		printf(" %c arg_t%d_%s;\n", \
+			(tmp->data.convert_to_ptr == 1) ? '*' : ' ', \
 			t_index, symtab_entry_get_name(se));
 
 		args_struct = args_struct->next;
@@ -166,9 +167,11 @@ void print_threadtab_func(ast *a){
 	while ((tmp = args_struct->data) != NULL){
 		se = tmp->data.symtab_ptr;
 
-		snprintf(buffer2, sizeof buffer2, "%s * %s = args_t%d->arg_t%d_%s;\n",
+		snprintf(buffer2, sizeof buffer2, "%s %c %s = %cargs_t%d->arg_t%d_%s;\n",
 			get_ast_type(symtab_entry_get_type(se)),
+			(tmp->data.convert_to_ptr == 1) ? '*' : ' ',
 			symtab_entry_get_name(se),
+			(tmp->data.convert_to_ptr == 1) ? '&' : ' ',
 			t_index,
 			t_index,
 			symtab_entry_get_name(se)
@@ -344,6 +347,7 @@ void print_stmt(ast *a){
 		printf("{\n");
 		print_ast(a->data.stmt.body);
 		printf("}\n");
+		print_ast(a->data.stmt.next);
 	}
 }
 
@@ -377,8 +381,10 @@ void print_spawn(ast *a){
 	
 	while((tmp = args_struct->data) != NULL){
 		se = tmp->data.symtab_ptr;
-		printf("args_t%d_struct.arg_t%d_%s = &%s;\n",
-			t_index, t_index, symtab_entry_get_name(se), symtab_entry_get_name(se));
+		printf("args_t%d_struct.arg_t%d_%s = %c %s;\n",
+			t_index, t_index, symtab_entry_get_name(se), 
+			(tmp->data.convert_to_ptr == 1) ? '&' : ' ',
+			symtab_entry_get_name(se));
 
 /*
 		printf(" %s", get_ast_type(symtab_entry_get_type(se)));
@@ -615,6 +621,10 @@ void print_ast(ast *a){
 
 		case AST_NODE_LOCK:
 			print_lock(a);
+			break;
+
+		case AST_NODE_PFOR:
+			assert(1); /* should be restructered earlier */
 			break;
 
 		default:

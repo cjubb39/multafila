@@ -10,8 +10,9 @@ int main(){
 	thread threads[5];
 	
 	pfor(threads, i, 0){
-		lock(result);
-		result = x[i] + y[i];
+		lock(result){
+			result = x[i] + y[i];
+		}
 	}
 	
 	printOut(result);

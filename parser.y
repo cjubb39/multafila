@@ -76,7 +76,6 @@ start_point
       if ( sem_check( root, st ) == 0 ) {
         gen_code( root, st, tb, lt );
       }
-			
       ast_destroy(root);
     }
   ;

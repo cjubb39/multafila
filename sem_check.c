@@ -7,6 +7,7 @@
  *  Zeynep Toraman
  *	Alessandra Castro Poblador
  *  Aiden Yang	
+ * 	Chae Jubb
  * 
  */
  

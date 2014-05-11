@@ -126,8 +126,9 @@ struct ast_spawn_var_ptr{
 
 /* CREATING ARRAY LEAVES HERE */
 
- ast **ast_create_leaf_ca (ast **a, char *value, symtab *symbol_table, scope *cur_scope){
+ ast **ast_create_leaf_ca (ast **a, char *value, int size, symtab *symbol_table, scope *cur_scope){
  	(*a)->data.symtab_ptr = symtab_lookup(symbol_table, value, cur_scope);
+ 	(*a)->data.arraysize = size;
  	return a;
  }
 
@@ -156,7 +157,7 @@ struct ast_spawn_var_ptr{
 
  	switch(type){
  		case AST_CHARARRAY:
- 		ast_create_leaf_ca(&new_leaf, value, symbol_table, cur_scope );
+ 		ast_create_leaf_ca(&new_leaf, value, size, symbol_table, cur_scope );
  		break;
 
  		case AST_CHARARRAYLITERAL:

@@ -525,18 +525,15 @@ declaration
     }
   | type IDENTIFIER LBRACK INTEGER RBRACK
     {
+      printf("hello");
       ast_type t;
-      int size;
+      int size = (int) atoi($4);
       if ( (ast_type) $1 == AST_CHAR ) {
         t = AST_CHARARRAY;
-        size = sizeof(char) * (int) atoi($4);
-       } else if ( (ast_type) $1 == AST_INT ) {
-        t = AST_INTARRAY;
-        size = sizeof(int) * (int) atoi($4);
       }
 
       symtab_insert(st, $2, t, ST_NONSTATIC_DEC);
-      ast* leaf = ast_create_array_leaf($2, size, t, st, cur_scope);
+      ast *leaf = ast_create_array_leaf($2, size, t, st, cur_scope );
 
       ast_list *ident;
       heap_list_malloc(hList, ident);

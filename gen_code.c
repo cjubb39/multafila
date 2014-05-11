@@ -239,6 +239,14 @@ char* get_ast_type(ast_type at){
 			return "";
 			break; /* taken care of separately */
 
+		case AST_CHAR:
+			return "char";
+			break;
+
+		case AST_CHARARRAY:
+			return "char ";
+			break;
+
 		default:
 			return "";
 			break;
@@ -535,6 +543,15 @@ void print_leaf(ast *a){
 		case AST_CHAR:
 			if(a->data.convert_to_ptr == 1) printf("* ");
 			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
+			break;
+
+		case AST_CHARARRAY:
+			if(a->data.convert_to_ptr == 1) printf("* ");
+			      printf("1hello");
+			printf( "%s", symtab_entry_get_name(a->data.symtab_ptr));
+			printf( "[");
+			printf( "%d", (a->data.arraysize) );
+			printf( "]");
 			break;
 			
 		default:

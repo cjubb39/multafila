@@ -42,9 +42,12 @@ typedef struct ast_s {
 		char *string;
 		char *character;
 		double doub;
+
+		/* for arrays*/
 		int *intarray;
 		char *chararray;
 		char **stringarray;
+		int arraysize;
 		/* for variable names */
 		struct{
 			symtab_entry *symtab_ptr;

@@ -83,7 +83,9 @@ start_point
 
       fflush(stdout);
      
+      //if ( sem_check( root, st ) == 0 ) {
         gen_code( root, st, tb, lt );
+      //}
 
       ast_destroy(root);
     }
@@ -646,8 +648,6 @@ declaration
 assignment
   : lvalue assignop rvalue 
     { 
-      printf("entering assignemnt");
-
       ast_list *lh;
       ast_list *rh;
       heap_list_malloc(hList, lh);
@@ -668,7 +668,6 @@ assignment
 lvalue 
   : type IDENTIFIER 
     { 
-      printf("entering lvalue 1");
       ast_type t = (ast_type) $1;
       symtab_insert( st, $2, t, ST_NONSTATIC_DEC, NULL);
       $$ = (void *) ast_create_leaf( $2, t, st, cur_scope, yylineno );
@@ -676,12 +675,10 @@ lvalue
     }
   | ident
     {
-      printf("entering lvalue 2");
       $$ = $1;
     }
   | IDENTIFIER LBRACK INTEGER RBRACK
     {
-      printf("entering lvalue 3");
 
       char *size = $4;
       symtab_entry *se = symtab_lookup(st, $1, cur_scope);

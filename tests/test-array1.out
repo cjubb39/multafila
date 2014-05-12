@@ -8,7 +8,6 @@ typedef int mf_bool;
 void printOut(char *m){printf("%s\n", m);}
 void printInt(int m){printf("%d\n", m);}
 
-int mul_helper (  int x,  int y );
 int main (  );
 
 pthread_mutex_t global_lock;
@@ -19,12 +18,6 @@ struct global_lock_struct_s{
 } global_lock_struct;
 
 pthread_t global_threads [0];
-int mul_helper (  int x,  int y )
-{
-result = x * y ;
-return result ;
-}
-
 int main (  )
 {
 
@@ -33,10 +26,16 @@ pthread_mutex_init( & global_lock , NULL);
 pthread_cond_init( & global_cond , NULL);
 }
  ;
-i = 4 ;
-j = 7 ;
-mul = mul_helper( i, j ) ;
-printOut( mul ) ;
+int   x[2] ;
+int   y[2] ;
+(null) = 1 ;
+(null) = 2 ;
+(null) = 3 ;
+(null) = 4 ;
+(null) = 5 ;
+(null) = 6 ;
+result = (null) + (null) ;
+printOut( result ) ;
 return 1 ;
 }
 

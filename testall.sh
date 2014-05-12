@@ -73,7 +73,7 @@ Check() {
 	if [ $keep -eq 0 ] ; then
 	    rm -f $generatedfiles
 	fi
-	echo "OK"
+	echo "PASSED"
 	echo "###### SUCCESS" 1>&2
     else
 	echo "###### FAILED" 1>&2

@@ -4,8 +4,8 @@
 int mul_helper(int x, int y){
 	int result = x * y;
 	return result;
-
 }
+
 int main(){
 
 	int i = 4;
